@@ -853,3 +853,132 @@ body {
 [data-aos="fade-left"].aos-animate {
     transform: translateX(0);
 }
+
+/* Team Section */
+.team {
+    padding: 100px 20px;
+    background: #ffffff;
+}
+
+.team .section-title {
+    text-align: center;
+    font-size: 48px;
+    font-weight: 700;
+    color: #1d1d1f;
+    margin-bottom: 80px;
+}
+
+/* Founder - Featured Larger */
+.team-founder {
+    display: flex;
+    gap: 60px;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto 100px;
+    padding: 0 40px;
+}
+
+.team-founder-image-container {
+    flex-shrink: 0;
+}
+
+.team-founder-image {
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.team-founder-content {
+    flex: 1;
+}
+
+.team-founder-name {
+    font-size: 36px;
+    font-weight: 700;
+    color: #1d1d1f;
+    margin-bottom: 8px;
+}
+
+.team-founder-title {
+    font-size: 20px;
+    color: #0071e3;
+    font-weight: 600;
+    margin-bottom: 24px;
+}
+
+.team-founder-bio p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: #1d1d1f;
+    margin-bottom: 16px;
+}
+
+/* Team Members - Side by Side */
+.team-members {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 40px;
+}
+
+.team-member {
+    text-align: center;
+}
+
+.team-member-image-container {
+    margin-bottom: 24px;
+}
+
+.team-member-image {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.team-member-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1d1d1f;
+    margin-bottom: 8px;
+}
+
+.team-member-title {
+    font-size: 16px;
+    color: #0071e3;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.team-member-bio {
+    text-align: left;
+}
+
+.team-member-bio p {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #1d1d1f;
+    margin-bottom: 12px;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+    .team-founder {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .team-members {
+        grid-template-columns: 1fr;
+        gap: 60px;
+    }
+    
+    .team-member-bio {
+        text-align: center;
+    }
+}
