@@ -115,7 +115,7 @@ body {
 /* Hero Section */
 .hero {
     position: relative;
-    height: 100vh;
+    height: 80vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -174,19 +174,6 @@ body {
         0 5px 10px rgba(0, 0, 0, 0.25),
         0 10px 20px rgba(0, 0, 0, 0.2),
         0 20px 40px rgba(0, 0, 0, 0.15);
-    
-    /* Add subtle transparency gradient */
-    background: linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 1) 0%,
-        rgba(255, 255, 255, 0.95) 100%
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    
-    /* Add a subtle glow */
-    filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.3));
 }
 
 .hero-subtitle {
@@ -267,8 +254,6 @@ body {
     max-width: 800px;
     margin: 0 auto 100px;
     text-align: center;
-    opacity: 0;
-    transform: translateY(40px);
     transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
@@ -301,16 +286,6 @@ body {
         0 4px 8px rgba(0, 0, 0, 0.06),
         0 8px 16px rgba(0, 0, 0, 0.04),
         0 16px 32px rgba(0, 0, 0, 0.02);
-    
-    /* Gradient text fill for depth */
-    background: linear-gradient(
-        180deg,
-        #1d1d1f 0%,
-        #2d2d2f 100%
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 .feature-subtitle {
@@ -339,8 +314,6 @@ body {
 .cta-container {
     text-align: center;
     margin-top: 80px;
-    opacity: 0;
-    transform: translateY(40px);
     transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
@@ -395,13 +368,11 @@ body {
 }
 
 .product-image-container {
-    opacity: 0;
-    transform: translateX(-40px);
     transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
 .product-grid.reverse .product-image-container {
-    transform: translateX(40px);
+    /* No initial transform */
 }
 
 .product-image-container.aos-animate {
@@ -417,13 +388,11 @@ body {
 }
 
 .product-content {
-    opacity: 0;
-    transform: translateX(40px);
     transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
 .product-grid.reverse .product-content {
-    transform: translateX(-40px);
+    /* No initial transform */
 }
 
 .product-content.aos-animate {
@@ -445,16 +414,6 @@ body {
         0 2px 2px rgba(0, 0, 0, 0.08),
         0 4px 8px rgba(0, 0, 0, 0.06),
         0 8px 16px rgba(0, 0, 0, 0.04);
-    
-    /* Subtle gradient for dimension */
-    background: linear-gradient(
-        180deg,
-        #1d1d1f 0%,
-        #3d3d3f 100%
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 .product-text {
@@ -477,8 +436,6 @@ body {
 }
 
 .about-image-container {
-    opacity: 0;
-    transform: translateX(-40px);
     transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
@@ -495,8 +452,6 @@ body {
 }
 
 .about-text {
-    opacity: 0;
-    transform: translateX(40px);
     transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
@@ -519,16 +474,6 @@ body {
         0 2px 2px rgba(0, 0, 0, 0.08),
         0 4px 8px rgba(0, 0, 0, 0.06),
         0 8px 16px rgba(0, 0, 0, 0.04);
-    
-    /* Gradient for depth */
-    background: linear-gradient(
-        180deg,
-        #1d1d1f 0%,
-        #3d3d3f 100%
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
 }
 
 .about-name {
@@ -562,8 +507,6 @@ body {
     max-width: 800px;
     margin: 0 auto;
     text-align: center;
-    opacity: 0;
-    transform: translateY(40px);
     transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
