@@ -982,3 +982,19 @@ body {
         text-align: center;
     }
 }
+
+/* Footer Disclaimer */
+.footer-disclaimer {
+    margin: 20px 0;
+    padding: 20px 40px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.footer-disclaimer p {
+    font-size: 11px;
+    line-height: 1.6;
+    color: #86868b;
+    text-align: center;
+}
