@@ -17,6 +17,7 @@
             <div class="nav-links">
                 <a href="#about" class="nav-link">About</a>
                 <a href="#team" class="nav-link">Advisory Board</a>
+                <a href="book-demo.html" class="nav-link nav-link-cta">Book a Demo</a>
                 <a href="#contact" class="nav-link">Contact</a>
             </div>
         </div>
@@ -145,9 +146,10 @@
                 </div>
             </div>
 
-            <!-- Express Interest Button -->
-            <div class="cta-container" data-aos="fade-up" data-aos-delay="600">
-                <a href="#contact" class="cta-button">Express Interest</a>
+            <!-- CTA Buttons -->
+            <div class="cta-dual-container" data-aos="fade-up" data-aos-delay="600">
+                <a href="#contact" class="cta-button">Sign Up for News</a>
+                <a href="book-demo.html" class="cta-button cta-button-outline">Book a Tech Demo</a>
             </div>
         </div>
     </section>
@@ -225,20 +227,45 @@
         </div>
     </section>
 
-    <!-- Contact Form Section -->
+    <!-- Contact / Newsletter Section -->
     <section id="contact" class="contact">
         <div class="container">
             <div class="contact-content" data-aos="fade-up">
-                <h2 class="section-title">Express Your Interest</h2>
-                <p class="contact-subtitle">Join forward-thinking legal professionals who are transforming their practice with ZOE AI™</p>
-                
-                <!-- Google Form Embed -->
+                <h2 class="section-title">Sign Up for News</h2>
+                <p class="contact-subtitle">Stay informed about ZOE AI developments, product launches, and legal tech insights.</p>
+
                 <div class="form-container">
-                    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfdEj2FtI6jys1cRmZYj_h102aawE-ixm5cK8mpIAbLHgFTHg/viewform?embedded=true" width="640" height="1229" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+                    <form id="newsletter-form" class="newsletter-form" novalidate>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="nl-name" class="form-label">Full Name</label>
+                                <input type="text" id="nl-name" name="name" class="form-input"
+                                       placeholder="Your full name" required autocomplete="name">
+                            </div>
+                            <div class="form-group">
+                                <label for="nl-email" class="form-label">Email Address</label>
+                                <input type="email" id="nl-email" name="email" class="form-input"
+                                       placeholder="you@example.com" required autocomplete="email">
+                            </div>
+                        </div>
+                        <button type="submit" class="cta-button form-submit-btn" id="nl-submit">
+                            Sign Up for News
+                        </button>
+                        <div id="nl-message" class="form-message" aria-live="polite"></div>
+                    </form>
+
+                    <div class="form-divider">
+                        <span>or</span>
+                    </div>
+
+                    <div class="demo-cta-inline">
+                        <p class="demo-cta-text">Want to see ZOE AI in action?</p>
+                        <a href="book-demo.html" class="cta-button cta-button-outline">Book a Tech Demo</a>
+                    </div>
                 </div>
-                
+
                 <p class="privacy-notice">
-                    Your information will be used solely to contact you about ZOE AI™. We do not share your data with third parties.
+                    Your information will be used solely to contact you about ZOE AI&trade;. We do not share your data with third parties.
                 </p>
             </div>
         </div>
@@ -279,7 +306,7 @@
             <p>We use your information solely to contact you regarding ZOE AI™ products and services. We do not sell, rent, or share your information with third parties for marketing purposes.</p>
             
             <h3>Data Storage and Security</h3>
-            <p>Your information is stored securely using Google Workspace services. We implement appropriate technical and organizational measures to protect your data.</p>
+            <p>Your information is stored securely on our private servers. We implement appropriate technical and organizational measures to protect your data.</p>
             
             <h3>Your Rights</h3>
             <p>You have the right to access, correct, or delete your personal information. Contact us to exercise these rights.</p>

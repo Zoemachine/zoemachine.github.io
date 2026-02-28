@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Non-Disclosure Agreement - ZOE AI&trade;</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <img src="assets/logo-static.png" alt="ZOE AI" class="logo-img">
+            </a>
+            <div class="nav-links">
+                <a href="index.html#about" class="nav-link">About</a>
+                <a href="index.html#team" class="nav-link">Advisory Board</a>
+                <a href="book-demo.html" class="nav-link nav-link-cta">Book a Demo</a>
+                <a href="index.html#contact" class="nav-link">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="page-hero">
+        <h1 class="page-hero-title">Non-Disclosure Agreement</h1>
+        <p class="page-hero-subtitle">Please review and sign the mutual NDA to proceed with your demo booking.</p>
+    </section>
+
+    <section class="nda-section">
+        <div class="container">
+            <!-- NDA View -->
+            <div id="nda-view" class="nda-card">
+                <!-- Embedded PDF -->
+                <div class="nda-pdf-container">
+                    <embed src="assets/ZOE_AI_MUTUAL_NDA.pdf" type="application/pdf" width="100%" height="800px">
+                    <p class="nda-pdf-fallback">
+                        Your browser does not support embedded PDFs.
+                        <a href="assets/ZOE_AI_MUTUAL_NDA.pdf" target="_blank">Click here to view the NDA.</a>
+                    </p>
+                </div>
+
+                <!-- Signature Form -->
+                <div class="nda-sign-form">
+                    <h3 class="nda-form-title">Sign the Agreement</h3>
+                    <p class="nda-form-subtitle">By entering your information and clicking &ldquo;I Accept &amp; Sign,&rdquo; you are executing this NDA electronically as the Counterparty.</p>
+
+                    <form id="nda-form" novalidate>
+                        <div class="form-group">
+                            <label class="form-label" for="nda-name">Full Legal Name</label>
+                            <input type="text" id="nda-name" class="form-input" required autocomplete="name" placeholder="As it will appear on the agreement">
+                        </div>
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label class="form-label" for="nda-addr1">Street Address</label>
+                            <input type="text" id="nda-addr1" class="form-input" required autocomplete="address-line1" placeholder="123 Main Street">
+                        </div>
+                        <div class="form-row form-row-3col" style="margin-top: 16px;">
+                            <div class="form-group">
+                                <label class="form-label" for="nda-city">City</label>
+                                <input type="text" id="nda-city" class="form-input" required autocomplete="address-level2">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="nda-state">State</label>
+                                <input type="text" id="nda-state" class="form-input" required maxlength="2" placeholder="NY" autocomplete="address-level1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="nda-zip">ZIP Code</label>
+                                <input type="text" id="nda-zip" class="form-input" required maxlength="10" placeholder="10001" autocomplete="postal-code">
+                            </div>
+                        </div>
+
+                        <div class="booking-summary" id="nda-booking-summary">
+                            <p><strong>Demo Date:</strong> <span id="nda-date"></span></p>
+                            <p><strong>Demo Time:</strong> <span id="nda-time"></span></p>
+                            <p><strong>Email:</strong> <span id="nda-email"></span></p>
+                        </div>
+
+                        <button type="submit" class="cta-button form-submit-btn nda-sign-btn" id="nda-submit">
+                            I Accept &amp; Sign
+                        </button>
+                        <div id="nda-message" class="form-message" aria-live="polite"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Confirmation (hidden until success) -->
+            <div id="nda-confirmation" class="nda-card" style="display: none;">
+                <div class="confirmation-content">
+                    <div class="confirmation-icon">&#10003;</div>
+                    <h2>Demo Booked Successfully</h2>
+                    <p>Your NDA has been signed and your tech demo has been requested.</p>
+                    <div class="booking-summary">
+                        <p><strong>Date:</strong> <span id="conf-date"></span></p>
+                        <p><strong>Time:</strong> <span id="conf-time"></span></p>
+                        <p><strong>Name:</strong> <span id="conf-name"></span></p>
+                        <p><strong>Email:</strong> <span id="conf-email"></span></p>
+                    </div>
+                    <p class="conf-note">We will reach out to confirm your demo time. Thank you for your interest in ZOE AI.</p>
+                    <a href="index.html" class="cta-button" style="margin-top: 16px;">Return to Home</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="assets/logo-static.png" alt="ZOE AI" class="footer-logo-img">
+                </div>
+                <div class="footer-links">
+                    <a href="index.html#privacy" class="footer-link">Privacy Policy</a>
+                    <a href="index.html#terms" class="footer-link">Terms of Use</a>
+                </div>
+                <div class="footer-disclaimer">
+                    <p>Hardware images and designs are preliminary concepts. All specifications are subject to change based on final engineering determinations, hardware availability and partnerships. ZOE AI is not affiliated with NVIDIA.</p>
+                </div>
+                <div class="footer-copyright">
+                    <p>&copy; 2026 ZOE AI&trade;. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+    // =========================================================================
+    // NDA Page Logic
+    // =========================================================================
+    (function() {
+        'use strict';
+
+        // Parse booking data from sessionStorage
+        const stored = sessionStorage.getItem('bookingData');
+        const bookingData = stored ? JSON.parse(stored) : {};
+
+        // Redirect if missing required params
+        if (!bookingData.name || !bookingData.email || !bookingData.date || !bookingData.time) {
+            window.location.href = 'book-demo.html';
+            return;
+        }
+
+        // Display booking info
+        const dateObj = new Date(bookingData.date + 'T12:00:00');
+        const dateDisplay = dateObj.toLocaleDateString('en-US', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        document.getElementById('nda-date').textContent = dateDisplay;
+        document.getElementById('nda-time').textContent = bookingData.time + ' ET';
+        document.getElementById('nda-email').textContent = bookingData.email;
+
+        // Form submission
+        document.getElementById('nda-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const nameInput   = document.getElementById('nda-name');
+            const addr1Input  = document.getElementById('nda-addr1');
+            const cityInput   = document.getElementById('nda-city');
+            const stateInput  = document.getElementById('nda-state');
+            const zipInput    = document.getElementById('nda-zip');
+            const submitBtn   = document.getElementById('nda-submit');
+            const messageEl   = document.getElementById('nda-message');
+
+            // Clear errors
+            [nameInput, addr1Input, cityInput, stateInput, zipInput].forEach(el => el.classList.remove('error'));
+            messageEl.textContent = '';
+            messageEl.className = 'form-message';
+
+            // Validate
+            const fullName = nameInput.value.trim();
+            const addr1    = addr1Input.value.trim();
+            const city     = cityInput.value.trim();
+            const state    = stateInput.value.trim();
+            const zip      = zipInput.value.trim();
+
+            let valid = true;
+            if (!fullName)  { nameInput.classList.add('error'); valid = false; }
+            if (!addr1)     { addr1Input.classList.add('error'); valid = false; }
+            if (!city)      { cityInput.classList.add('error'); valid = false; }
+            if (state.length < 2) { stateInput.classList.add('error'); valid = false; }
+            if (!zip)       { zipInput.classList.add('error'); valid = false; }
+            if (!valid) return;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+
+            try {
+                // Step 1: Create the demo booking
+                const bookRes = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'booking',
+                        name: bookingData.name,
+                        email: bookingData.email,
+                        preferred_date: bookingData.date,
+                        preferred_time: bookingData.time
+                    })
+                });
+                const bookResult = await bookRes.json();
+                if (!bookResult.success) {
+                    throw new Error(bookResult.detail || 'Failed to create booking');
+                }
+                const bookingId = bookResult.booking_id;
+
+                // Step 2: Sign the NDA
+                const ndaRes = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'nda_sign',
+                        booking_id: bookingId,
+                        full_name: fullName,
+                        address_line1: addr1,
+                        address_city: city,
+                        address_state: state,
+                        address_zip: zip
+                    })
+                });
+                const ndaResult = await ndaRes.json();
+                if (!ndaResult.success) {
+                    throw new Error(ndaResult.detail || 'Failed to sign NDA');
+                }
+
+                // Show confirmation
+                document.getElementById('nda-view').style.display = 'none';
+                document.getElementById('nda-confirmation').style.display = 'block';
+                document.getElementById('conf-date').textContent = dateDisplay;
+                document.getElementById('conf-time').textContent = bookingData.time + ' ET';
+                document.getElementById('conf-name').textContent = fullName;
+                document.getElementById('conf-email').textContent = bookingData.email;
+
+                // Scroll to top of confirmation
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (err) {
+                if (err.message === 'Failed to fetch') {
+                    messageEl.textContent = 'Unable to connect to the server. Please check your connection.';
+                } else {
+                    messageEl.textContent = err.message || 'Something went wrong. Please try again.';
+                }
+                messageEl.className = 'form-message error';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'I Accept &amp; Sign';
+            }
+        });
+    })();
+    </script>
+</body>
+</html>

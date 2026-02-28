@@ -589,12 +589,142 @@ body {
     text-align: center;
 }
 
-/* Google Form Styling (when embedded) */
-.contact iframe {
-    border: none;
+/* Newsletter Form */
+.newsletter-form {
+    text-align: left;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dark-gray);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+}
+
+.form-input {
+    font-family: var(--font-body);
+    font-size: 16px;
+    padding: 14px 18px;
+    border: 1.5px solid #d2d2d7;
     border-radius: 12px;
+    background: var(--off-white);
+    color: var(--dark-gray);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline: none;
+}
+
+.form-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+}
+
+.form-input::placeholder {
+    color: var(--mid-gray);
+}
+
+.form-input.error {
+    border-color: #ff3b30;
+}
+
+.form-submit-btn {
     width: 100%;
-    min-height: 1200px;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-body);
+}
+
+.form-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.form-message {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 15px;
+    min-height: 24px;
+}
+
+.form-message.success {
+    color: #34c759;
+}
+
+.form-message.error {
+    color: #ff3b30;
+}
+
+.form-divider {
+    display: flex;
+    align-items: center;
+    margin: 40px 0;
+    gap: 16px;
+}
+
+.form-divider::before,
+.form-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #d2d2d7;
+}
+
+.form-divider span {
+    font-size: 14px;
+    color: var(--mid-gray);
+    font-weight: 500;
+}
+
+.demo-cta-inline {
+    text-align: center;
+}
+
+.demo-cta-text {
+    font-size: 18px;
+    color: var(--dark-gray);
+    margin-bottom: 20px;
+}
+
+/* Dual CTA Container */
+.cta-dual-container {
+    text-align: center;
+    margin-top: 80px;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Outline CTA Variant */
+.cta-button-outline {
+    background: transparent;
+    color: var(--accent);
+    border: 2px solid var(--accent);
+    box-shadow: none;
+}
+
+.cta-button-outline:hover {
+    background: var(--accent);
+    color: var(--white);
+    box-shadow: 0 12px 30px rgba(0, 113, 227, 0.3);
+}
+
+/* Nav CTA Highlight */
+.nav-link-cta {
+    color: var(--accent) !important;
+    font-weight: 600;
 }
 
 /* Footer */
@@ -997,4 +1127,529 @@ body {
     line-height: 1.6;
     color: #86868b;
     text-align: center;
+}
+
+/* ==========================================================================
+   Sub-Page Styles (book-demo.html, nda.html)
+   ========================================================================== */
+
+/* Page Hero (sub-pages) */
+.page-hero {
+    padding: 160px 40px 60px;
+    text-align: center;
+    background: var(--white);
+}
+
+.page-hero-title {
+    font-family: var(--font-display);
+    font-size: 56px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--dark-gray);
+    margin-bottom: 16px;
+}
+
+.page-hero-subtitle {
+    font-size: 21px;
+    color: var(--mid-gray);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Booking Section */
+.booking-section {
+    padding: 60px 0 var(--section-padding);
+    background: var(--light-gray);
+}
+
+.booking-card {
+    max-width: 700px;
+    margin: 0 auto;
+    background: var(--white);
+    border-radius: 20px;
+    padding: 60px;
+    box-shadow: 0 20px 60px var(--shadow-light);
+}
+
+/* Step Indicator */
+.booking-steps {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 48px;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0.4;
+    transition: opacity 0.3s ease;
+}
+
+.step.active, .step.completed {
+    opacity: 1;
+}
+
+.step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--light-gray);
+    color: var(--dark-gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.step.active .step-number {
+    background: var(--accent);
+    color: var(--white);
+}
+
+.step.completed .step-number {
+    background: #34c759;
+    color: var(--white);
+}
+
+.step-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--dark-gray);
+}
+
+/* Calendar Widget */
+.calendar-widget {
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.calendar-nav-btn {
+    background: none;
+    border: 1.5px solid #d2d2d7;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--dark-gray);
+    transition: all 0.2s ease;
+}
+
+.calendar-nav-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.calendar-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.calendar-month {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--dark-gray);
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.calendar-weekdays span {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mid-gray);
+    padding: 8px 0;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--dark-gray);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.calendar-day:hover:not(:disabled):not(.day-other-month) {
+    background: rgba(0, 113, 227, 0.1);
+}
+
+.calendar-day:disabled {
+    color: #d2d2d7;
+    cursor: not-allowed;
+}
+
+.calendar-day.day-other-month {
+    color: #d2d2d7;
+}
+
+.calendar-day.day-today {
+    font-weight: 700;
+    border: 2px solid var(--accent);
+}
+
+.calendar-day.day-selected {
+    background: var(--accent);
+    color: var(--white);
+}
+
+.calendar-day.day-weekend {
+    color: #d2d2d7;
+}
+
+.calendar-hint {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--mid-gray);
+}
+
+/* Time Grid */
+.time-heading {
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.time-subheading {
+    font-size: 14px;
+    color: var(--mid-gray);
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.time-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.time-slot {
+    padding: 14px 20px;
+    border: 1.5px solid #d2d2d7;
+    border-radius: 12px;
+    background: var(--off-white);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--dark-gray);
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.time-slot:hover {
+    border-color: var(--accent);
+    background: rgba(0, 113, 227, 0.05);
+}
+
+.time-slot.selected {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--white);
+}
+
+/* Booking Summary */
+.booking-summary {
+    background: var(--light-gray);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 24px 0;
+    font-size: 15px;
+}
+
+.booking-summary p {
+    margin-bottom: 8px;
+}
+
+.booking-summary p:last-child {
+    margin-bottom: 0;
+}
+
+/* Step Content Visibility */
+.booking-step-content {
+    display: none;
+}
+
+.booking-step-content.active {
+    display: block;
+}
+
+/* Info Heading */
+.info-heading {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 24px;
+}
+
+/* Back Button */
+.back-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 8px 0;
+    margin-bottom: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.back-btn:hover {
+    text-decoration: underline;
+}
+
+/* ==========================================================================
+   NDA Page Styles
+   ========================================================================== */
+
+.nda-section {
+    padding: 60px 0 var(--section-padding);
+    background: var(--light-gray);
+}
+
+.nda-card {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--white);
+    border-radius: 20px;
+    padding: 60px;
+    box-shadow: 0 20px 60px var(--shadow-light);
+}
+
+.nda-document {
+    border-bottom: 1px solid #d2d2d7;
+    padding-bottom: 40px;
+    margin-bottom: 40px;
+}
+
+.nda-pdf-container {
+    margin-bottom: 40px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #d2d2d7;
+}
+
+.nda-pdf-container embed {
+    display: block;
+    min-height: 800px;
+}
+
+.nda-pdf-fallback {
+    text-align: center;
+    padding: 40px;
+    font-size: 16px;
+    color: var(--mid-gray);
+}
+
+.nda-pdf-fallback a {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+.nda-doc-title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 32px;
+    color: var(--dark-gray);
+}
+
+.nda-preamble {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--dark-gray);
+    margin-bottom: 32px;
+}
+
+.nda-section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 28px;
+    margin-bottom: 12px;
+    color: var(--dark-gray);
+    text-decoration: underline;
+}
+
+.nda-text {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--dark-gray);
+    margin-bottom: 16px;
+}
+
+.nda-sub {
+    margin-left: 40px;
+}
+
+.nda-signatures {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 2px solid var(--dark-gray);
+}
+
+.nda-sig-block h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.nda-sig-block p {
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: var(--dark-gray);
+}
+
+.sig-placeholder {
+    color: var(--mid-gray);
+    font-style: italic;
+}
+
+.nda-sign-form {
+    text-align: left;
+}
+
+.nda-form-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.nda-form-subtitle {
+    font-size: 15px;
+    color: var(--mid-gray);
+    margin-bottom: 32px;
+}
+
+.form-row-3col {
+    grid-template-columns: 2fr 1fr 1fr;
+}
+
+.nda-sign-btn {
+    margin-top: 16px;
+}
+
+/* Confirmation */
+.confirmation-content {
+    text-align: center;
+}
+
+.confirmation-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #34c759;
+    color: var(--white);
+    font-size: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+}
+
+.confirmation-content h2 {
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.conf-note {
+    font-size: 15px;
+    color: var(--mid-gray);
+    margin: 24px 0 32px;
+}
+
+/* ==========================================================================
+   Sub-Page Responsive
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+    .page-hero-title {
+        font-size: 44px;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-hero {
+        padding: 120px 20px 40px;
+    }
+
+    .page-hero-title {
+        font-size: 32px;
+    }
+
+    .page-hero-subtitle {
+        font-size: 18px;
+    }
+
+    .booking-card {
+        padding: 32px 20px;
+    }
+
+    .nda-card {
+        padding: 32px 20px;
+    }
+
+    .booking-steps {
+        gap: 16px;
+    }
+
+    .step-label {
+        display: none;
+    }
+
+    .time-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .form-row-3col {
+        grid-template-columns: 1fr;
+    }
+
+    .cta-dual-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .nda-signatures {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
 }

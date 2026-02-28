@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Tech Demo - ZOE AI&trade;</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <img src="assets/logo-static.png" alt="ZOE AI" class="logo-img">
+            </a>
+            <div class="nav-links">
+                <a href="index.html#about" class="nav-link">About</a>
+                <a href="index.html#team" class="nav-link">Advisory Board</a>
+                <a href="book-demo.html" class="nav-link nav-link-cta">Book a Demo</a>
+                <a href="index.html#contact" class="nav-link">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="page-hero">
+        <h1 class="page-hero-title">Book a Tech Demo</h1>
+        <p class="page-hero-subtitle">See ZOE AI in action. Select a date and time below.</p>
+    </section>
+
+    <section class="booking-section">
+        <div class="container">
+            <div class="booking-card">
+                <div class="booking-steps">
+                    <div class="step active" data-step="1">
+                        <span class="step-number">1</span>
+                        <span class="step-label">Select Date</span>
+                    </div>
+                    <div class="step" data-step="2">
+                        <span class="step-number">2</span>
+                        <span class="step-label">Select Time</span>
+                    </div>
+                    <div class="step" data-step="3">
+                        <span class="step-number">3</span>
+                        <span class="step-label">Your Info</span>
+                    </div>
+                </div>
+
+                <!-- Step 1: Calendar -->
+                <div id="step-1" class="booking-step-content active">
+                    <div class="calendar-widget">
+                        <div class="calendar-header">
+                            <button class="calendar-nav-btn" id="cal-prev">&larr;</button>
+                            <h3 class="calendar-month" id="cal-month-year"></h3>
+                            <button class="calendar-nav-btn" id="cal-next">&rarr;</button>
+                        </div>
+                        <div class="calendar-weekdays">
+                            <span>Sun</span><span>Mon</span><span>Tue</span>
+                            <span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                        </div>
+                        <div class="calendar-grid" id="cal-grid"></div>
+                    </div>
+                    <p class="calendar-hint">Select a weekday (Mon&ndash;Fri) for your demo.</p>
+                </div>
+
+                <!-- Step 2: Time Slots -->
+                <div id="step-2" class="booking-step-content">
+                    <button class="back-btn" id="back-to-step1">&larr; Back to calendar</button>
+                    <h3 class="time-heading">Available Times for <span id="selected-date-display"></span></h3>
+                    <p class="time-subheading">All times are Eastern Time (ET)</p>
+                    <div class="time-grid" id="time-grid"></div>
+                </div>
+
+                <!-- Step 3: Contact Info -->
+                <div id="step-3" class="booking-step-content">
+                    <button class="back-btn" id="back-to-step2">&larr; Back to time selection</button>
+                    <h3 class="info-heading">Your Contact Information</h3>
+                    <form id="booking-form" novalidate>
+                        <div class="form-group">
+                            <label for="bk-name" class="form-label">Full Name</label>
+                            <input type="text" id="bk-name" class="form-input" required autocomplete="name">
+                        </div>
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label for="bk-email" class="form-label">Email Address</label>
+                            <input type="email" id="bk-email" class="form-input" required autocomplete="email">
+                        </div>
+                        <div class="booking-summary">
+                            <p><strong>Date:</strong> <span id="summary-date"></span></p>
+                            <p><strong>Time:</strong> <span id="summary-time"></span></p>
+                        </div>
+                        <button type="submit" class="cta-button form-submit-btn">Continue to NDA</button>
+                        <div id="bk-message" class="form-message" aria-live="polite"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="assets/logo-static.png" alt="ZOE AI" class="footer-logo-img">
+                </div>
+                <div class="footer-links">
+                    <a href="index.html#privacy" class="footer-link">Privacy Policy</a>
+                    <a href="index.html#terms" class="footer-link">Terms of Use</a>
+                </div>
+                <div class="footer-disclaimer">
+                    <p>Hardware images and designs are preliminary concepts. All specifications are subject to change based on final engineering determinations, hardware availability and partnerships. ZOE AI is not affiliated with NVIDIA.</p>
+                </div>
+                <div class="footer-copyright">
+                    <p>&copy; 2026 ZOE AI&trade;. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+    // =========================================================================
+    // Calendar Widget + Booking Flow
+    // =========================================================================
+    (function() {
+        'use strict';
+
+        const MONTHS = ['January','February','March','April','May','June',
+                        'July','August','September','October','November','December'];
+
+        let currentMonth = new Date();
+        currentMonth.setDate(1);
+
+        let selectedDate = null;
+        let selectedTime = null;
+
+        const grid      = document.getElementById('cal-grid');
+        const monthYear  = document.getElementById('cal-month-year');
+        const prevBtn    = document.getElementById('cal-prev');
+        const nextBtn    = document.getElementById('cal-next');
+
+        // --- Calendar Rendering ---
+        function renderCalendar() {
+            grid.innerHTML = '';
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+
+            monthYear.textContent = `${MONTHS[month]} ${year}`;
+
+            // Disable prev if current month is this month
+            const now = new Date();
+            prevBtn.disabled = (year === now.getFullYear() && month === now.getMonth());
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            // Previous month trailing days
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const btn = document.createElement('button');
+                btn.className = 'calendar-day day-other-month';
+                btn.textContent = daysInPrevMonth - i;
+                btn.disabled = true;
+                btn.type = 'button';
+                grid.appendChild(btn);
+            }
+
+            // Current month days
+            const today = new Date();
+            for (let d = 1; d <= daysInMonth; d++) {
+                const date = new Date(year, month, d);
+                const btn = document.createElement('button');
+                btn.className = 'calendar-day';
+                btn.textContent = d;
+                btn.type = 'button';
+
+                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                const isToday = date.toDateString() === today.toDateString();
+                const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
+
+                if (isWeekend) btn.classList.add('day-weekend');
+                if (isToday) btn.classList.add('day-today');
+                if (isSelected) btn.classList.add('day-selected');
+
+                if (isPast || isWeekend) {
+                    btn.disabled = true;
+                } else {
+                    btn.addEventListener('click', () => selectDate(date));
+                }
+
+                grid.appendChild(btn);
+            }
+
+            // Next month leading days
+            const totalCells = grid.children.length;
+            const remaining = (totalCells % 7 === 0) ? 0 : 7 - (totalCells % 7);
+            for (let i = 1; i <= remaining; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'calendar-day day-other-month';
+                btn.textContent = i;
+                btn.disabled = true;
+                btn.type = 'button';
+                grid.appendChild(btn);
+            }
+        }
+
+        prevBtn.addEventListener('click', () => {
+            currentMonth.setMonth(currentMonth.getMonth() - 1);
+            renderCalendar();
+        });
+
+        nextBtn.addEventListener('click', () => {
+            currentMonth.setMonth(currentMonth.getMonth() + 1);
+            renderCalendar();
+        });
+
+        // --- Date Selection ---
+        function selectDate(date) {
+            selectedDate = date;
+            renderCalendar();
+
+            // Format display
+            const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('selected-date-display').textContent = date.toLocaleDateString('en-US', opts);
+
+            generateTimeSlots();
+            goToStep(2);
+        }
+
+        // --- Time Slots ---
+        function generateTimeSlots() {
+            const timeGrid = document.getElementById('time-grid');
+            timeGrid.innerHTML = '';
+            selectedTime = null;
+
+            const slots = [];
+            for (let h = 9; h < 17; h++) {
+                for (let m = 0; m < 60; m += 30) {
+                    if (h === 16 && m === 30) {
+                        // Last slot: 4:30 PM - 5:00 PM
+                        slots.push({ hour: h, min: m });
+                        break;
+                    }
+                    slots.push({ hour: h, min: m });
+                }
+            }
+
+            slots.forEach(slot => {
+                const startH = slot.hour > 12 ? slot.hour - 12 : slot.hour;
+                const startPeriod = slot.hour >= 12 ? 'PM' : 'AM';
+                const startStr = `${startH}:${String(slot.min).padStart(2,'0')} ${startPeriod}`;
+
+                let endH = slot.hour;
+                let endM = slot.min + 30;
+                if (endM >= 60) { endH++; endM -= 60; }
+                const endDisplay = endH > 12 ? endH - 12 : endH;
+                const endPeriod = endH >= 12 ? 'PM' : 'AM';
+                const endStr = `${endDisplay}:${String(endM).padStart(2,'0')} ${endPeriod}`;
+
+                const label = `${startStr} - ${endStr}`;
+
+                const btn = document.createElement('button');
+                btn.className = 'time-slot';
+                btn.textContent = label;
+                btn.type = 'button';
+                btn.addEventListener('click', () => {
+                    selectedTime = label;
+                    timeGrid.querySelectorAll('.time-slot').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+
+                    // Update summary and go to step 3
+                    const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    document.getElementById('summary-date').textContent = selectedDate.toLocaleDateString('en-US', opts);
+                    document.getElementById('summary-time').textContent = label + ' ET';
+                    goToStep(3);
+                });
+                timeGrid.appendChild(btn);
+            });
+        }
+
+        // --- Step Navigation ---
+        function goToStep(n) {
+            document.querySelectorAll('.booking-step-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`step-${n}`).classList.add('active');
+
+            document.querySelectorAll('.step').forEach(el => {
+                const step = parseInt(el.dataset.step);
+                el.classList.remove('active', 'completed');
+                if (step < n) el.classList.add('completed');
+                if (step === n) el.classList.add('active');
+            });
+        }
+
+        document.getElementById('back-to-step1').addEventListener('click', () => goToStep(1));
+        document.getElementById('back-to-step2').addEventListener('click', () => goToStep(2));
+
+        // --- Form Submission ---
+        document.getElementById('booking-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('bk-name');
+            const emailInput = document.getElementById('bk-email');
+            const messageEl = document.getElementById('bk-message');
+
+            nameInput.classList.remove('error');
+            emailInput.classList.remove('error');
+            messageEl.textContent = '';
+            messageEl.className = 'form-message';
+
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+
+            if (!name) { nameInput.classList.add('error'); return; }
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                emailInput.classList.add('error'); return;
+            }
+
+            if (!selectedDate || !selectedTime) {
+                messageEl.textContent = 'Please select a date and time first.';
+                messageEl.className = 'form-message error';
+                return;
+            }
+
+            // Format date as YYYY-MM-DD for the backend
+            const yyyy = selectedDate.getFullYear();
+            const mm = String(selectedDate.getMonth() + 1).padStart(2, '0');
+            const dd = String(selectedDate.getDate()).padStart(2, '0');
+            const dateStr = `${yyyy}-${mm}-${dd}`;
+
+            // Store booking data and navigate to NDA page
+            sessionStorage.setItem('bookingData', JSON.stringify({
+                name: name,
+                email: email,
+                date: dateStr,
+                time: selectedTime
+            }));
+            window.location.href = 'nda.html';
+        });
+
+        // --- Init ---
+        renderCalendar();
+    })();
+    </script>
+</body>
+</html>
