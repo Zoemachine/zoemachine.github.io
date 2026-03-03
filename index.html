@@ -17,7 +17,6 @@
             <div class="nav-links">
                 <a href="#about" class="nav-link">About</a>
                 <a href="#team" class="nav-link">Advisory Board</a>
-                <a href="book-demo.html" class="nav-link nav-link-cta">Book a Demo</a>
                 <a href="#contact" class="nav-link">Contact</a>
             </div>
         </div>
@@ -148,8 +147,7 @@
 
             <!-- CTA Buttons -->
             <div class="cta-dual-container" data-aos="fade-up" data-aos-delay="600">
-                <a href="#contact" class="cta-button">Sign Up for News</a>
-                <a href="book-demo.html" class="cta-button cta-button-outline">Book a Tech Demo</a>
+                <a href="#contact" class="cta-button">Express Interest</a>
             </div>
         </div>
     </section>
@@ -227,15 +225,18 @@
         </div>
     </section>
 
-    <!-- Contact / Newsletter Section -->
+    <!-- Contact / Express Interest Section -->
     <section id="contact" class="contact">
         <div class="container">
             <div class="contact-content" data-aos="fade-up">
-                <h2 class="section-title">Sign Up for News</h2>
-                <p class="contact-subtitle">Stay informed about ZOE AI developments, product launches, and legal tech insights.</p>
+                <h2 class="section-title">Express Interest</h2>
+                <p class="contact-subtitle">Interested in ZOE AI? Send us a message and we'll be in touch.</p>
 
                 <div class="form-container">
-                    <form id="newsletter-form" class="newsletter-form" novalidate>
+                    <form action="https://formsubmit.co/info@zoemachine.com" method="POST" class="newsletter-form">
+                        <input type="hidden" name="_subject" value="New Express Interest from ZOE AI Website">
+                        <input type="hidden" name="_captcha" value="false">
+                        <input type="hidden" name="_next" value="https://zoemachine.com/index.html#contact">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="nl-name" class="form-label">Full Name</label>
@@ -248,20 +249,15 @@
                                        placeholder="you@example.com" required autocomplete="email">
                             </div>
                         </div>
-                        <button type="submit" class="cta-button form-submit-btn" id="nl-submit">
-                            Sign Up for News
+                        <div class="form-group" style="margin-bottom: 32px;">
+                            <label for="nl-message" class="form-label">Message</label>
+                            <textarea id="nl-message" name="message" class="form-input form-textarea"
+                                      placeholder="Tell us about your interest in ZOE AI..." rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="cta-button form-submit-btn">
+                            Send Message
                         </button>
-                        <div id="nl-message" class="form-message" aria-live="polite"></div>
                     </form>
-
-                    <div class="form-divider">
-                        <span>or</span>
-                    </div>
-
-                    <div class="demo-cta-inline">
-                        <p class="demo-cta-text">Want to see ZOE AI in action?</p>
-                        <a href="book-demo.html" class="cta-button cta-button-outline">Book a Tech Demo</a>
-                    </div>
                 </div>
 
                 <p class="privacy-notice">

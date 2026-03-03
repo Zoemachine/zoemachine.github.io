@@ -639,6 +639,12 @@ body {
     border-color: #ff3b30;
 }
 
+.form-textarea {
+    resize: vertical;
+    min-height: 120px;
+    font-family: var(--font-body);
+}
+
 .form-submit-btn {
     width: 100%;
     border: none;
@@ -666,36 +672,6 @@ body {
     color: #ff3b30;
 }
 
-.form-divider {
-    display: flex;
-    align-items: center;
-    margin: 40px 0;
-    gap: 16px;
-}
-
-.form-divider::before,
-.form-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #d2d2d7;
-}
-
-.form-divider span {
-    font-size: 14px;
-    color: var(--mid-gray);
-    font-weight: 500;
-}
-
-.demo-cta-inline {
-    text-align: center;
-}
-
-.demo-cta-text {
-    font-size: 18px;
-    color: var(--dark-gray);
-    margin-bottom: 20px;
-}
 
 /* Dual CTA Container */
 .cta-dual-container {

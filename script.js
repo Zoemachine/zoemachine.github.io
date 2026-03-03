@@ -1,6 +1,3 @@
-// Google Apps Script URL — paste your deployed Web App URL here
-const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
-
 // Smooth Scroll and Animation on Scroll Implementation
 
 // Animate on Scroll Observer
@@ -182,61 +179,5 @@ if ('IntersectionObserver' in window) {
         imageObserver.observe(img);
     });
 }
-
-// Newsletter Form Submission
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('newsletter-form');
-    if (!form) return;
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const nameInput = form.querySelector('#nl-name');
-        const emailInput = form.querySelector('#nl-email');
-        const submitBtn = form.querySelector('#nl-submit');
-        const messageEl = form.querySelector('#nl-message');
-
-        // Clear previous state
-        nameInput.classList.remove('error');
-        emailInput.classList.remove('error');
-        messageEl.textContent = '';
-        messageEl.className = 'form-message';
-
-        // Validate
-        const name = nameInput.value.trim();
-        const email = emailInput.value.trim();
-        if (!name) { nameInput.classList.add('error'); return; }
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            emailInput.classList.add('error'); return;
-        }
-
-        // Submit
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Submitting...';
-
-        try {
-            const res = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({ action: 'newsletter', name, email })
-            });
-            const data = await res.json();
-            if (!data.success) {
-                throw new Error(data.detail || 'Submission failed');
-            }
-            messageEl.textContent = 'Thank you! You have been signed up.';
-            messageEl.className = 'form-message success';
-            form.reset();
-        } catch (err) {
-            if (err.message === 'Failed to fetch') {
-                messageEl.textContent = 'Unable to connect. Please check your internet connection.';
-            } else {
-                messageEl.textContent = err.message || 'Something went wrong. Please try again.';
-            }
-            messageEl.className = 'form-message error';
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Sign Up for News';
-        }
-    });
-});
 
 console.log('ZOE AI™ - Website Initialized');
