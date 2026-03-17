@@ -488,7 +488,23 @@ body {
     font-size: 18px;
     font-weight: 500;
     color: var(--mid-gray);
+    margin-bottom: 12px;
+}
+
+.linkedin-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #0a66c2;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
     margin-bottom: 30px;
+    transition: opacity 0.2s ease;
+}
+
+.linkedin-link:hover {
+    opacity: 0.75;
 }
 
 .about-bio p {
