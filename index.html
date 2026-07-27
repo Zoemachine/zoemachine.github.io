@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZOE AI™ - Legal AI That Stays With You</title>
+    <title>ZOE AI™ — A New Type of Legal AI</title>
+    <meta name="description" content="ZOE is a hybrid legal AI for corporate attorneys. Your hardware does the document processing; frontier models handle the reasoning, on scrubbed text only. More security, at a fraction of the compute.">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/png" href="assets/favicon.png">
+    <!-- Scroll animations hide content until JS reveals it. If JS is unavailable, show everything. -->
+    <noscript><style>[data-aos]{opacity:1 !important;transform:none !important;}</style></noscript>
 </head>
 <body>
     <!-- Navigation -->
@@ -21,6 +24,9 @@
                 </div>
             </div>
             <div class="nav-links">
+                <a href="#why" class="nav-link">Why ZOE</a>
+                <a href="#capabilities" class="nav-link">Capabilities</a>
+                <a href="#sovereignty" class="nav-link">Security</a>
                 <a href="#about" class="nav-link">About</a>
                 <a href="#contact" class="nav-link">Contact</a>
             </div>
@@ -34,8 +40,7 @@
                 <source src="assets/ZOE_AI_INTRO.mp4" type="video/mp4">
             </video>
             <div class="hero-overlay">
-                <h1 class="hero-title fade-in">Legal AI That Stays With You</h1>
-                <p class="hero-subtitle fade-in-delay">Complete control. Ultimate security. Uncompromising performance.</p>
+                <h1 class="hero-title fade-in">A new type of legal AI.</h1>
             </div>
         </div>
         <div class="scroll-indicator">
@@ -43,209 +48,498 @@
         </div>
     </section>
 
-    <!-- Key Features Section -->
-    <section id="features" class="features">
+    <!-- Manifesto -->
+    <section class="features">
         <div class="container">
             <div class="feature-card" data-aos="fade-up">
-                <div class="feature-icon">
-                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-                        <rect x="15" y="30" width="50" height="30" rx="3" stroke="currentColor" stroke-width="2"/>
-                        <path d="M25 30V22C25 20 27 18 29 18H51C53 18 55 20 55 22V30" stroke="currentColor" stroke-width="2"/>
-                        <circle cx="40" cy="45" r="6" stroke="currentColor" stroke-width="2"/>
-                        <path d="M37 45L39 47L43 43" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M20 64H60" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M25 64L28 60H52L55 64" stroke="currentColor" stroke-width="2"/>
-                    </svg>
-                </div>
-                <h2 class="feature-title">Onsite Air-Gapped Due Diligence</h2>
-                <h3 class="feature-subtitle">Hundreds of Documents in Minutes</h3>
+                <h2 class="feature-title">More security at a fraction of the compute.</h2>
+                <h3 class="feature-subtitle">Designed to be sovereign where it counts, connected where it helps.</h3>
                 <p class="feature-description">
-                    ZOE AI processes hundreds of documents in minutes on local hardware. Due diligence processing is fast and detailed. Mobile solutions allow immediate onsite diligence for professionals to access AI-powered document processing without data leaving the device or the local area network.
+                    Legacy cloud legal AI pipelines often force firms to upload all of their intellectual property (templates, clauses, playbooks) and the documents of their clients (including sensitive client data and PII). 
                 </p>
-            </div>
-
-            <div class="feature-card" data-aos="fade-up" data-aos-delay="150">
-                <div class="feature-icon">
-                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-                        <path d="M40 18L20 28V44C20 56 28 64 40 68C52 64 60 56 60 44V28L40 18Z" stroke="currentColor" stroke-width="2"/>
-                        <rect x="32" y="36" width="16" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
-                        <path d="M35 36V32C35 29 37 27 40 27C43 27 45 29 45 32V36" stroke="currentColor" stroke-width="2"/>
-                        <circle cx="40" cy="43" r="2" fill="currentColor"/>
-                    </svg>
-                </div>
-                <h2 class="feature-title">Custom Library, Zero Trust</h2>
-                <h3 class="feature-subtitle">Your Firm's Data Stays in Your Office</h3>
-                <p class="feature-description">
-                    ZOE AI ingests your law firm's data to build your own document library of templates and preferred clauses, all while the data never leaves your office: not during use, not during setup, not unless you choose to share the data.
+                <p class="feature-description" style="margin-top: 24px;">
+                  Cloud legal providers use compute-intensive processing (involving large swarms of LLMs) that leaves you with a massive invoice at the end of each month, all the while your intellectual property and the data of your clients are subject to leakage and improper use.
                 </p>
-            </div>
-
-            <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
-                <div class="feature-icon">
-                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-                        <rect x="20" y="20" width="24" height="30" rx="2" stroke="currentColor" stroke-width="2"/>
-                        <rect x="24" y="25" width="16" height="2" fill="currentColor"/>
-                        <rect x="24" y="30" width="12" height="2" fill="currentColor"/>
-                        <rect x="24" y="35" width="14" height="2" fill="currentColor"/>
-                        <path d="M44 35L55 35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        <path d="M55 28V42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        <rect x="48" y="42" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
-                        <path d="M52 51L56 55L62 47" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
-                <h2 class="feature-title">Workflow Integration & Drafting</h2>
-                <h3 class="feature-subtitle">Seamless Integration with Your Practice</h3>
-                <p class="feature-description">
-                    Using your firm's library of precedents, ZOE AI suggests clauses, assists with drafting and document review, and integrates seamlessly with your legal workflow, all while avoiding the risks and costs of the cloud.
-                </p>
-            </div>
-
-            <div class="feature-card" data-aos="fade-up" data-aos-delay="450">
-                <div class="feature-icon">
-                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-                        <rect x="22" y="28" width="36" height="24" rx="2" stroke="currentColor" stroke-width="2"/>
-                        <path d="M22 36H58" stroke="currentColor" stroke-width="1.5"/>
-                        <rect x="26" y="32" width="4" height="2" rx="1" fill="currentColor"/>
-                        <rect x="32" y="32" width="4" height="2" rx="1" fill="currentColor"/>
-                        <rect x="38" y="32" width="4" height="2" rx="1" fill="currentColor"/>
-                        <circle cx="54" cy="33" r="2" fill="currentColor"/>
-                        <path d="M30 44L36 40L42 46L50 38L54 42" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M30 56L40 52L50 56" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                        <path d="M40 52V58" stroke="currentColor" stroke-width="1.5"/>
-                        <path d="M36 58H44" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <h2 class="feature-title">Edge Computing Efficiency</h2>
-                <h3 class="feature-subtitle">Dramatically Lower Costs</h3>
-                <p class="feature-description">
-                    ZOE AI is newer, lighter, and significantly more efficient than bloated SaaS and cloud compute solutions, which means significant cost reductions of 50% to 90% cheaper than the most heavily discounted rates of leading competitors.
-                </p>
-            </div>
-
-            <div class="feature-card" data-aos="fade-up" data-aos-delay="600">
-                <div class="feature-icon">
-                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-                        <rect x="25" y="20" width="30" height="40" rx="2" stroke="currentColor" stroke-width="2"/>
-                        <rect x="30" y="25" width="20" height="5" fill="currentColor"/>
-                        <rect x="30" y="35" width="20" height="2" fill="currentColor"/>
-                        <rect x="30" y="40" width="15" height="2" fill="currentColor"/>
-                        <circle cx="60" cy="30" r="8" stroke="currentColor" stroke-width="2"/>
-                        <path d="M60 26V30L62 32" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <h2 class="feature-title">Ultimate Security</h2>
-                <h3 class="feature-subtitle">100% Air-Gapped Local-Only Security</h3>
-                <p class="feature-description">
-                    Your documents and client data will never leave your machine, not for inference, storage, or analytics. There is no cloud endpoint, no API call, no telemetry, no hidden sync. The system is fully air-gapped by design — a closed loop between you, ZOE, and your files. That means absolute confidentiality, zero attack surface, and compliance that SaaS tools simply cannot match. It's the closest thing to a digital vault for your work product and your client's data. The team behind ZOE AI brings decades of experience building and managing high‑confidentiality systems that safeguard everything from sensitive defense‑related information to the customer data of top Fortune 50 companies.
-                </p>
-            </div>
-
-            <div class="feature-card" data-aos="fade-up" data-aos-delay="800">
-                <div class="feature-icon">
-                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-                        <path d="M40 20C40 20 30 25 30 35C30 45 40 50 40 50C40 50 50 45 50 35C50 25 40 20 40 20Z" stroke="currentColor" stroke-width="2"/>
-                        <circle cx="40" cy="35" r="3" fill="currentColor"/>
-                        <path d="M25 50H55M30 55H50M35 60H45" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <h2 class="feature-title">Built by Lawyers for Lawyers</h2>
-                <h3 class="feature-subtitle">Engineered by Legal Professionals</h3>
-                <p class="feature-description">
-                    Experienced attorneys know that all software, AI included, can and will make mistakes. Unlike other Artificial Intelligence solutions, ZOE AI does not pretend to be perfect at all times. There is no cloud server that can be as secure as a truly air-gapped solution that ensures that a mistake will never leave your laptop or put your client in harms way. ZOE is the only legal AI assistant of its kind that can work entirely offline, disconnected from all avenues of attack, you and your firm can control inputs, outputs and all releveant data; nothing goes anywhere in the world until you decide to send it. We invite you to click on the link below to express your interest in transforming your workflow with ZOE AI.
+                <p class="feature-description" style="margin-top: 24px;">
+                    ZOE AI solves both problems by focusing on <strong>efficiency</strong>, not volume.
                 </p>
             </div>
         </div>
     </section>
 
-    <!-- Product Showcase -->
+    <!-- How ZOE AI solves these problems -->
+    <section id="why" class="why">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">How ZOE AI solves these problems.</h2>
+            <p class="section-lede" data-aos="fade-up">
+                Keep your data — outsource only the most intensive AI &ldquo;thinking.&rdquo;
+            </p>
+
+            <div class="why-grid">
+                <div class="why-card" data-aos="fade-up">
+                    <span class="why-num">01</span>
+                    <h3 class="why-title">Reduce AI Expenses.</h3>
+                    <p class="why-text">
+                        Frontier AI costs will always be sensitive to compute (token) economics, and token counts naturally balloon as AI gets &ldquo;smarter.&rdquo; ZOE AI uses your laptop hardware to &ldquo;preprocess&rdquo; local data (like a junior associate) so that only the more difficult issues (typically done by a partner) are tackled by the hyperscaler, reducing compute costs by up to 99%.
+                    </p>
+                </div>
+
+                <div class="why-card" data-aos="fade-up">
+                    <span class="why-num">02</span>
+                    <h3 class="why-title">Protect Client Data.</h3>
+                    <p class="why-text">
+                        Sophisticated clients are becoming more cautious about third-party AI vendors and datacenter security. ZOE AI keeps the vast majority of the client's data (including all client PII) local, on your system of choice. A ZOE AI user can calmly tell their client that <em>"your documents never leave my laptop"</em> while they leverage all of the benefits of modern legal tech powered by the world's best hyperscalers.
+                    </p>
+                </div>
+
+                <div class="why-card" data-aos="fade-up">
+                    <span class="why-num">03</span>
+                    <h3 class="why-title">Protect Firm Data.</h3>
+                    <p class="why-text">
+                        In today's AI driven world, your templates, preferred clauses, and negotiating playbooks represent the differentiators and competitive "moat" of your firm. When using ZOE AI, these precious assets that your firm has built over decades will stay on your laptop, desktop or server of choice. When you search for a preferred template or legal clause, the search is entirely local; the hyperscaler (of your choice) essentially operates with a blindfold on 90% of the time, seeing only small snippets of information when you allow it, effectively creating an &ldquo;air-gap&rdquo; between you and the AI system — you operate your system in a Zero Trust environment with zero reduction in AI reasoning abilities.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Data Flow: cloud vs local -->
+    <section id="dataflow" class="dataflow">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">Why legacy cloud AI legal tech is risky.</h2>
+            <p class="section-lede" data-aos="fade-up">
+                Cloud-first legal AI systems route client and firm legal documents to their servers and then redistribute them to multiple specialized cloud servers, where each server acts as an additional point of potential failure as they separately process a portion of each document. ZOE AI flips the system on its head by keeping all documents local by default (on device or on local server), with local processing capabilities that make online uploads entirely optional — allowing the user to pick and choose what they want to upload, giving you complete control over the data.
+            </p>
+
+            <!-- Panel 1: the cloud path -->
+            <div class="flow-panel flow-panel--risk" data-aos="fade-up">
+                <div class="flow-head">
+                    <span class="flow-tag flow-tag--risk">Cloud legal AI</span>
+                    <h3 class="flow-title">Your document takes a trip.</h3>
+                </div>
+                <div class="flow-scroll">
+                    <svg class="flow-svg" viewBox="0 0 1160 510" role="img" aria-labelledby="flowCloudDesc">
+                        <title id="flowCloudDesc">In a cloud legal AI, the document leaves your laptop, passes through your router, your ISP and the public internet to a vendor's cloud orchestrator, which then distributes it to a PII model, a retrieval index, a language model and an OCR renderer — all running on hardware you do not control.</title>
+                        <defs>
+                            <marker id="arwRisk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                                <path d="M0 0 L10 5 L0 10 z" fill="#c9443f"/>
+                            </marker>
+                        </defs>
+
+                        <!-- trust boundary -->
+                        <rect x="96" y="6" width="196" height="26" rx="13" fill="#fdf3f2" stroke="#e8b4b1"/>
+                        <text class="fl-badge" x="194" y="24">YOUR CONTROL ENDS HERE</text>
+                        <line x1="194" y1="40" x2="194" y2="372" stroke="#e0a9a5" stroke-width="1.5" stroke-dasharray="5 6"/>
+
+                        <!-- chain -->
+                        <rect class="fl-box" x="24" y="226" width="150" height="88" rx="14"/>
+                        <text class="fl-t" x="99" y="264">Your laptop</text>
+                        <text class="fl-s" x="99" y="286">your client's file</text>
+
+                        <rect class="fl-box fl-box--risk" x="214" y="226" width="130" height="88" rx="14"/>
+                        <text class="fl-t" x="279" y="264">Router</text>
+                        <text class="fl-s" x="279" y="286">your office</text>
+
+                        <rect class="fl-box fl-box--risk" x="384" y="226" width="130" height="88" rx="14"/>
+                        <text class="fl-t" x="449" y="264">ISP</text>
+                        <text class="fl-s" x="449" y="286">public internet</text>
+
+                        <rect class="fl-box fl-box--risk" x="554" y="214" width="180" height="112" rx="16"/>
+                        <text class="fl-t" x="644" y="258">Vendor cloud</text>
+                        <text class="fl-s" x="644" y="280">their orchestrator</text>
+                        <text class="fl-s" x="644" y="298">their hardware</text>
+
+                        <!-- hops -->
+                        <line x1="174" y1="270" x2="208" y2="270" stroke="#c9443f" stroke-width="2" marker-end="url(#arwRisk)"/>
+                        <line x1="344" y1="270" x2="378" y2="270" stroke="#c9443f" stroke-width="2" marker-end="url(#arwRisk)"/>
+                        <line x1="514" y1="270" x2="548" y2="270" stroke="#c9443f" stroke-width="2" marker-end="url(#arwRisk)"/>
+
+                        <!-- travelling document glyphs -->
+                        <g fill="#fdf3f2" stroke="#c9443f" stroke-width="1.4">
+                            <rect x="185" y="234" width="14" height="18" rx="2"/>
+                            <rect x="355" y="234" width="14" height="18" rx="2"/>
+                            <rect x="525" y="234" width="14" height="18" rx="2"/>
+                        </g>
+                        <g stroke="#c9443f" stroke-width="1.2" stroke-linecap="round">
+                            <path d="M188 239h8M188 243h8M188 247h5"/>
+                            <path d="M358 239h8M358 243h8M358 247h5"/>
+                            <path d="M528 239h8M528 243h8M528 247h5"/>
+                        </g>
+
+                        <!-- fan out -->
+                        <g fill="none" stroke="#e0a9a5" stroke-width="1.75">
+                            <path d="M734 270 C 776 270, 776 82, 812 82"/>
+                            <path d="M734 270 C 776 270, 776 208, 812 208"/>
+                            <path d="M734 270 C 776 270, 776 334, 812 334"/>
+                            <path d="M734 270 C 776 270, 776 460, 812 460"/>
+                        </g>
+
+                        <rect class="fl-box fl-box--risk" x="812" y="46" width="324" height="72" rx="14"/>
+                        <text class="fl-mt" x="838" y="80">PII / entity model</text>
+                        <text class="fl-ms" x="838" y="100">reads every name in your file</text>
+
+                        <rect class="fl-box fl-box--risk" x="812" y="172" width="324" height="72" rx="14"/>
+                        <text class="fl-mt" x="838" y="206">Retrieval index (RAG)</text>
+                        <text class="fl-ms" x="838" y="226">your clauses, stored on their disk</text>
+
+                        <rect class="fl-box fl-box--risk" x="812" y="298" width="324" height="72" rx="14"/>
+                        <text class="fl-mt" x="838" y="332">Language model</text>
+                        <text class="fl-ms" x="838" y="352">generates from your text</text>
+
+                        <rect class="fl-box fl-box--risk" x="812" y="424" width="324" height="72" rx="14"/>
+                        <text class="fl-mt" x="838" y="458">PDF / OCR renderer</text>
+                        <text class="fl-ms" x="838" y="478">your pages rendered as images</text>
+
+                        <text class="fl-cap fl-cap--risk" x="24" y="410">Four hops. Three systems you don't control.</text>
+                        <text class="fl-cap2" x="24" y="436">The file left the building at hop one — and every model downstream</text>
+                        <text class="fl-cap2" x="24" y="458">reads it in the clear.</text>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Panel 2: the ZOE path -->
+            <div class="flow-panel flow-panel--zoe" data-aos="fade-up">
+                <div class="flow-head">
+                    <span class="flow-tag flow-tag--zoe">ZOE</span>
+                    <h3 class="flow-title">Your document doesn't move.</h3>
+                </div>
+                <div class="flow-scroll">
+                    <svg class="flow-svg" viewBox="0 0 1160 530" role="img" aria-labelledby="flowZoeDesc">
+                        <title id="flowZoeDesc">With ZOE, the orchestrator and all four models — PII, retrieval, language and OCR — run inside your laptop. The document never travels. An optional dashed link to a frontier cloud model carries only a scrubbed question you have approved.</title>
+                        <defs>
+                            <marker id="arwZoe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                                <path d="M0 0 L10 5 L0 10 z" fill="#0071e3"/>
+                            </marker>
+                        </defs>
+
+                        <rect x="130" y="12" width="286" height="28" rx="14" fill="#eaf4fe" stroke="#b9dcfb"/>
+                        <text class="fl-badge fl-badge--zoe" x="273" y="31">EVERYTHING BELOW RUNS ON THIS MACHINE</text>
+
+                        <!-- laptop -->
+                        <rect x="130" y="56" width="770" height="372" rx="18" fill="#ffffff" stroke="#1d1d1f" stroke-width="2"/>
+                        <rect x="96" y="434" width="838" height="16" rx="8" fill="#d2d2d7"/>
+
+                        <!-- web edges -->
+                        <g fill="none" stroke="#b9dcfb" stroke-width="1.75">
+                            <path d="M268 140 L430 232"/>
+                            <path d="M268 346 L430 250"/>
+                            <path d="M790 140 L630 232"/>
+                            <path d="M790 346 L630 250"/>
+                            <path d="M268 140 L268 346"/>
+                            <path d="M790 140 L790 346"/>
+                            <path d="M268 140 L790 140"/>
+                            <path d="M268 346 L790 346"/>
+                        </g>
+
+                        <!-- models -->
+                        <rect class="fl-box" x="170" y="108" width="196" height="64" rx="12"/>
+                        <text class="fl-nt" x="268" y="135">PII / entity model</text>
+                        <text class="fl-ns" x="268" y="155">finds every identifier</text>
+
+                        <rect class="fl-box" x="170" y="314" width="196" height="64" rx="12"/>
+                        <text class="fl-nt" x="268" y="341">PDF / OCR reader</text>
+                        <text class="fl-ns" x="268" y="361">renders pages locally</text>
+
+                        <rect class="fl-box" x="692" y="108" width="196" height="64" rx="12"/>
+                        <text class="fl-nt" x="790" y="135">Retrieval index</text>
+                        <text class="fl-ns" x="790" y="155">your clause library</text>
+
+                        <rect class="fl-box" x="692" y="314" width="196" height="64" rx="12"/>
+                        <text class="fl-nt" x="790" y="341">Language model</text>
+                        <text class="fl-ns" x="790" y="361">reads signature pages</text>
+
+                        <!-- orchestrator -->
+                        <rect x="430" y="203" width="200" height="76" rx="15" fill="#0071e3"/>
+                        <text class="fl-ot" x="530" y="236">ZOE orchestrator</text>
+                        <text class="fl-os" x="530" y="256">the spine</text>
+
+                        <!-- optional cloud -->
+                        <line x1="904" y1="241" x2="994" y2="241" stroke="#0071e3" stroke-width="1.75" stroke-dasharray="6 6" marker-end="url(#arwZoe)"/>
+                        <path d="M1032 253 a26 26 0 0 1 4 -51 a34 34 0 0 1 63 8 a22 22 0 0 1 -3 43 z"
+                              fill="#f5f5f7" stroke="#86868b" stroke-width="1.75"/>
+                        <text class="fl-ns" x="1066" y="288">frontier model</text>
+                        <text class="fl-ns" x="1066" y="306">(optional)</text>
+
+                        <text class="fl-cap fl-cap--zoe" x="530" y="486">Zero hops. The document never leaves this box.</text>
+                        <text class="fl-cap2 fl-cap2--mid" x="530" y="512">The only thing that can travel is a scrubbed question you approved.</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Capabilities -->
+    <section id="capabilities" class="capabilities">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">What runs on your machine.</h2>
+            <p class="section-lede" data-aos="fade-up">
+                Due diligence, clause search, entity mapping, drafting support — the work that fills your day, running quietly on your own hardware at no cost per document.
+            </p>
+
+            <div class="cap-grid">
+                <div class="cap-card" data-aos="fade-up">
+                    <div class="cap-icon">
+                        <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                            <rect x="6" y="12" width="44" height="32" rx="3" stroke="currentColor" stroke-width="2"/>
+                            <path d="M6 24H50M20 24V44M34 24V44" stroke="currentColor" stroke-width="1.5" opacity="0.5"/>
+                            <path d="M11 18H17M25 18H31M39 18H45" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M11 34C13 30 15 36 17 32" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M25 34C27 30 29 36 31 32" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="cap-title">It reads the signature page.</h3>
+                    <p class="cap-text">
+                        Who signed, in what capacity, and on whose authority — captured from every signature page in the deal and laid out in one clean table. The afternoon an associate would have spent working out <em>who actually had the power to sign this</em> is yours again.
+                    </p>
+                </div>
+
+                <div class="cap-card" data-aos="fade-up">
+                    <div class="cap-icon">
+                        <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                            <rect x="8" y="10" width="12" height="36" rx="2" stroke="currentColor" stroke-width="2"/>
+                            <rect x="22" y="10" width="12" height="36" rx="2" stroke="currentColor" stroke-width="2"/>
+                            <path d="M38 14L48 16L44 46L34 44L38 14Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                            <path d="M12 20H16M26 20H30" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="cap-title">It builds your clause library out of your own work.</h3>
+                    <p class="cap-text">
+                        Point ZOE at your precedents — ten of them, or fifty thousand. Ask for a strong environmental rep and you get <em>your firm's</em> best one, from the deal it actually closed in. Search it from your desktop or from inside Word, and drop the language straight into the draft.
+                    </p>
+                </div>
+
+                <div class="cap-card" data-aos="fade-up">
+                    <div class="cap-icon">
+                        <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                            <circle cx="28" cy="28" r="5" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="10" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="46" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="10" cy="44" r="4" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="46" cy="44" r="4" stroke="currentColor" stroke-width="2"/>
+                            <path d="M24 25L13 15M32 25L43 15M24 31L13 41M32 31L43 41" stroke="currentColor" stroke-width="1.75"/>
+                            <path d="M10 16V40M46 16V40" stroke="currentColor" stroke-width="1.75" opacity="0.4"/>
+                        </svg>
+                    </div>
+                    <h3 class="cap-title">It maps every entity in the deal.</h3>
+                    <p class="cap-text">
+                        Every party, every subsidiary, every ownership thread across an entire data room, drawn as a map you can read at a glance. Click any connection and the source paragraph opens beside it. Diligence you can put in front of a client without checking it twice.
+                    </p>
+                </div>
+
+                <div class="cap-card" data-aos="fade-up">
+                    <div class="cap-icon">
+                        <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                            <rect x="8" y="8" width="40" height="40" rx="3" stroke="currentColor" stroke-width="2"/>
+                            <path d="M15 19H27M15 27H23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <rect x="14" y="33" width="16" height="7" rx="2" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="31" y="16" width="12" height="7" rx="2" fill="currentColor" opacity="0.15" stroke="currentColor" stroke-width="1.5"/>
+                            <path d="M34 33L38 37L44 30" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <h3 class="cap-title">It knows exactly where your client's data is.</h3>
+                    <p class="cap-text">
+                        Every name, address, account number and identifier your documents contain — found and inventoried, including the ones buried in exhibits and signature pages where redaction usually slips. It is what lets you share work with confidence, and what keeps the outside world blind.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Signature Engine proof -->
+    <section id="engine" class="engine">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">Measured, not claimed.</h2>
+            <p class="section-lede" data-aos="fade-up">
+                Signature pages are the hardest part of a deal document to get right, so it is the piece we hold to the strictest standard. Here is how ZOE performs against real contract signature blocks — all of it running on the laptop in front of you.
+            </p>
+            <div class="engine-frame" data-aos="fade-up">
+                <img src="assets/signature-engine.png"
+                     alt="ZOE AI Signature Extraction Engine results: ultra mobile at 4B total parameters running locally on standard laptops; 100% data sovereignty with air-gapped edge compute; 100% signatory precision with 99.6% accuracy on contract parties; 82 of 82 escape hatch score with zero hallucinations; 98% chain of authority mapping; 99% valid JSON."
+                     class="engine-img" loading="lazy" width="1025" height="963">
+            </div>
+            <p class="engine-note" data-aos="fade-up">
+                The number we care about most is the escape hatch score. When ZOE cannot read a field with confidence, it says so rather than inventing a name — because a confident wrong answer is far more dangerous to a client than a blank one.
+            </p>
+        </div>
+    </section>
+
+    <!-- Data Sovereignty -->
+    <section id="sovereignty" class="sovereignty">
+        <div class="container">
+            <div class="sov-head" data-aos="fade-up">
+                <p class="sov-eyebrow">The hybrid layer</p>
+                <h2 class="sov-title">Use the world's best models.<br>Show them nothing.</h2>
+                <p class="sov-lede">
+                    This is the half that makes ZOE a hybrid rather than an island. Everything on the previous screen already works with no internet at all — but the hardest questions still deserve a frontier model. So ZOE opens a door that only opens one way, and sends a fraction of the tokens through it.
+                </p>
+            </div>
+
+            <div class="sov-grid">
+                <div class="sov-card" data-aos="fade-up">
+                    <span class="sov-num">01</span>
+                    <h3 class="sov-card-title">The model gets tools, not files.</h3>
+                    <p class="sov-card-text">
+                        The cloud AI never receives your document set. It receives a set of tools — the same ones you use. It can search your clause library, put a question to your knowledge graph, ask what a party's chain of authority is, or request one specific passage. It works your matter the way a careful associate would: by asking, not by taking.
+                    </p>
+                </div>
+
+                <div class="sov-card" data-aos="fade-up">
+                    <span class="sov-num">02</span>
+                    <h3 class="sov-card-title">Everything it sees is scrubbed first.</h3>
+                    <p class="sov-card-text">
+                        Every name, entity and address is swapped for a placeholder — <code>[BUYER]</code>, <code>[PERSON_1]</code> — before anything leaves your machine. Catch a name once and it disappears everywhere it appears, right through the exhibits. What reaches the cloud is a contract with your client stripped out of it.
+                    </p>
+                </div>
+
+                <div class="sov-card" data-aos="fade-up">
+                    <span class="sov-num">03</span>
+                    <h3 class="sov-card-title">You approve the send.</h3>
+                    <p class="sov-card-text">
+                        ZOE shows you the redline of what is about to leave, with every substitution listed. You read it. You approve it. Nothing crosses the wire on the software's judgment alone — because the professional duty is yours, and the tool should never be in a position to discharge it for you.
+                    </p>
+                </div>
+
+                <div class="sov-card" data-aos="fade-up">
+                    <span class="sov-num">04</span>
+                    <h3 class="sov-card-title">Work comes back as a tracked change.</h3>
+                    <p class="sov-card-text">
+                        When the model returns a draft, ZOE restores the real names locally and places the result in your document as a tracked change you accept or reject. Every edit — local, cloud, deterministic — is visible. ZOE never silently rewrites a word of your document.
+                    </p>
+                </div>
+            </div>
+
+            <div class="scrub" data-aos="fade-up">
+                <div class="scrub-col">
+                    <p class="scrub-label">On your machine</p>
+                    <div class="scrub-doc">
+                        <p>This Agreement is entered into by <span class="pii">Meridian Holdings LLC</span>, a Delaware limited liability company (the "Buyer"), and <span class="pii">Jane R. Okonkwo</span>, an individual residing at <span class="pii">1400 Kestrel Lane, Palo Alto, California</span> (the "Seller").</p>
+                    </div>
+                </div>
+                <div class="scrub-arrow" aria-hidden="true">
+                    <svg viewBox="0 0 48 24" width="48" height="24"><path d="M2 12h40m0 0l-8-7m8 7l-8 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span>firewall</span>
+                </div>
+                <div class="scrub-col">
+                    <p class="scrub-label scrub-label--out">What the cloud model receives</p>
+                    <div class="scrub-doc scrub-doc--out">
+                        <p>This Agreement is entered into by <span class="tok">[BUYER]</span>, a Delaware limited liability company (the "Buyer"), and <span class="tok">[PERSON_1]</span>, an individual residing at <span class="tok">[ADDRESS_1]</span> (the "Seller").</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sov-close" data-aos="fade-up">
+                <h3 class="sov-close-title">And you can always pull the plug.</h3>
+                <p class="sov-close-text">
+                    The hybrid layer is a feature, not a dependency. Switch it off and everything else on this page still works — the clause library, both diligence passes, the entity map, the signature extraction. No vendor holds your precedents. No model trains on your playbooks. ZOE simply falls back to fully offline and keeps working exactly as it did the day before.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Motions -->
+    <section id="motions" class="motions">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">Five ways to put it to work.</h2>
+            <p class="section-lede" data-aos="fade-up">
+                One system, five ways in. You decide how deep it goes.
+            </p>
+
+            <div class="motion-grid">
+                <div class="motion-card" data-aos="fade-up">
+                    <h3 class="motion-title">Precision Due Diligence</h3>
+                    <p class="motion-text">The deep pass. Every document fully processed, every entity mapped, every relationship traced across the whole data room — with a citation behind each one.</p>
+                </div>
+                <div class="motion-card" data-aos="fade-up">
+                    <h3 class="motion-title">Batch Due Diligence</h3>
+                    <p class="motion-text">The fast sweep. Hundreds of documents read and searchable in a single sitting, so you know what is in the room before you decide where to spend the hours.</p>
+                </div>
+                <div class="motion-card" data-aos="fade-up">
+                    <h3 class="motion-title">Clause Library</h3>
+                    <p class="motion-text">Search every clause your firm has ever negotiated. Ask by concept — "a deadlock provision that favors the minority" — not by keyword.</p>
+                </div>
+                <div class="motion-card" data-aos="fade-up">
+                    <h3 class="motion-title">Template Finder</h3>
+                    <p class="motion-text">Find the document, not the folder. "That asset purchase agreement from the 2024 Acme deal." ZOE knows the one you mean.</p>
+                </div>
+                <div class="motion-card" data-aos="fade-up">
+                    <h3 class="motion-title">Drafting in Word</h3>
+                    <p class="motion-text">Clause search and insert without leaving your document. Smarter find and replace. Defined terms used but never defined. Broken cross-references and missing schedules. Every change arrives as a tracked change.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Runs On -->
+    <section class="runs-on">
+        <div class="container">
+            <div class="runs-inner" data-aos="fade-up">
+                <h2 class="runs-title">On the laptop you already own.</h2>
+                <p class="runs-text">
+                    No server. No graphics card. No procurement cycle, no security review of a vendor's cloud, no six-week IT project. ZOE runs on a 16GB MacBook or Windows laptop — the machine your associates already carry to closings.
+                </p>
+                <p class="runs-text">
+                    That is the whole economic argument in one line: <strong>the heavy, repetitive work runs on hardware you have already paid for.</strong> Reading a data room, indexing ten thousand templates, mapping the parties — none of it runs up a bill. You pay for outside AI only on the handful of questions that genuinely need it.
+                </p>
+                <p class="runs-text">
+                    And because it needs no connection to do any of that, it works on a plane. In a data room with guest wifi you would never put client documents on. In a courthouse basement with no signal at all.
+                </p>
+                <div class="runs-specs">
+                    <div class="spec"><span class="spec-value">16GB</span><span class="spec-label">Memory, minimum</span></div>
+                    <div class="spec"><span class="spec-value">Mac &amp; PC</span><span class="spec-label">Apple Silicon or Windows</span></div>
+                    <div class="spec"><span class="spec-value">$0</span><span class="spec-label">Per document processed locally</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roadmap -->
+    <section class="roadmap">
+        <div class="container">
+            <div class="roadmap-inner" data-aos="fade-up">
+                <p class="roadmap-eyebrow">On the roadmap</p>
+                <h2 class="roadmap-title">Claims screening for e-discovery.</h2>
+                <p class="roadmap-text">
+                    The engine that finds a client's private data inside a contract can read a mailbox just as well. ZOE is being trained to recognize the communications that matter in a dispute — the language that signals an emerging claim, the message someone will wish had been found in week one rather than month six.
+                </p>
+                <p class="roadmap-text">
+                    Two jobs, one pass: surface the exposure, and scrub the client's identifiers at the same time. Review sets are the single most expensive place a firm leaks confidential data. Screening them locally means the exposure and the privacy problem get solved by the same sweep.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Servers -->
     <section class="product-showcase">
         <div class="container">
-            <!-- Mobile Solutions Section -->
-            <h2 class="section-title" data-aos="fade-up">Mobile Solutions</h2>
-            
             <div class="product-grid">
-                <div class="product-image-container" data-aos="fade-right">
-                    <img src="assets/ZOE_AI1.jpg" alt="ZOE AI Device" class="product-image">
+                <div class="product-image-container" data-aos="fade-up">
+                    <img src="assets/ZOEAI_SERVER_CLOSED.png" alt="ZOE AI on-premises server" class="product-image">
                 </div>
-                <div class="product-content" data-aos="fade-left">
-                    <h2 class="product-headline">Power in Your Pocket</h2>
+                <div class="product-content" data-aos="fade-up">
+                    <h2 class="product-headline">And when a firm wants it shared.</h2>
                     <p class="product-text">
-                        Advanced legal AI powered by RTX 5090 Mobile technology. Connect to any laptop through external GPU and experience unprecedented performance without compromise.
-                    </p>
-                </div>
-            </div>
-            <div class="product-grid reverse">
-                <div class="product-content" data-aos="fade-right">
-                    <h2 class="product-headline">Designed for Professionals</h2>
-                    <p class="product-text">
-                        Sleek, portable design that integrates seamlessly into your workflow. From conference rooms and courthouses to coffee shops and airports, ZOE AI is suitable for every environment regardless of local network security concerns.
-                    </p>
-                </div>
-                <div class="product-image-container" data-aos="fade-left">
-                    <img src="assets/ZOE_AI2.jpg" alt="ZOE AI Setup" class="product-image">
-                </div>
-            </div>
-
-            <!-- Server Solutions Section -->
-            <h2 class="section-title" data-aos="fade-up" style="margin-top: 100px;">Server Solutions</h2>
-            
-            <div class="product-grid">
-                <div class="product-image-container" data-aos="fade-right">
-                    <img src="assets/ZOEAI_SERVER_CLOSED.png" alt="ZOE AI Server" class="product-image">
-                </div>
-                <div class="product-content" data-aos="fade-left">
-                    <h2 class="product-headline">Cost Efficiency</h2>
-                    <p class="product-text">
-                        ZOE AI leverages recent efficiency gains in artificial intelligence models and recent performance gains in the most powerful consumer-grade graphics processing units from Nvidia to deliver enterprise performance with high end consumer-grade hardware. This allows ZOE AI to power your firm's AI needs at a fraction of the per user costs of SaaS solutions.
-                    </p>
-                </div>
-            </div>
-            <div class="product-grid reverse">
-                <div class="product-content" data-aos="fade-right">
-                    <h2 class="product-headline">Unmatched Speed and Security</h2>
-                    <p class="product-text">
-                        On a per user basis, ZOE AI Servers can handle data up to 20 times faster than competing SaaS enterprise solutions. By being onsite, latency is minimized and responsiveness can feel instantaneous. Our Servers will only have access to the internet to the extent that organizations allow it. AI Drafting, document processing and due diligence can be done entirely offline so client data will never touch a third-party server.
-                    </p>
-                </div>
-                <div class="product-image-container" data-aos="fade-left">
-                    <img src="assets/ZoeSERVER_Angle.png" alt="ZOE AI Server Interior" class="product-image">
-                </div>
-            </div>
-
-            <!-- DGX Spark Support Section -->
-            <h2 class="section-title" data-aos="fade-up" style="margin-top: 100px;">DGX Spark Support</h2>
-
-            <div class="product-grid">
-                <div class="product-image-container" data-aos="fade-right">
-                    <img src="assets/dgx-spark.jpg" alt="NVIDIA DGX Spark" class="product-image">
-                </div>
-                <div class="product-content" data-aos="fade-left">
-                    <h2 class="product-headline">Built for the Latest Hardware</h2>
-                    <p class="product-text">
-                        ZOE AI is designed to run on the latest hardware platforms available, and will include support for the new NVIDIA DGX Spark. Purpose-built for AI workloads, the DGX Spark delivers exceptional local performance in a compact form factor — a perfect match for ZOE AI's air-gapped, on-premises architecture.
+                        ZOE Servers put the same system on-premises for an entire practice group — one library, one knowledge graph, one index behind your own firewall. Same architecture, same guarantees. Nothing leaves the building here either.
                     </p>
                 </div>
             </div>
 
-            <!-- CTA Buttons -->
-            <div class="cta-dual-container" data-aos="fade-up" data-aos-delay="600">
+            <div class="cta-dual-container" data-aos="fade-up">
                 <a href="#contact" class="cta-button">Express Interest</a>
             </div>
         </div>
     </section>
 
-
     <!-- About Section -->
     <section id="about" class="about">
         <div class="container">
             <div class="about-content">
-                <div class="about-image-container" data-aos="fade-right">
+                <div class="about-image-container" data-aos="fade-up">
                     <img src="assets/william-wei.png" alt="William Wei" class="about-image">
                 </div>
-                <div class="about-text" data-aos="fade-left">
+                <div class="about-text" data-aos="fade-up">
                     <h2 class="section-title">Meet the Founder</h2>
                     <h3 class="about-name">William Wei</h3>
-                    <p class="about-title">Founder & Lead Developer</p>
+                    <p class="about-title">Founder &amp; Lead Developer</p>
                     <div class="about-credentials">
                         <a href="https://www.linkedin.com/in/william-w-239b0912/" target="_blank" rel="noopener noreferrer" class="linkedin-link">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
@@ -263,7 +557,7 @@
                             As an attorney, William quarterbacked dozens of public and middle-market business combinations totaling billions of dollars in mergers and acquisitions. He previously worked as part of a legal team that ranked first in the U.S. by volume in de-SPAC mergers and has served as outside general counsel to companies across transactional, tax, employment, and corporate matters, representing clients ranging from large public companies to high-net-worth individuals.
                         </p>
                         <p>
-                            Combining his dual expertise in technology and law, William founded ZOE AI to deliver the precision, confidentiality, and consistency that modern legal work demands without the security compromises of cloud-based solutions.
+                            ZOE is built the way it is because William spent those years doing the work by hand — and because he knows precisely which shortcuts an attorney cannot ethically take. Every design decision in the system answers to that: the software surfaces, the lawyer decides.
                         </p>
                     </div>
                 </div>
@@ -275,8 +569,7 @@
     <section id="team" class="team">
         <div class="container">
             <h2 class="section-title" data-aos="fade-up">Advisory Board</h2>
-            
-            <!-- Advisory Board Members - Side by Side -->
+
             <div class="team-members">
                 <div class="team-member" data-aos="fade-up" data-aos-delay="100">
                     <div class="team-member-image-container">
@@ -296,7 +589,6 @@
                         </p>
                     </div>
                 </div>
-
             </div>
         </div>
     </section>
@@ -328,7 +620,7 @@
                         <div class="form-group" style="margin-bottom: 32px;">
                             <label for="nl-message" class="form-label">Message</label>
                             <textarea id="nl-message" name="message" class="form-input form-textarea"
-                                      placeholder="Tell us about your interest in ZOE AI..." rows="5" required></textarea>
+                                      placeholder="Tell us about your practice and what you'd want ZOE to do..." rows="5" required></textarea>
                         </div>
                         <button type="submit" class="cta-button form-submit-btn">
                             Send Message
@@ -355,10 +647,10 @@
                     <a href="#terms" class="footer-link">Terms of Use</a>
                 </div>
                 <div class="footer-disclaimer">
-                    <p>Hardware images and designs are preliminary concepts. All specifications are subject to change based on final engineering determinations, hardware availability and partnerships.</p>
+                    <p>Product images are illustrative. Features and specifications are subject to change as the product develops.</p>
                 </div>
                 <div class="footer-trademark">
-                    <p>&copy; 2025 NVIDIA, the NVIDIA logo is a registered trademark of NVIDIA Corporation in the U.S. and other countries.</p>
+                    <p>NVIDIA and the NVIDIA logo are registered trademarks of NVIDIA Corporation in the U.S. and other countries.</p>
                 </div>
                 <div class="footer-copyright">
                     <p>&copy; 2026 ZOE AI&trade;. All rights reserved.</p>
@@ -373,19 +665,19 @@
             <a href="#" class="modal-close">&times;</a>
             <h2>Privacy Policy</h2>
             <p><strong>Last Updated: January 8, 2026</strong></p>
-            
+
             <h3>Information We Collect</h3>
             <p>We collect business contact information you provide through our contact form, including your name, organization, work email, work phone, work address, and optionally personal email and personal phone.</p>
-            
+
             <h3>How We Use Your Information</h3>
             <p>We use your information solely to contact you regarding ZOE AI™ products and services. We do not sell, rent, or share your information with third parties for marketing purposes.</p>
-            
+
             <h3>Data Storage and Security</h3>
             <p>Your information is stored securely on our private servers. We implement appropriate technical and organizational measures to protect your data.</p>
-            
+
             <h3>Your Rights</h3>
             <p>You have the right to access, correct, or delete your personal information. Contact us to exercise these rights.</p>
-            
+
             <h3>Contact</h3>
             <p>For privacy-related questions, please contact us through our website.</p>
         </div>
@@ -397,22 +689,22 @@
             <a href="#" class="modal-close">&times;</a>
             <h2>Terms of Use</h2>
             <p><strong>Last Updated: January 8, 2026</strong></p>
-            
+
             <h3>Acceptance of Terms</h3>
             <p>By accessing and using this website, you accept and agree to be bound by these Terms of Use.</p>
-            
+
             <h3>Intellectual Property</h3>
             <p>All content on this website, including text, graphics, logos, and software, is the property of ZOE AI™ and is protected by copyright and trademark laws.</p>
-            
+
             <h3>Use of Website</h3>
             <p>You may use this website for lawful purposes only. You may not use this website in any way that could damage, disable, or impair the website.</p>
-            
+
             <h3>Product Information</h3>
             <p>Product specifications and features are subject to change without notice. We strive to provide accurate information but do not warrant the completeness or accuracy of website content.</p>
-            
+
             <h3>Limitation of Liability</h3>
             <p>ZOE AI™ shall not be liable for any indirect, incidental, or consequential damages arising from the use of this website or our products.</p>
-            
+
             <h3>Changes to Terms</h3>
             <p>We reserve the right to modify these terms at any time. Continued use of the website constitutes acceptance of modified terms.</p>
         </div>
