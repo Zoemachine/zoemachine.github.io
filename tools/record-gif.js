@@ -1,5 +1,5 @@
 // Records a full run of the hero as an animated GIF (and reports its running time).
-//   node tools/record-gif.js <narrow|wide> <untouched|touched|drawer|lid|opening> [out.gif] [--throttle]
+//   node tools/record-gif.js <narrow|wide|wideHi> <untouched|touched|drawer|lid|compare-cloud|compare-zoe|logo|act4|opening> [out.gif] [--throttle]
 // `opening` is untouched from first paint until the lid has opened and the workspace has come up.
 // Needs playwright, gifenc and pngjs on NODE_PATH; serve the site on :8000 first.
 // Frames come from the browser's own screencast, resampled to a steady 8 fps.
@@ -14,6 +14,8 @@ const throttle = process.argv.includes('--throttle');
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8000/';
 const VIEWS = {
   narrow: { ctx: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }, gifW: 390 },
+  // Full-resolution capture for close-ups that are cropped afterwards.
+  wideHi: { ctx: { viewport: { width: 1440, height: 900 } }, gifW: 1440 },
   wide: { ctx: { viewport: { width: 1440, height: 900 } }, gifW: 720 },
 };
 const FPS = 8;
@@ -83,7 +85,32 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     await page.locator('.btn-scrub').click();
   }
   let ended = 0;
-  if (mode === 'lid') {
+  let crop = null; // [x, y, w, h] in screencast pixels
+  let trimBefore = 0; // drop frames captured before this (epoch seconds)
+  if (mode === 'act4') {
+    // Act IV from the Scrub click to Act V: the earlier gestures are tapped through, unrecorded.
+    for (;;) {
+      const st = await page.evaluate(() => ({ g: window.__zoeHero.gesture, f: window.__zoeHero.framesReady }));
+      if (st.g === 'scrub') break;
+      if (st.g && (st.g !== 'lid' || st.f)) await page.evaluate(() => window.__zoeHero.perform('tap'));
+      await page.waitForTimeout(150);
+    }
+    await page.waitForTimeout(800);
+    trimBefore = Date.now() / 1000;
+    await page.locator('.btn-scrub').click();
+    await page.waitForFunction(() => window.__zoeHero.act === 5, null, { timeout: 120000, polling: 200 });
+    await page.waitForTimeout(1500);
+  } else if (mode === 'logo') {
+    // Close on the big wordmark: its O turning on the closed laptop for 12 s.
+    await page.waitForTimeout(800);
+    const r = await page.locator('.logo-o').boundingBox();
+    const k = view.gifW / view.ctx.viewport.width;
+    const w = r.width * 4.4;
+    const h = r.height * 1.9;
+    crop = [r.x + r.width / 2 - w * 0.4, r.y - r.height * 0.45, w, h].map((v) => Math.round(v * k));
+    trimBefore = Date.now() / 1000;
+    await page.waitForTimeout(12000);
+  } else if (mode === 'lid') {
     // The lid under a hand: tap the phone through Act I, then lift the lid slowly, pause, lift on, release.
     await page.waitForFunction(() => window.__zoeHero.gesture === 'phone');
     await page.evaluate(() => window.__zoeHero.perform('tap'));
@@ -102,6 +129,13 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     await page.waitForTimeout(300);
     await page.mouse.up();
     await page.waitForTimeout(2500);
+  } else if (mode === 'compare-cloud' || mode === 'compare-zoe') {
+    // The comparison: scroll to it, pick one, watch two loops.
+    await page.locator('#dataflow').scrollIntoViewIfNeeded();
+    await page.evaluate(() => document.getElementById('dataflow').scrollIntoView());
+    await page.waitForTimeout(1500);
+    await page.locator(`.flow-pick[data-pick="${mode.slice(8)}"]`).click();
+    await page.waitForTimeout(16500);
   } else if (mode === 'drawer') {
     // Below the hero: skip link, then a slow scroll to the footer, then the Privacy Policy.
     await page.waitForTimeout(1200);
@@ -127,6 +161,7 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
   await cdp.send('Page.stopScreencast');
   await browser.close();
 
+  if (trimBefore) frames.splice(0, frames.findIndex((f) => f.t >= trimBefore));
   // Resample to a steady frame rate: each output frame shows the latest captured frame.
   const t0 = frames[0].t;
   const t1 = frames[frames.length - 1].t;
@@ -148,7 +183,13 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
   for (const j of picks) {
     if (j === last && pending) { delay += 1000 / FPS; continue; }
     flush();
-    const png = PNG.sync.read(Buffer.from(frames[j].data, 'base64'));
+    let png = PNG.sync.read(Buffer.from(frames[j].data, 'base64'));
+    if (crop) {
+      const [cx, cy, cw, ch] = crop;
+      const out = new PNG({ width: cw, height: ch });
+      PNG.bitblt(png, out, Math.max(0, cx), Math.max(0, cy), Math.min(cw, png.width - cx), Math.min(ch, png.height - cy), 0, 0);
+      png = out;
+    }
     const palette = quantize(png.data, 256);
     pending = { index: applyPalette(png.data, palette), palette, w: png.width, h: png.height };
     delay = 1000 / FPS;

@@ -22,7 +22,7 @@ const RESTRICTED = JSON.parse(Buffer.from('W3sicmUiOiAiXFxiR0xpTkVSXFxiIiwgImNzI
 const PHONE = JSON.parse(Buffer.from('eyJyZSI6ICJcXGJwaG9uZXM/XFxiIiwgImFsbG93ZWRUZXh0IjogWyJ0aGUgcGhvbmUgaGFuZHMgaXQgdG8gdGhlIGxhcHRvcCJdfQ==', 'base64').toString());
 // Product names: the four frontier products under the cloud, in hero.js's PROVIDERS block and nowhere else.
 const PRODUCTS = JSON.parse(Buffer.from('eyJhbGxvd2VkSW4iOiAiaGVyby5qcyIsICJmcm9tIjogIi8vIFRoZSBmcm9udGllciBtb2RlbHMgbmFtZWQgdW5kZXIgdGhlIGNsb3VkIiwgInRvIjogIl07IiwgImFsbG93ZWQiOiBbIkNoYXRHUFQiLCAiQ2xhdWRlIiwgIkdlbWluaSIsICJDb3BpbG90Il0sICJmb3JiaWRkZW4iOiBbIlxcYkdQVC0/XFxkIiwgIlxcYkxsYW1hXFxiIiwgIlxcYk1pc3RyYWxcXGIiLCAiXFxiR3Jva1xcYiIsICJcXGJCYXJkXFxiIiwgIlxcYlNvbm5ldFxcYiIsICJcXGJPcHVzXFxiIiwgIlxcYkhhaWt1XFxiIiwgIlxcYkZhYmxlXFxiIiwgIlxcYkRlZXBTZWVrXFxiIiwgIlxcYlF3ZW5cXGIiXX0=', 'base64').toString());
-const SITE_FILES = ['index.html', 'styles.css', 'hero.js', 'pages.css', 'book-demo.html', 'nda.html',
+const SITE_FILES = ['index.html', 'styles.css', 'hero.js', 'compare.js', 'drawer.css', 'pages.css', 'book-demo.html', 'nda.html',
   'tools/playwright.config.js', 'tools/make-site-images.js', 'tools/record-gif.js'];
 const SECTIONS = ['how', 'dataflow', 'workflows', 'evidence', 'why', 'servers', 'founder', 'advisory', 'contact', 'site-footer'];
 
@@ -438,10 +438,19 @@ test('Act IV: the catch is spoken by ZOE, the fix by the cloud, then the rehydra
   await page.waitForFunction(() => document.querySelector('.zoe-say').textContent.includes('empty shell'), null, { timeout: 20000 });
   await page.waitForTimeout(700);
   await shot(page, info, 'act4-catch');
-  await page.waitForFunction(() => document.querySelector('.packet').classList.contains('is-in'), null, { timeout: 8000 });
-  await page.waitForTimeout(400);
+  // Six pages, each scrubbed line by line, then sent: about 5 s in all.
+  await page.waitForFunction(() => document.querySelector('.page6.is-in'), null, { timeout: 15000 });
+  const t0 = Date.now();
+  await page.waitForTimeout(450);
+  expect(await page.locator('.page6').first().locator('i.is-on').count()).toBeGreaterThan(2);
   await expect(page.locator('.stream-label')).toHaveClass(/is-on/);
   await shot(page, info, 'act4-packet');
+  await page.waitForFunction(() => document.querySelectorAll('.page6.is-flying').length === 6, null, { timeout: 15000 });
+  metrics.six_pages_ms = Date.now() - t0 + 700;
+  expect(metrics.six_pages_ms).toBeGreaterThan(4000);
+  expect(metrics.six_pages_ms).toBeLessThan(6500);
+  expect(await page.locator('.page6 i.is-on').count()).toBe(48);
+  expect(await page.locator('.zoe-say').textContent()).toContain('Redacting 6 files');
   await page.waitForFunction(() => document.querySelector('.draft').classList.contains('is-in'), null, { timeout: 12000 });
   await page.waitForTimeout(350);
   const before = await page.$eval('.draft', (el) => el.textContent);
@@ -642,6 +651,94 @@ test('below the hero: every section, both modals, numbers and image sizes', asyn
   const privacy = await page.locator('#privacy').textContent();
   ['no servers of its own', 'GitHub Pages', 'formsubmit.co', 'Google Sheets', 'Google Apps Script', 'No visitor analytics'].forEach((t) => expect(privacy).toContain(t));
   expect(privacy).not.toMatch(/private servers/);
+});
+
+test('the living O: the wordmark overlay rides the drift, the bubble O grows, the small O turns', async ({ page }, info) => {
+  await page.goto('/');
+  await page.waitForTimeout(800);
+  // The overlay's centre sits on the baked O's measured centre (frame 1: 857.0, 202.0 of 1920 x 1080).
+  const at = async (fx, fy) => {
+    const s = await page.locator('.scene').boundingBox();
+    const o = await page.locator('.logo-o').boundingBox();
+    return { dx: o.x + o.width / 2 - (s.x + fx * s.width), dy: o.y + o.height / 2 - (s.y + fy * s.height) };
+  };
+  const f1 = await at(857.0 / 1920, 202.0 / 1080);
+  expect(Math.abs(f1.dx)).toBeLessThan(1.5);
+  expect(Math.abs(f1.dy)).toBeLessThan(1.5);
+  expect(await page.locator('.logo-o-a').evaluate((e) => e.getAnimations()[0].playState)).toBe('running');
+  await runTo(page, 'mark');
+  // Frame 45 after the lid opened: the O has drifted to (852.3, 196.6); the scene may be zoomed, so measure unscaled.
+  const drift = await page.evaluate(() => {
+    const st = getComputedStyle(document.querySelector('.logo-o'));
+    return [st.getPropertyValue('--odx'), st.getPropertyValue('--ody')].map(Number);
+  });
+  expect(Math.abs(drift[0] * 1920 - (852.3 - 857.0))).toBeLessThan(0.6);
+  expect(Math.abs(drift[1] * 1920 - (196.6 - 202.0))).toBeLessThan(0.6);
+  await page.waitForFunction(() => document.querySelector('.zoe').classList.contains('is-talking') || document.querySelector('.zoe').classList.contains('is-working'), null, { timeout: 30000 });
+  const grown = await page.locator('.zoe-mark .o-wrap').evaluate((e) => new DOMMatrix(getComputedStyle(e).transform).a);
+  expect(grown).toBeGreaterThan(1.5);
+  await page.locator('#site-footer').scrollIntoViewIfNeeded();
+  expect(await page.locator('.foot-logo .wordmark-o').evaluate((e) => e.getAnimations()[0].playState)).toBe('running');
+  await page.locator('.logo-o').screenshot({ path: path.join(SHOTS, `${info.project.name}-logo-o.png`) }).catch(() => {});
+});
+
+test('the living O under reduced motion: still', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  await page.waitForTimeout(500);
+  expect(await page.locator('.logo-o-a').evaluate((e) => e.getAnimations().length)).toBe(0);
+});
+
+test('portrait round trip: the cloud above the laptop, the stream rising to it', async ({ page }, info) => {
+  test.skip(isWide(info), 'portrait layout');
+  await open(page);
+  await runTo(page, 'scrub');
+  await page.evaluate(() => window.__zoeHero.perform('click'));
+  await page.waitForFunction(() => document.querySelector('.stream-label').classList.contains('is-on'), null, { timeout: 60000 });
+  await page.waitForTimeout(1200);
+  const cloud = await page.locator('.cloud').boundingBox();
+  const screen = await page.locator('.screen').boundingBox();
+  const label = await page.locator('.stream-label').boundingBox();
+  expect(cloud.y + cloud.height).toBeLessThan(screen.y);
+  expect(label.y).toBeGreaterThan(cloud.y + cloud.height - 4);
+  expect(label.y + label.height).toBeLessThan(screen.y);
+  expect(await page.locator('.stream-label').evaluate((e) => parseFloat(getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(16);
+});
+
+test('comparison: nothing until a choice, each panel animates, switching works', async ({ page }, info) => {
+  await page.goto('/');
+  await page.locator('#dataflow').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
+  await expect(page.locator('#flow-cloud')).toBeHidden();
+  await expect(page.locator('#flow-zoe')).toBeHidden();
+  await page.locator('#dataflow').screenshot({ path: path.join(SHOTS, `${info.project.name}-compare-choose.png`) });
+  for (const [which, t] of [['cloud', 6800], ['zoe', 6000]]) {
+    await page.locator(`.flow-pick[data-pick="${which}"]`).click();
+    await expect(page.locator(`#flow-${which}`)).toBeVisible();
+    await expect(page.locator(`#flow-${which === 'cloud' ? 'zoe' : 'cloud'}`)).toBeHidden();
+    await expect(page.locator(`.flow-pick[data-pick="${which}"]`)).toHaveAttribute('aria-selected', 'true');
+    await page.waitForFunction(() => window.__zoeCompare.running, null, { timeout: 3000 });
+    await page.evaluate((ms) => window.__zoeCompare.seek(ms), t);
+    await page.waitForTimeout(100);
+    await page.locator('#dataflow').screenshot({ path: path.join(SHOTS, `${info.project.name}-compare-${which}.png`) });
+  }
+  // Mid-animation states: the cloud's copies are red-flagged; ZOE's masked question is crossing.
+  await page.locator('.flow-pick[data-pick="cloud"]').click();
+  await page.evaluate(() => window.__zoeCompare.seek(6800));
+  expect(await page.locator('#flow-cloud .fl-tag').evaluateAll((els) => els.filter((e) => +getComputedStyle(e).opacity > 0.9).length)).toBe(4);
+  await page.locator('.flow-pick[data-pick="zoe"]').click();
+  await page.evaluate(() => window.__zoeCompare.seek(6000));
+  expect(+(await page.locator('#flow-zoe .mv-packet').evaluate((e) => getComputedStyle(e).opacity))).toBeGreaterThan(0.9);
+});
+
+test('comparison under reduced motion: a still picture', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  await page.locator('#dataflow').scrollIntoViewIfNeeded();
+  await page.locator('.flow-pick[data-pick="cloud"]').click();
+  await page.waitForTimeout(300);
+  expect(await page.evaluate(() => window.__zoeCompare.running)).toBe(false);
+  await expect(page.locator('#flow-cloud .fl-captions')).toHaveCSS('opacity', '1');
 });
 
 test('the booking and NDA pages, on the new styles (nothing submitted)', async ({ browser }, info) => {

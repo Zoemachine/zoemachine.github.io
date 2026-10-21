@@ -17,8 +17,9 @@ const OUT = (f) => path.join(__dirname, '..', 'assets', 'site', f);
     sharp(A('nvidia-inception.png.jpg')).resize(386).webp({ quality: 85 }).toFile(OUT('nvidia-inception.webp')),
     // The dark wordmark turned light for the black page (colour negated, transparency kept).
     sharp(A('logo-static-transparent.png')).resize(466).negate({ alpha: false }).png({ compressionLevel: 9 }).toFile(OUT('wordmark-light.png')),
-    // The same wordmark, small, for the hero's bare opening: it must not slow the first paint.
-    sharp(A('logo-static-transparent.png')).resize(280).negate({ alpha: false }).webp({ quality: 80, alphaQuality: 80 }).toFile(OUT('wordmark-light-280.webp')),
+    // The split wordmark (word and its turning O), small, for the hero's bare opening: it must not slow the first paint.
+    sharp(OUT('wordmark-word.png')).resize(280).webp({ quality: 80, alphaQuality: 80 }).toFile(OUT('wordmark-word-280.webp')),
+    sharp(OUT('wordmark-o.png')).resize(104).webp({ quality: 80, alphaQuality: 80 }).toFile(OUT('wordmark-o-104.webp')),
     // Social card: the closed laptop, cropped to 1200×630.
     sharp(A('poster-closed.jpg')).resize(1200, 630, { fit: 'cover', position: 'centre' }).jpeg({ quality: 82, mozjpeg: true }).toFile(OUT('og-image.jpg')),
     // Home-screen icon: the favicon mark centred on black.

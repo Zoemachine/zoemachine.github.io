@@ -112,13 +112,36 @@
 .specs dd { margin: 2px 0 0; font-size: 13px; color: var(--ink-faint); }
 
 /* The data-flow graphic, recoloured for the dark page. */
-.flow-cols {
-  display: grid;
-  gap: 16px;
-  max-width: 960px;
+/* The comparison: a question, two choices, and the chosen diagram animating in place. */
+.flow-choose {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 8px 0 24px;
+}
+
+/* The two choices breathe until one is picked. */
+#dataflow:not(.is-picked) .flow-pick::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  box-shadow: 0 0 0 3px rgba(140, 200, 255, 0.95), 0 0 24px 4px rgba(95, 168, 255, 0.9);
+  pointer-events: none;
+  animation: pick-ring 1.4s ease-in-out infinite;
+}
+
+.flow-pick { position: relative; }
+.flow-pick[aria-selected="false"] { color: #eaf2ff; background: #1b2638; box-shadow: inset 0 0 0 1px rgba(156, 201, 255, 0.35); }
+#dataflow.is-picked .flow-pick[aria-selected="false"] { opacity: 0.8; }
+
+@keyframes pick-ring {
+  0%, 100% { opacity: 0.3; transform: scale(0.99); }
+  50%      { opacity: 1; transform: scale(1.04); }
 }
 
 .flow-panel {
+  max-width: 1000px;
   margin: 0;
   padding: 18px;
   border-radius: 16px;
@@ -149,32 +172,52 @@
 .is-risk .flow-tag { color: #ffb3ad; background: rgba(255, 110, 100, 0.14); }
 .is-zoe .flow-tag { color: #cfe4ff; background: rgba(95, 168, 255, 0.18); }
 
-.flow-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.flow-svg { display: block; width: 100%; min-width: 760px; height: auto; }
+.flow-text p { max-width: 70ch; color: var(--ink-soft); }
 
+.flow-svg { display: block; width: 100%; height: auto; }
 .flow-svg text { font-family: var(--sans); text-anchor: middle; }
 .fl-pill { fill: rgba(255, 110, 100, 0.12); stroke: rgba(255, 122, 114, 0.5); }
 .fl-pill.is-zoe { fill: rgba(95, 168, 255, 0.12); stroke: rgba(95, 168, 255, 0.5); }
 .fl-badge { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; fill: #ffb3ad; }
 .fl-badge.is-zoe { fill: #cfe4ff; }
 .fl-edge { stroke: rgba(255, 122, 114, 0.55); stroke-width: 1.5; }
+.fl-link { stroke: rgba(255, 122, 114, 0.6); stroke-width: 2; }
+.fl-link.is-fan { stroke-width: 1.5; stroke-dasharray: 4 5; }
 .fl-box { fill: #121824; stroke: rgba(160, 180, 210, 0.35); stroke-width: 1.5; }
-.fl-box.is-risk { fill: rgba(255, 110, 100, 0.08); stroke: rgba(255, 122, 114, 0.6); }
-.fl-t { font-size: 18px; font-weight: 600; fill: var(--ink); }
-.fl-s { font-size: 14px; fill: var(--ink-faint); }
-.fl-hop line { stroke: #ff7a72; stroke-width: 2; }
-.fl-doc rect { fill: rgba(255, 110, 100, 0.15); stroke: #ff7a72; stroke-width: 1.4; }
-.fl-fan path { fill: none; stroke: rgba(255, 122, 114, 0.5); stroke-width: 1.75; }
-.fl-mt { font-size: 18px; font-weight: 600; fill: var(--ink); text-anchor: start !important; }
-.fl-ms { font-size: 14px; fill: var(--ink-faint); text-anchor: start !important; }
-.fl-cap { font-size: 20px; font-weight: 700; text-anchor: start !important; }
+.fl-box.is-risk { fill: #1a1416; stroke: rgba(255, 122, 114, 0.6); }
+.fl-t { font-size: 17px; font-weight: 600; fill: var(--ink); }
+.fl-s { font-size: 13px; fill: var(--ink-faint); }
+.fl-hit { fill: rgba(255, 70, 60, 0.35); stroke: #ff5a50; stroke-width: 2.5; opacity: 0; }
+.fl-tag rect { fill: #3a1214; stroke: #ff6b62; stroke-width: 1.2; }
+.fl-tag text { font-size: 12px; font-weight: 700; fill: #ffb3ad; letter-spacing: 0.03em; }
+.fl-tag { opacity: 0; }
+.mv-doc rect,
+.mv-copy rect { fill: #f4f6f9; stroke: #ff7a72; stroke-width: 1.6; }
+.mv-doc path,
+.mv-copy path { fill: none; stroke: #6b7280; stroke-width: 1.4; stroke-linecap: round; }
+.mv-doc,
+.mv-copy,
+.mv-bit,
+.mv-packet,
+.fl-captions { opacity: 0; }
+.fl-cap { font-size: 20px; font-weight: 700; }
+.flow-svg .fl-captions.is-start text { text-anchor: start; }
+/* The tall (phone) layout: slightly smaller type so every label fits its box. */
+.flow-svg.is-tall .fl-cap { font-size: 17px; }
+.flow-svg.is-tall .fl-cap2 { font-size: 14px; }
+.flow-svg.is-tall .fl-t { font-size: 15px; }
+.flow-svg.is-tall .fl-s { font-size: 12px; }
 .fl-cap.is-risk { fill: #ff8f88; }
-.fl-cap.is-zoe { fill: #9cc9ff; text-anchor: middle !important; }
-.fl-cap2 { font-size: 15px; fill: var(--ink-soft); text-anchor: start !important; }
-.fl-cap2.is-mid { text-anchor: middle !important; }
+.fl-cap.is-zoe { fill: #9cc9ff; }
+.fl-cap2 { font-size: 15px; fill: var(--ink-soft); }
 .fl-laptop { fill: rgba(95, 168, 255, 0.04); stroke: rgba(207, 228, 255, 0.55); stroke-width: 2; }
+.fl-laptop-glow { fill: none; stroke: rgba(95, 168, 255, 0.55); stroke-width: 10; opacity: 0.3; }
 .fl-base { fill: rgba(207, 228, 255, 0.25); }
-.fl-web path { fill: none; stroke: rgba(95, 168, 255, 0.4); stroke-width: 1.75; }
+.fl-web { stroke: rgba(95, 168, 255, 0.4); stroke-width: 1.75; }
+.fl-lit { fill: rgba(95, 168, 255, 0.25); stroke: #9cc9ff; stroke-width: 2; opacity: 0; }
+.mv-bit { fill: #cfe4ff; }
+.fl-stay rect { fill: #f4f6f9; stroke: #5fa8ff; stroke-width: 1.6; }
+.fl-stay path { fill: none; stroke: #6b7280; stroke-width: 1.4; stroke-linecap: round; }
 .fl-nt { font-size: 16px; font-weight: 600; fill: var(--ink); }
 .fl-ns { font-size: 13px; fill: var(--ink-faint); }
 .fl-core { fill: #2d63c8; }
@@ -182,6 +225,8 @@
 .fl-os { font-size: 13px; fill: #dce9ff; }
 .fl-opt { stroke: #5fa8ff; stroke-width: 1.75; }
 .fl-cloud { fill: #121824; stroke: rgba(160, 180, 210, 0.5); stroke-width: 1.75; }
+.mv-packet rect { fill: #2d63c8; stroke: #cfe4ff; stroke-width: 1.2; }
+.mv-packet text { font-size: 12px; font-weight: 700; fill: #fff; }
 
 /* Five ways to put it to work: drawn stills with invented content. */
 .wf-grid {
@@ -509,10 +554,18 @@
 
 .modal-x:hover { color: var(--ink); background: rgba(255, 255, 255, 0.06); }
 
+@media (max-width: 699px) {
+  .flow-panel { padding: 12px; }
+  .flow-choose .flow-pick { flex: 1 1 auto; text-align: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #dataflow:not(.is-picked) .flow-pick::after { animation: none; opacity: 0.85; }
+}
+
 @media (max-width: 899px) {
   .how-grid,
   .why-grid,
-  .flow-cols,
   .srv-grid,
   .person { grid-template-columns: minmax(0, 1fr); }
   .wf-grid { grid-template-columns: minmax(0, 1fr); }
@@ -527,3 +580,22 @@
   .sec { padding-left: 16px; padding-right: 16px; }
 }
 
+
+/* The small light wordmark: the word, and its O on top, turning slowly (one turn every 10 s). */
+.wordmark { position: relative; display: block; }
+.wordmark img { display: block; width: 100%; height: auto; }
+.wordmark .wordmark-o {
+  position: absolute;
+  left: 32.618%;   /* 152 / 466 */
+  top: 7.983%;     /* 19 / 238 */
+  width: 36.052%;  /* 168 / 466 */
+  animation: logo-spin 10s linear infinite;
+}
+
+@keyframes logo-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wordmark .wordmark-o { animation: none; }
+}
