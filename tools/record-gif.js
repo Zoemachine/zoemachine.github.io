@@ -1,5 +1,6 @@
 // Records a full run of the hero as an animated GIF (and reports its running time).
-//   node tools/record-gif.js <narrow|wide> <untouched|touched|drawer> [out.gif] [--throttle]
+//   node tools/record-gif.js <narrow|wide> <untouched|touched|drawer|opening> [out.gif] [--throttle]
+// `opening` is untouched from first paint until the lid has opened and the workspace has come up.
 // Needs playwright, gifenc and pngjs on NODE_PATH; serve the site on :8000 first.
 // Frames come from the browser's own screencast, resampled to a steady 8 fps.
 const fs = require('fs');
@@ -95,8 +96,12 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     await page.waitForTimeout(800);
     await page.locator('.site-footer a[href="#privacy"]').click();
     await page.waitForTimeout(2500);
+  } else if (mode === 'opening') {
+    await page.waitForFunction(() => window.__zoeHero.progress === 1, null, { timeout: 90000, polling: 100 });
+    ended = Math.round(await page.evaluate(() => performance.now()));
+    await page.waitForTimeout(1500);
   } else {
-    await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 90000, polling: 200 });
+    await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 170000, polling: 200 });
     ended = await page.evaluate(() => window.__zoeHero.ended);
   }
   await page.waitForTimeout(2000);

@@ -52,6 +52,12 @@
         <div class="lid-hit" role="button" tabindex="-1" aria-label="Open the laptop" aria-disabled="true"></div>
       </div>
 
+      <!-- The opening stage is bare: this small wordmark brands it until the laptop arrives with its own. -->
+      <div class="brand" aria-hidden="true">
+        <img src="assets/site/wordmark-light-280.webp" width="280" height="143" alt="" loading="lazy">
+        <p>Safe. Sovereign. System-bound.</p>
+      </div>
+
       <!-- Act pieces, filled by hero.js from the constants at its top. -->
       <div class="strip" aria-hidden="true"></div>
       <div class="sheet" aria-hidden="true"></div>
@@ -75,8 +81,9 @@
 
       <noscript>
         <style>
-          .poster img, .lid, .cue, .lip, .lid-hit, .progress { display: none; }
+          .poster img, .lid, .cue, .lip, .lid-hit, .progress, .brand { display: none; }
           .tagline { z-index: 1; }
+          .stage:not(.laptop-in) .scene { translate: none; opacity: 1; }
         </style>
         <img class="noscript-open" src="assets/frames/1280/lid_45.webp" width="1280" height="720" alt="An open silver laptop under the ZOE AI wordmark">
       </noscript>

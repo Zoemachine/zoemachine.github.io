@@ -92,8 +92,44 @@ body {
   margin-left: calc(var(--scene-w) / -2);
   transform-origin: 0 0;
   transform: translate(var(--cam-x, 0px), var(--cam-y, 0px)) scale(var(--cam-s, 1));
-  transition: transform 0.85s var(--ease-io);
+  transition: transform 0.85s var(--ease-io), translate 1.1s var(--ease-out), opacity 0.7s ease;
 }
+
+/* Act I opens without the laptop: the scene waits past the right edge until the picture is taken.
+   `translate` composes with the camera's transform, so the camera can be set while it waits. */
+.stage:not(.laptop-in) .scene {
+  translate: calc(100vw + 60%) 0;
+  opacity: 0;
+}
+
+/* The small wordmark that brands the bare opening; it fades as the laptop brings its own. */
+.brand {
+  position: absolute;
+  top: max(24px, env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  transition: opacity 0.7s ease 0.35s;
+}
+
+.brand img {
+  display: block;
+  width: clamp(84px, 9vw, 140px);
+  height: auto;
+}
+
+.brand p {
+  margin: 0;
+  font-size: clamp(11px, 0.95vw, 14px);
+  letter-spacing: 0.16em;
+  color: var(--ink-soft);
+}
+
+.stage.laptop-in .brand { opacity: 0; }
 
 .poster,
 .poster img,
@@ -136,20 +172,29 @@ body {
   pointer-events: none;
 }
 
-/* Glowing front lip and the three upward chevrons: the lid's invitation (Act II). */
+/* Glowing front lip and the three upward chevrons: the lid's invitation (Act II).
+   The breathing runs on the inner glow, so the lip itself can fade out with the cue. */
 .lip {
   position: absolute;
   top: 73%;
   left: 50%;
-  width: 18%;
-  height: 7%;
-  margin-left: -9%;
-  margin-top: -3.5%;
-  background: radial-gradient(closest-side, rgba(150, 200, 255, 0.55), rgba(150, 200, 255, 0));
+  width: 26%;
+  height: 11%;
+  margin-left: -13%;
+  margin-top: -5.5%;
   mix-blend-mode: screen;
   pointer-events: none;
-  animation: lip-pulse 2.6s ease-in-out infinite alternate;
   transition: opacity 0.4s ease;
+}
+
+.lip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(closest-side, rgba(200, 230, 255, 0.95), rgba(200, 230, 255, 0) 45%),
+    radial-gradient(closest-side, rgba(120, 185, 255, 0.75), rgba(120, 185, 255, 0));
+  animation: breathe 2.4s ease-in-out infinite;
 }
 
 .cue {
@@ -197,6 +242,12 @@ body {
 @keyframes lip-pulse {
   from { opacity: 0.35; }
   to   { opacity: 0.95; }
+}
+
+/* The slow breathing glow on the lip and on the waiting phone. */
+@keyframes breathe {
+  0%, 100% { opacity: 0.3; transform: scale(0.92); }
+  50%      { opacity: 1;   transform: scale(1.06); }
 }
 
 /* The laptop's rim glows once when the phone bumps it. */
@@ -682,6 +733,26 @@ body {
   margin-bottom: 1px;
 }
 
+/* Act I: the chat is the opening. It is laid out --strip-k times larger and hero.js places it with a
+   transform: dead centre while it types, then shrunk by 1/k to the strip's own place. */
+.strip.is-act1 {
+  --strip-k: 1.3;
+  width: calc(min(380px, 30vw) * 1.3);
+  gap: 13px;
+  transform-origin: 0 0;
+  transition: transform 0.7s var(--ease-io);
+}
+
+.strip.is-act1.is-centre { transition-duration: 0.4s; }
+.strip.is-act1 .msg { gap: 10px; }
+.strip.is-act1 .avatar { width: 40px; height: 40px; }
+
+.strip.is-act1 .bubble {
+  padding: 10px 16px;
+  border-radius: 21px 21px 21px 5px;
+  font-size: 19.5px;
+}
+
 /* Typed lines keep their spaces next to the popping emphasis (some engines drop them otherwise). */
 .bubble .txt,
 .zoe-say,
@@ -703,25 +774,56 @@ body {
 
 /* ---------- Act I: the term sheet and the phone ---------- */
 
-.sheet {
-  position: absolute;
+/* The paper: the term sheet itself, its copy in the viewfinder, and the card that flies to the laptop. */
+.paper {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  padding: 1.6em 1.7em;
+  padding: 2.2em 2.3em 2.4em;
   border-radius: 3px;
-  background: linear-gradient(170deg, #f6f7f9, #e3e6eb);
-  color: #2a2f38;
+  background: linear-gradient(170deg, #f8f9fb, #e2e5ea);
+  color: #262b33;
   font-family: var(--serif);
   font-size: var(--sheet-fs, 5px);
-  line-height: 1.35;
-  box-shadow: 0 0 26px rgba(120, 170, 255, 0.25), 0 10px 26px rgba(0, 0, 0, 0.7);
+  line-height: 1.4;
+}
+
+.paper h4 { flex: none; margin: 0 0 1em; font-size: 2.1em; text-align: center; letter-spacing: 0.08em; }
+.paper p { flex: none; margin: 0 0 0.5em; }
+
+/* The rest of the page: lines of small type, in paragraphs. Words are a slanted dash pattern, so the
+   gaps between them shift from line to line; the masks cut it into lines and paragraphs. */
+.paper .type {
+  flex: 1;
+  margin-top: 0.7em;
+  background: repeating-linear-gradient(84deg,
+    rgba(44, 52, 66, 0.42) 0 2.6em, transparent 2.6em 3em,
+    rgba(44, 52, 66, 0.42) 3em 4.1em, transparent 4.1em 4.5em,
+    rgba(44, 52, 66, 0.42) 4.5em 7.2em, transparent 7.2em 7.6em,
+    rgba(44, 52, 66, 0.42) 7.6em 8.6em, transparent 8.6em 9em);
+  -webkit-mask-image:
+    repeating-linear-gradient(to bottom, #000 0 0.42em, transparent 0.42em 1.4em),
+    repeating-linear-gradient(to bottom, #000 0 7em, transparent 7em 8.4em),
+    linear-gradient(to right, #000 94%, transparent);
+  -webkit-mask-composite: source-in, source-in;
+  mask-image:
+    repeating-linear-gradient(to bottom, #000 0 0.42em, transparent 0.42em 1.4em),
+    repeating-linear-gradient(to bottom, #000 0 7em, transparent 7em 8.4em),
+    linear-gradient(to right, #000 94%, transparent);
+  mask-composite: intersect;
+}
+
+.sheet {
+  position: absolute;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 22px 48px rgba(0, 0, 0, 0.8), 0 0 54px rgba(120, 170, 255, 0.22);
   opacity: 0;
-  transform: translateY(-40px) rotate(-4deg);
-  transition: opacity 0.45s ease, transform 0.6s var(--ease-out);
+  transform: translateY(-110px) rotate(-7deg);
+  transition: opacity 0.6s ease, transform 0.95s var(--ease-out);
   pointer-events: none;
 }
 
 .sheet.is-in { opacity: 1; transform: rotate(-4deg); }
-.sheet.is-gone { opacity: 0; transform: rotate(-4deg) scale(0.9); }
+.sheet.is-gone { opacity: 0; transform: rotate(-4deg) scale(0.92); transition-duration: 0.7s; }
 .sheet::after {
   content: "";
   position: absolute;
@@ -731,25 +833,25 @@ body {
   opacity: 0;
 }
 
-.sheet.is-flash::after { animation: shutter 0.4s ease-out; }
-.sheet h4,
-.phone-view h4 { margin: 0 0 0.6em; font-size: 1.35em; text-align: center; letter-spacing: 0.06em; }
-.sheet p,
-.phone-view p { margin: 0 0 0.45em; }
+.sheet.is-flash::after { animation: shutter 0.6s ease-out; }
 
+/* The phone enters from past the right edge (bottom-right on portrait): --enter-x/-y, set by hero.js. */
 .phone {
+  --ex: var(--enter-x, 60vw);
+  --ey: var(--enter-y, 0px);
+  --glide: 0.42s;
   position: absolute;
   touch-action: none;
   cursor: grab;
   opacity: 0;
-  transform: translate(var(--px, 0px), var(--py, 0px)) translateY(30px);
-  transition: opacity 0.4s ease, transform 0.55s var(--ease-out);
+  transform: translate(calc(var(--px, 0px) + var(--ex)), calc(var(--py, 0px) + var(--ey)));
+  transition: opacity 0.5s ease, transform 0.9s var(--ease-out);
   z-index: 5;
 }
 
-.phone.is-in { opacity: 1; transform: translate(var(--px, 0px), var(--py, 0px)); }
+.phone.is-in { --ex: 0px; --ey: 0px; opacity: 1; }
 .phone.is-dragging { transition: opacity 0.4s ease; cursor: grabbing; }
-.phone.is-gliding { transition: opacity 0.4s ease, transform 0.42s var(--ease-io); }
+.phone.is-gliding { transition: opacity 0.4s ease, transform var(--glide) var(--ease-io); }
 .phone.is-dropping {
   opacity: 0;
   transform: translate(var(--px, 0px), calc(var(--py, 0px) + 70vh)) rotate(14deg);
@@ -759,15 +861,42 @@ body {
 .phone:focus { outline: none; }
 .phone:focus-visible .phone-body { box-shadow: 0 0 0 2px rgba(156, 201, 255, 0.8); }
 
+/* It glows the whole time it waits: a breathing halo round the body, a brighter one on the shutter. */
+.phone-halo {
+  position: absolute;
+  inset: 0;
+  border-radius: 16% / 8%;
+  box-shadow:
+    0 0 0 2px rgba(170, 215, 255, 0.9),
+    0 0 26px 6px rgba(110, 180, 255, 0.8),
+    0 0 80px 22px rgba(95, 168, 255, 0.45);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.phone.is-in .phone-halo { animation: halo 2.2s ease-in-out infinite; }
+
+@keyframes halo {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.025); }
+}
+.phone.is-bumped .phone-halo { animation: none; opacity: 0; transition: opacity 0.3s ease; }
+
 .phone-body {
   position: absolute;
   inset: 0;
   border-radius: 16% / 8%;
   background: #08090b;
-  box-shadow: inset 0 0 0 2px #2a2d33, 0 12px 30px rgba(0, 0, 0, 0.7);
+  box-shadow: inset 0 0 0 2px #2a2d33, 0 0 0 1px rgba(150, 200, 255, 0.4), 0 14px 34px rgba(0, 0, 0, 0.75);
 }
 
+.phone-body.is-settle { animation: settle 0.45s ease-out; }
 .phone-body.is-shake { animation: shake 0.32s ease-in-out; }
+
+@keyframes settle {
+  0%, 100% { transform: scale(1); }
+  35% { transform: scale(0.965); }
+}
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
@@ -794,28 +923,28 @@ body {
 }
 
 /* Viewfinder pass-through: the paper under the phone, framed by a blue detection box.
-   It counter-moves with the phone (--px/--py) so it stays aligned with the real page. */
+   It counter-moves with the phone (--px/--py, and --ex/--ey as it enters) so it stays on the real page. */
 .phone-view {
   position: absolute;
   left: 0;
   top: 0;
   width: var(--vw);
   height: var(--vh);
-  overflow: hidden;
-  padding: 1.6em 1.7em;
-  border-radius: 3px;
-  background: linear-gradient(170deg, #f6f7f9, #e3e6eb);
-  color: #2a2f38;
-  font-family: var(--serif);
-  font-size: var(--sheet-fs, 5px);
-  line-height: 1.35;
-  outline: 1.5px solid #5fa8ff;
-  box-shadow: 0 0 10px rgba(95, 168, 255, 0.8);
-  transform: translate(calc(var(--vx, 0px) - var(--px, 0px)), calc(var(--vy, 0px) - var(--py, 0px))) rotate(-4deg);
+  outline: 2px solid #5fa8ff;
+  box-shadow: 0 0 14px rgba(95, 168, 255, 0.9);
+  transform: translate(calc(var(--vx, 0px) - var(--px, 0px) - var(--ex)), calc(var(--vy, 0px) - var(--py, 0px) - var(--ey))) rotate(-4deg);
+  transition: transform 0.9s var(--ease-out);
 }
 
-.phone.is-gliding .phone-view { transition: transform 0.42s var(--ease-io); }
-.phone-view.is-captured { opacity: 0; transition: transform 0.35s var(--ease-out), opacity 0.3s ease 0.15s; }
+.phone.is-dragging .phone-view { transition: none; }
+.phone.is-gliding .phone-view { transition: transform var(--glide) var(--ease-io); }
+
+/* The captured page: straightened, centred in the screen, and it stays there. */
+.phone .phone-view.is-captured {
+  outline-color: rgba(95, 168, 255, 0);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.7);
+  transition: transform 0.55s cubic-bezier(0.25, 1.3, 0.45, 1);
+}
 
 .phone-grid {
   position: absolute;
@@ -823,24 +952,10 @@ body {
   background:
     linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px) 0 33.3% / 100% 33.3%,
     linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px) 33.3% 0 / 33.3% 100%;
+  transition: opacity 0.3s ease;
 }
 
-.phone-shot {
-  position: absolute;
-  left: 22%;
-  right: 22%;
-  top: 24%;
-  bottom: 30%;
-  border-radius: 2px;
-  background:
-    repeating-linear-gradient(to bottom, transparent 0 11%, rgba(40, 50, 70, 0.28) 11% 14%) 14% 18% / 72% 70% no-repeat,
-    #eef1f5;
-  opacity: 0;
-  transform: scale(1.3);
-  transition: opacity 0.2s ease, transform 0.35s var(--ease-out);
-}
-
-.phone.is-snapped .phone-shot { opacity: 1; transform: none; }
+.phone.is-snapped .phone-grid { opacity: 0; }
 
 .phone-flash {
   position: absolute;
@@ -850,59 +965,92 @@ body {
   pointer-events: none;
 }
 
-.phone-flash.is-on { animation: shutter 0.35s ease-out; }
+.phone-flash.is-on { animation: shutter 0.6s ease-out; }
 
 @keyframes shutter {
-  0% { opacity: 0.95; }
+  0%, 18% { opacity: 1; }
   100% { opacity: 0; }
 }
 
 .phone-shutter {
   position: absolute;
   left: 50%;
-  bottom: 7%;
+  bottom: 6%;
   width: 26%;
   aspect-ratio: 1;
   margin-left: -13%;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 10px rgba(140, 200, 255, 0.9), inset 0 0 0 3px rgba(0, 0, 0, 0.6);
-  background: rgba(255, 255, 255, 0.85);
-  animation: lip-pulse 1.2s ease-in-out infinite alternate;
 }
+
+.phone-shutter::before {
+  content: "";
+  position: absolute;
+  inset: -70%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(200, 230, 255, 0.95), rgba(120, 185, 255, 0.5) 45%, rgba(120, 185, 255, 0));
+  animation: breathe 1.3s ease-in-out infinite;
+}
+
+.phone-shutter::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 0 12px rgba(170, 215, 255, 1), inset 0 0 0 3px rgba(0, 0, 0, 0.55);
+}
+
+.phone.is-snapped .phone-shutter::before { animation: none; opacity: 0.2; }
 
 .phone-cue {
   position: absolute;
-  top: 44%;
-  right: 108%;
+  top: 46%;
+  right: 110%;
   white-space: nowrap;
-  font-size: 15px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
   letter-spacing: 0.04em;
-  color: #cfe5ff;
-  text-shadow: 0 0 10px rgba(120, 180, 255, 0.8);
-  animation: nudge 1.4s ease-in-out infinite;
+  color: #d8ebff;
+  text-shadow: 0 0 12px rgba(120, 180, 255, 0.95);
+  animation: nudge-left 1.4s ease-in-out infinite;
+  transition: opacity 0.3s ease;
   pointer-events: none;
+}
+
+/* After the picture: the cue points on, toward the laptop. */
+.phone.cue-on .phone-cue {
+  right: auto;
+  left: 110%;
+  animation-name: nudge-right;
 }
 
 .phone.is-dragging .phone-cue,
 .phone.is-gliding .phone-cue,
+.phone.cue-wait .phone-cue,
 .phone.is-bumped .phone-cue { opacity: 0; }
 
-@keyframes nudge {
+@keyframes nudge-left {
   0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(-5px); }
+  50% { transform: translateX(-6px); }
 }
 
+@keyframes nudge-right {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(6px); }
+}
+
+@keyframes nudge-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+/* The captured page flies out of the phone into the laptop on the bump. */
 .fly {
   position: absolute;
   left: 0;
   top: 0;
-  border-radius: 2px;
-  background:
-    repeating-linear-gradient(to bottom, transparent 0 11%, rgba(40, 50, 70, 0.28) 11% 14%) 14% 18% / 72% 70% no-repeat,
-    #eef1f5;
-  box-shadow: 0 0 16px rgba(95, 168, 255, 0.8);
+  transform-origin: 50% 50%;
+  box-shadow: 0 0 22px rgba(95, 168, 255, 0.9);
   opacity: 0;
   pointer-events: none;
   z-index: 6;
@@ -1378,6 +1526,16 @@ body {
 
   .bubble { font-size: 14px; line-height: 1.3; padding: 7px 11px; }
   .avatar { width: 26px; height: 26px; }
+
+  .brand { top: max(14px, env(safe-area-inset-top)); gap: 5px; }
+  .brand img { width: 72px; }
+  .brand p { font-size: 10.5px; }
+
+  /* Full width while it types in the centre; 1/k of that once it sits at the top. */
+  .strip.is-act1 { --strip-k: 1.2; width: auto; gap: 8px; }
+  .strip.is-act1 .msg { gap: 8px; }
+  .strip.is-act1 .avatar { width: 31px; height: 31px; }
+  .strip.is-act1 .bubble { font-size: 16.8px; padding: 8px 13px; }
   .msg.think .bubble,
   .msg.think .bubble::before,
   .msg.think .bubble::after { background: rgba(30, 44, 72, 0.97); }
@@ -1402,13 +1560,13 @@ body {
   .strip { z-index: 4; }
   .progress { bottom: calc(max(16px, env(safe-area-inset-bottom)) + 30px); }
 
-  .phone-cue {
-    top: auto;
-    bottom: 104%;
-    right: auto;
-    left: 50%;
-    transform: translateX(-50%);
-    animation: none;
+  .phone-cue { font-size: 16px; top: 40%; }
+  .phone.cue-on .phone-cue {
+    top: 101%;
+    left: 0;
+    right: 0;
+    text-align: center;
+    animation-name: nudge-down;
   }
 
   .insp-cols { gap: 8px; }

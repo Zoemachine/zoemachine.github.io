@@ -177,20 +177,53 @@ test('phone: named in the hero\'s Act I text and nowhere else', async ({}, info)
   expect(rest.match(re) || []).toEqual([]);
 });
 
-test('Act I: chat types in under 4 s, pops land, term sheet and phone arrive', async ({ page }, info) => {
+const opacity = (page, sel) => page.$eval(sel, (el) => parseFloat(getComputedStyle(el).opacity));
+
+test('Act I: a bare stage, the chat dead centre, then the strip moves and the paper and phone arrive', async ({ page }, info) => {
   await page.goto('/');
   const t0 = await page.evaluate(() => performance.now());
+  const vp = page.viewportSize();
+  // First paint: the small wordmark and no laptop.
+  await page.waitForTimeout(300);
+  expect(await opacity(page, '.scene')).toBe(0);
+  expect(await opacity(page, '.brand')).toBe(1);
   await page.waitForFunction(() => {
     const m = document.querySelectorAll('.strip .msg');
     return m.length === 3 && m[2].textContent.endsWith('10 MINUTES.');
-  }, null, { timeout: 8000 });
+  }, null, { timeout: 12000 });
   metrics.act1_chat_ms = Math.round((await page.evaluate(() => performance.now())) - t0);
-  expect(metrics.act1_chat_ms).toBeLessThan(4000);
+  expect(metrics.act1_chat_ms).toBeLessThan(8000);
   const pops = await page.$$eval('.strip .em.is-pop', (els) => els.map((e) => e.textContent));
   expect(pops).toEqual(['THEIR OFFICE', '10 MINUTES']);
-  await expect(page.locator('.sheet')).toHaveClass(/is-in/);
+  // Dead centre, and larger than the strip's own size.
+  await page.waitForTimeout(450);
+  const c = await page.locator('.strip').boundingBox();
+  expect(Math.abs(c.x + c.width / 2 - vp.width / 2)).toBeLessThan(24);
+  expect(Math.abs(c.y + c.height / 2 - vp.height / 2)).toBeLessThan(90);
+  metrics.act1_centre_bubble_px = await page.$eval('.strip .bubble', (el) => parseFloat(getComputedStyle(el).fontSize));
+  expect(metrics.act1_centre_bubble_px).toBeGreaterThanOrEqual(isWide(info) ? 19 : 16.5);
+  expect(await opacity(page, '.scene')).toBe(0);
+  await shot(page, info, 'act1-chat-centre');
+  // The strip shrinks to the top (top-left on desktop) and the paper comes down into the middle, the biggest thing there.
+  await page.waitForFunction(() => window.__zoeHero.opening === 'sheet', null, { timeout: 4000 });
+  await page.waitForTimeout(1400);
+  const st = await page.locator('.strip').boundingBox();
+  expect(st.y).toBeLessThan(isWide(info) ? 40 : 100);
+  if (isWide(info)) expect(st.x).toBeLessThan(40);
+  const sh = await page.locator('.sheet').boundingBox();
+  expect(Math.abs(sh.x + sh.width / 2 - vp.width / 2)).toBeLessThan(30);
+  if (isWide(info)) expect(sh.height).toBeGreaterThan(vp.height * 0.33);
+  else expect(sh.width).toBeGreaterThan(vp.width * 0.5);
+  await shot(page, info, 'act1-strip-moved');
+  // The phone slides in, glowing, and the laptop is still not on stage.
+  await page.waitForFunction(() => window.__zoeHero.opening === 'phone', null, { timeout: 4000 });
+  await page.waitForTimeout(1300);
   await expect(page.locator('.phone')).toHaveClass(/is-in/);
-  await page.waitForTimeout(600);
+  expect(await page.$eval('.phone-halo', (el) => el.getAnimations().length)).toBeGreaterThan(0);
+  const ph = await page.locator('.phone').boundingBox();
+  expect(sh.width * sh.height).toBeGreaterThan(ph.width * ph.height);
+  expect(await opacity(page, '.scene')).toBe(0);
+  await shot(page, info, 'act1-phone-in');
   await shot(page, info, 'act1');
 });
 
@@ -223,8 +256,20 @@ test('Act I: drag the phone onto the term sheet, then into the laptop', async ({
   await expect(page.locator('.phone')).toHaveClass(/is-snapped/);
   await page.waitForTimeout(150);
   await shot(page, info, 'act1-snap');
+  // Still holding the phone: the captured page shows in it, then the laptop slides in and the small wordmark goes.
+  await page.waitForFunction(() => window.__zoeHero.opening === 'laptop-ready', null, { timeout: 5000 });
+  await page.waitForTimeout(300);
+  const scr = await page.locator('.phone-screen').boundingBox();
+  const cap = await page.locator('.phone-view').boundingBox();
+  expect(cap.x).toBeGreaterThan(scr.x);
+  expect(cap.x + cap.width).toBeLessThan(scr.x + scr.width);
+  expect(cap.width).toBeGreaterThan(scr.width * 0.6);
+  expect(await opacity(page, '.phone-view')).toBe(1);
+  expect(await opacity(page, '.scene')).toBe(1);
+  expect(await opacity(page, '.brand')).toBeLessThan(0.05);
+  await shot(page, info, 'act1-laptop-in');
   const lap = await page.locator('.scene').boundingBox();
-  const target = { x: lap.x + lap.width * 0.5, y: lap.y + lap.height * 0.66 };
+  const target = { x: lap.x + lap.width * 0.5, y: lap.y + lap.height * 0.65 };
   await dragPath(d, sheetC, target, 20);
   await d.end();
   await page.waitForFunction(() => parseFloat(getComputedStyle(document.querySelector('.transfer')).opacity) > 0.95, null, { timeout: 4000 });
@@ -242,7 +287,7 @@ test('Act I: a tap on the phone performs both moves', async ({ page }) => {
   await waitGesture(page, 'phone');
   await page.waitForTimeout(700);
   await tapAt(page, await center(page, '.phone'));
-  await waitGesture(page, 'lid', 8000);
+  await waitGesture(page, 'lid', 15000);
 });
 
 test('Act II: the lid scrubs under the finger, mid-scrub and open', async ({ page }, info) => {
@@ -376,7 +421,7 @@ test('Act IV: the catch is spoken by ZOE, the fix by the cloud, then the rehydra
 });
 
 test('Act V: pills, inspect view, how-it-works scroll, replay twice, analytics', async ({ page }, info) => {
-  test.setTimeout(180000);
+  test.setTimeout(330000);
   const events = [];
   page.on('console', (m) => { const t = m.text(); if (t.startsWith('[track]')) events.push(t.split(' ')[1]); });
   await open(page);
@@ -416,8 +461,9 @@ test('Act V: pills, inspect view, how-it-works scroll, replay twice, analytics',
       camera: window.__zoeHero.camera,
       cloud: document.querySelector('.cloud').classList.contains('is-in'),
       phoneHidden: document.querySelector('.phone').hidden,
+      laptopIn: document.querySelector('.stage').classList.contains('laptop-in'),
     }));
-    expect(clean).toEqual({ act: 1, screenHidden: true, pills: 0, progress: 0, camera: 'home', cloud: false, phoneHidden: false });
+    expect(clean).toEqual({ act: 1, screenHidden: true, pills: 0, progress: 0, camera: 'arrive', cloud: false, phoneHidden: false, laptopIn: false });
     await runToEnd(page);
     await page.waitForTimeout(700);
   }
@@ -427,21 +473,50 @@ test('Act V: pills, inspect view, how-it-works scroll, replay twice, analytics',
   }
 });
 
-test('untouched: the story plays through by itself in under 50 s (recorded)', async ({ browser }, info) => {
-  test.setTimeout(120000);
+// With the slowed pacing (12 s for the phone, 10 s for each later gesture) the film runs longer than the live 50 s.
+const UNTOUCHED_LIMIT_MS = 110000;
+
+test('untouched: the story plays through by itself (recorded), with the opening timed', async ({ browser }, info) => {
+  test.setTimeout(200000);
   const { viewport, isMobile, hasTouch } = info.project.use;
   const dir = path.join(SHOTS, `video-${info.project.name}`);
   const ctx = await browser.newContext({ viewport, isMobile, hasTouch, deviceScaleFactor: 1, recordVideo: { dir, size: viewport } });
   const page = await ctx.newPage();
+  // The opening's beats, timed from navigation: act changes, Act I stages, the lid landing.
+  await page.addInitScript(() => {
+    window.__beats = [];
+    document.addEventListener('DOMContentLoaded', () => {
+      const st = document.querySelector('.stage');
+      const note = (k) => window.__beats.push([k, Math.round(performance.now())]);
+      new MutationObserver(() => note(`act${st.dataset.act}:${st.dataset.open || ''}`)).observe(st, { attributes: true, attributeFilter: ['data-act', 'data-open'] });
+      const poll = () => { if (window.__zoeHero && window.__zoeHero.progress === 1) note('lid-open'); else requestAnimationFrame(poll); };
+      requestAnimationFrame(poll);
+    });
+  });
   await page.goto(BASE);
-  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 70000 });
+  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 170000 });
   metrics.untouched_ms = await hero(page, 'ended');
+  const beats = await page.evaluate(() => window.__beats);
+  const fcp = await page.evaluate(() => Math.round((performance.getEntriesByName('first-contentful-paint')[0] || {}).startTime || 0));
+  const first = (k) => (beats.find(([b]) => b === k || b.endsWith(`:${k}`)) || [])[1];
+  metrics.opening = {
+    first_contentful_paint_ms: fcp,
+    chat_starts_ms: first('act1:chat'),
+    strip_moves_ms: first('sheet'),
+    phone_in_ms: first('phone'),
+    snapped_ms: first('snapped'),
+    laptop_slides_in_ms: first('laptop'),
+    laptop_ready_ms: first('laptop-ready'),
+    transfer_ms: first('transfer'),
+    laptop_centred_ms: first('done'),
+    lid_open_ms: first('lid-open'),
+  };
   await page.waitForTimeout(1500);
   const video = page.video();
   await ctx.close();
   fs.renameSync(await video.path(), path.join(SHOTS, `${info.project.name}-run-untouched.webm`));
   fs.rmSync(dir, { recursive: true, force: true });
-  expect(metrics.untouched_ms).toBeLessThan(50000);
+  expect(metrics.untouched_ms).toBeLessThan(UNTOUCHED_LIMIT_MS);
 });
 
 test('keyboard: Tab reaches each gesture and Enter performs it', async ({ page }, info) => {
@@ -451,7 +526,7 @@ test('keyboard: Tab reaches each gesture and Enter performs it', async ({ page }
   await page.keyboard.press('Tab');
   await expect(page.locator('.phone')).toBeFocused();
   await page.keyboard.press('Enter');
-  await waitGesture(page, 'lid', 8000);
+  await waitGesture(page, 'lid', 15000);
   await page.waitForFunction(() => window.__zoeHero.framesReady);
   await expect(page.locator('.lid-hit')).toBeFocused();
   await page.keyboard.press('Enter');

@@ -118,12 +118,14 @@ function track(event, data) {
   const DRAG_FULL_PX = 220;    // upward travel for a full open
   const SNAP_AT = 0.4;         // release past this opens, below shuts
   const PLAY_MS = 900;         // tap / click / wheel / key: frames 1 -> 45
-  const IDLE_FIRST_MS = 6000;  // gesture 1 auto-performs after this long with no input
-  const IDLE_LATER_MS = 4000;  // gestures 2-4
+  const IDLE_FIRST_MS = 12000; // gesture 1 auto-performs after this long with no input
+  const IDLE_LATER_MS = 10000; // the hand-over to the laptop, and gestures 2-4
   const TAP_SLOP_PX = 8;
   const FLICK_PX_PER_MS = 0.6; // upward release speed that opens regardless of distance
-  const TYPE_MS = 12;          // per character
+  const TYPE_MS = 20;          // per character
   const SWEEP_MS = 1600;
+  const CAPTURE_HOLD_MS = 1100; // the captured page shows in the phone before the laptop comes in
+  const LAPTOP_IN_MS = 1100;    // the laptop's slide in from the right (the .scene translate in styles.css)
 
   // Height of the lid's bright top edge per frame, % of frame height from the top
   // (measured on the 1280 set; 100 = lid still flat). Mid-swing the edge rises
@@ -148,6 +150,7 @@ function track(event, data) {
   const rim = $('.rim', stage);
   const screen = $('.screen', stage);
   const strip = $('.strip', stage);
+  const brand = $('.brand', stage);
   const sheet = $('.sheet', stage);
   const phone = $('.phone', stage);
   const transfer = $('.transfer', stage);
@@ -263,6 +266,7 @@ function track(event, data) {
         // Tokens land whole, the way the product shows them.
         if (seg.s.cls.startsWith('pii')) { seg.span.textContent = seg.s.text; c = seg.s.text.length; }
         else { c += 1; seg.span.textContent = seg.s.text.slice(0, c); }
+        if (stripMode === 'centre') placeStrip();
         if (c >= seg.s.text.length) {
           if (seg.s.cls === 'em') seg.span.classList.add('is-pop');
           i += 1;
@@ -276,7 +280,7 @@ function track(event, data) {
   }
 
   // Reading time after a line has typed.
-  const dwell = (line) => 220 + plain(line).length * 8;
+  const dwell = (line) => 450 + plain(line).length * 18;
 
   const maxMsgs = () => (portraitMQ.matches ? 3 : 4);
 
@@ -287,6 +291,7 @@ function track(event, data) {
     m.className = `msg ${who}${thinking ? ' think' : ''}`;
     m.innerHTML = `<span class="avatar">${AVATARS[who]}</span><p class="bubble">${thinking ? '<span class="who">Bob, thinking</span>' : ''}<span class="txt"></span></p>`;
     strip.appendChild(m);
+    placeStrip();
     void m.offsetWidth;
     m.classList.add('is-in');
     return m.querySelector('.txt');
@@ -316,6 +321,48 @@ function track(event, data) {
       run.timers.add(t);
     });
   }
+
+  // The strip's place in Act I: 'centre' while the chat types, 'top' once the paper comes, null afterwards.
+  let stripMode = null;
+  const stripK = () => parseFloat(getComputedStyle(strip).getPropertyValue('--strip-k')) || 1;
+  const brandFoot = () => brand.offsetTop + brand.offsetHeight;
+
+  function stripTo(mode) {
+    stripMode = mode;
+    strip.classList.toggle('is-act1', !!mode);
+    strip.classList.toggle('is-centre', mode === 'centre');
+    placeStrip();
+  }
+
+  function placeStrip() {
+    if (!stripMode) {
+      strip.style.transform = '';
+      return;
+    }
+    const V = stage.clientWidth;
+    const VH = stage.clientHeight;
+    const w = strip.offsetWidth;
+    const h = strip.offsetHeight;
+    let tx = 0;
+    let ty = 0;
+    let s = 1;
+    if (stripMode === 'centre') {
+      // Dead centre, unless that would crowd the small wordmark.
+      tx = (V - w) / 2 - strip.offsetLeft;
+      ty = Math.max(brandFoot() + 16, (VH - h) / 2) - strip.offsetTop;
+    } else {
+      // Desktop: the strip's own top-left corner. Portrait: centred under the small wordmark.
+      s = 1 / stripK();
+      if (portraitMQ.matches) {
+        tx = (V - w * s) / 2 - strip.offsetLeft;
+        ty = brandFoot() + 6 - strip.offsetTop;
+      }
+    }
+    strip.style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${s.toFixed(4)})`;
+  }
+
+  // While it is centred, the strip re-centres as each bubble grows (typeInto also calls it per character).
+  if ('ResizeObserver' in window) new ResizeObserver(() => { if (stripMode) placeStrip(); }).observe(strip);
 
   async function zoeSay(key, hold = true) {
     const line = LINES[key];
@@ -368,17 +415,57 @@ function track(event, data) {
     layout();
   }
 
+  // Act I: the paper centred and large, the phone docked beside it (below right on portrait), and the
+  // 'arrive' camera that brings the closed laptop in next to them once the picture is taken.
+  function actOneGeometry(g) {
+    const { S, V, VH } = g;
+    const top = brandFoot();
+    if (g.portrait) {
+      const stripB = top + 6 + strip.offsetHeight / stripK() + 16;
+      const floor = VH - 58;
+      const sh = Math.min(0.64 * V * 1.29, 0.64 * (floor - stripB));
+      const sw = sh / 1.29;
+      g.sheet = { x: (V - sw) / 2, y: stripB, w: sw, h: sh };
+      const pw = 0.55 * sw;
+      const ph = pw * 2.05;
+      g.phone = { x: V - 12 - pw, y: floor - ph, w: pw, h: ph };
+      g.enter = { x: V - g.phone.x + 24, y: VH - g.phone.y + 24 };
+      // The laptop comes in below the paper: frame rows 0.11 (its wordmark) to 0.75 (its base) fit above the dots.
+      const zone = stripB + sh + 10;
+      const cs = Math.max(0.45, Math.min(0.9, (floor - 6 - zone) / (0.64 * S.h)));
+      g.arrive = { cs, cx: V / 2 - S.x - cs * 0.5 * S.w, cy: zone - S.y - cs * 0.11 * S.h };
+    } else {
+      const sh = Math.min(0.4 * VH, 0.3 * V * 1.29);
+      const sw = sh / 1.29;
+      const y = Math.max(top + 18, (VH - sh) / 2);
+      g.sheet = { x: (V - sw) / 2, y, w: sw, h: sh };
+      const pw = 0.62 * sw;
+      const ph = pw * 2.05;
+      g.phone = { x: g.sheet.x + sw + Math.max(96, 0.075 * V), y: y + sh / 2 - ph / 2, w: pw, h: ph };
+      g.enter = { x: V - g.phone.x + 30, y: 0 };
+      // The laptop settles centre-right, in the space right of the paper, its middle level with the page.
+      const x0 = g.sheet.x + sw + 0.045 * V;
+      const x1 = 0.97 * V;
+      const cs = Math.min(0.66, (x1 - x0) / (0.57 * S.w));
+      g.arrive = { cs, cx: (x0 + x1) / 2 - S.x - cs * 0.5 * S.w, cy: y + sh * 0.55 - S.y - cs * 0.65 * S.h };
+    }
+  }
+
   function layout() {
     const S = sceneBox();
     const V = stage.clientWidth;
     const VH = stage.clientHeight;
     const portrait = portraitMQ.matches;
+    const g = { S, V, VH, portrait };
+    actOneGeometry(g);
     let cx = 0;
     let cy = 0;
     let cs = 1;
 
     const stripR = parseFloat(getComputedStyle(stage).getPropertyValue('--strip-r')) || 200;
-    if (portrait) {
+    if (camMode === 'arrive') {
+      ({ cx, cy, cs } = g.arrive);
+    } else if (portrait) {
       const zoomS = (V - 16) / (SCR.w * S.w);
       const screenTop = 112;
       if (camMode === 'center') {
@@ -408,18 +495,16 @@ function track(event, data) {
     // Scene-local point → stage point under the current camera.
     const at = (fx, fy) => ({ x: S.x + cx + cs * fx * S.w, y: S.y + cy + cs * fy * S.h });
     const scr = { tl: at(SCR.x, SCR.y), br: at(SCR.x + SCR.w, SCR.y + SCR.h) };
+    Object.assign(g, { cs, scr });
 
-    const g = { S, V, VH, portrait, cs, scr };
+    // The closed laptop under this camera (frame 1: body 0.215-0.785 across, 0.555-0.75 down),
+    // and where the phone bumps it: its left edge on desktop, its top edge on portrait.
+    g.laptop = { x0: at(0.215, 0).x, x1: at(0.785, 0).x, y0: at(0, 0.555).y, y1: at(0, 0.75).y };
+    g.bump = portrait
+      ? { x: (g.laptop.x0 + g.laptop.x1) / 2, y: g.laptop.y0 - g.phone.h * 0.36 }
+      : { x: g.laptop.x0 - g.phone.w * 0.3, y: (g.laptop.y0 + g.laptop.y1) / 2 };
 
     if (portrait) {
-      // Act I: the term sheet above the laptop, the phone below it.
-      const sw = 0.15 * S.w;
-      g.sheet = { x: S.x + 0.335 * S.w, y: S.y + 0.33 * S.h, w: sw, h: sw * 1.29 };
-      const pw = 58;
-      const ph = pw * 2.05;
-      g.phone = { x: V / 2 + 22, y: Math.min(S.y + 0.86 * S.h, VH - 74 - ph), w: pw, h: ph };
-      g.laptop = { x0: S.x + 0.22 * S.w, x1: S.x + 0.78 * S.w, y0: S.y + 0.53 * S.h, y1: S.y + 0.8 * S.h };
-      g.bump = { x: V / 2, y: S.y + 0.55 * S.h - ph * 0.38 };
       const below = scr.br.y + 12;
       g.zoe = { x: 12, y: below, w: V - 24 };
       g.labelFs = 17;
@@ -433,15 +518,6 @@ function track(event, data) {
       g.fan = { x: V / 2, y: scr.br.y };
       g.pills = { x: 12, y: camMode === 'end' ? stripR + cs * S.h * 0.93 : VH - 100, w: V - 24 };
     } else {
-      // On wide screens the paper and the phone are the subject of Act I: about 1.4x larger, lifted.
-      const big = V >= 900 ? 1.4 : 1;
-      const sw = 0.13 * big * S.w;
-      g.sheet = { x: S.x + (big > 1 ? 0.03 : 0.045) * S.w, y: S.y + (big > 1 ? 0.36 : 0.42) * S.h, w: sw, h: sw * 1.29 };
-      const pw = Math.min(110 * big, Math.max(70, 0.062 * big * S.w));
-      const ph = pw * 2.05;
-      g.phone = { x: S.x + 0.86 * S.w - pw / 2, y: S.y + (big > 1 ? 0.37 : 0.38) * S.h, w: pw, h: ph };
-      g.laptop = { x0: S.x + 0.22 * S.w, x1: S.x + 0.78 * S.w, y0: S.y + 0.53 * S.h, y1: S.y + 0.8 * S.h };
-      g.bump = { x: S.x + 0.215 * S.w - pw * 0.32, y: S.y + 0.64 * S.h };
       const x0 = scr.br.x + 0.012 * S.w;
       const x1 = S.x + 0.79 * S.w;
       const y = at(0, 0.5).y;
@@ -455,15 +531,20 @@ function track(event, data) {
       g.pills = { x: 0, y: S.y + 0.905 * S.h, w: V };
     }
 
+    // The paper's type scales with it: large enough to read as a page, too small to read the terms.
+    const fs = `${(g.sheet.w * 0.026).toFixed(2)}px`;
     place(sheet, g.sheet.x, g.sheet.y, g.sheet.w, g.sheet.h);
-    sheet.style.setProperty('--sheet-fs', `${(g.sheet.w * 0.034).toFixed(2)}px`);
+    sheet.style.setProperty('--sheet-fs', fs);
+    fly.style.setProperty('--sheet-fs', fs);
     place(phone, g.phone.x, g.phone.y, g.phone.w, g.phone.h);
+    phone.style.setProperty('--enter-x', `${Math.round(g.enter.x)}px`);
+    phone.style.setProperty('--enter-y', `${Math.round(g.enter.y)}px`);
     // Viewfinder offset: the paper's position relative to the phone's screen at the dock (see .phone-view).
     phone.style.setProperty('--vx', `${(g.sheet.x - g.phone.x - 0.06 * g.phone.w).toFixed(1)}px`);
     phone.style.setProperty('--vy', `${(g.sheet.y - g.phone.y - 0.045 * g.phone.h).toFixed(1)}px`);
     phone.style.setProperty('--vw', `${g.sheet.w.toFixed(1)}px`);
     phone.style.setProperty('--vh', `${g.sheet.h.toFixed(1)}px`);
-    phone.style.setProperty('--sheet-fs', `${(g.sheet.w * 0.034).toFixed(2)}px`);
+    phone.style.setProperty('--sheet-fs', fs);
     place(zoe, g.zoe.x, g.zoe.y, g.zoe.w);
     place(cloud, g.cloud.x, g.cloud.y, g.cloud.w, g.cloud.h);
     place(stream, g.stream.x, g.stream.y, g.stream.len);
@@ -479,10 +560,11 @@ function track(event, data) {
   // ---------- Builders (fresh DOM on every run, so Replay starts clean) ----------
 
   function buildSheet() {
-    sheet.className = 'sheet';
+    sheet.className = 'sheet paper';
     sheet.innerHTML = `<h4>TERM SHEET</h4>` +
       TERM_SHEET.map(([k, v]) => `<p><b>${esc(k)}:</b> ${esc(fill(v, 'real'))}</p>`).join('') +
-      SHEET_FILLER.map((t) => `<p>${esc(t)}</p>`).join('');
+      SHEET_FILLER.map((t) => `<p>${esc(t)}</p>`).join('') +
+      '<div class="type"></div>';
   }
 
   function buildPhone() {
@@ -490,10 +572,13 @@ function track(event, data) {
     phone.hidden = false;
     phone.style.removeProperty('--px');
     phone.style.removeProperty('--py');
-    phone.innerHTML = '<div class="phone-body" aria-hidden="true"><div class="phone-screen"><div class="phone-view"></div><div class="phone-grid"></div><div class="phone-shot"></div><div class="phone-shutter"></div><div class="phone-flash"></div></div><div class="phone-island"></div></div><span class="phone-cue" aria-hidden="true"></span>';
+    phone.innerHTML = '<span class="phone-halo" aria-hidden="true"></span><div class="phone-body" aria-hidden="true"><div class="phone-screen"><div class="phone-view paper"></div><div class="phone-grid"></div><div class="phone-shutter"></div><div class="phone-flash"></div></div><div class="phone-island"></div></div><span class="phone-cue" aria-hidden="true"></span>';
     phone.setAttribute('tabindex', '-1');
     // The viewfinder: a copy of the paper that stays aligned with the real one as the phone moves over it.
     $('.phone-view', phone).innerHTML = sheet.innerHTML;
+    // The same page is what flies into the laptop.
+    fly.className = 'fly paper';
+    fly.innerHTML = sheet.innerHTML;
   }
 
   function buildZoe() {
@@ -544,6 +629,13 @@ function track(event, data) {
   function resetStage() {
     stage.classList.add('is-resetting');
     strip.innerHTML = '';
+    stripTo('centre');
+    // A bare stage: the laptop waits off the right edge, the small wordmark shows.
+    stage.classList.remove('laptop-in');
+    stage.dataset.open = 'chat';
+    laptopReady = false;
+    arrival = Promise.resolve();
+    transferDone = Promise.resolve();
     live.textContent = '';
     buildSheet();
     buildPhone();
@@ -564,7 +656,7 @@ function track(event, data) {
     stage.classList.remove('lid-armed');
     setLidArmed(false);
     resetLid();
-    camMode = 'home';
+    camMode = 'arrive';
     setAct(0);
     layout();
     void stage.offsetWidth;
@@ -647,11 +739,15 @@ function track(event, data) {
     if (gestureNow && !gestureNow.busy) armIdle();
   }
 
-  // ---------- Act I: the phone ----------
+  // ---------- Act I: the phone, and the laptop that arrives for it ----------
 
   let phoneStage = 0;      // 0 needs the snap, 1 needs the bump, 2 done
   let phoneDrag = null;
   let phoneOff = { x: 0, y: 0 };
+  let laptopReady = false; // the laptop has slid in and can take the phone
+  let arrival = Promise.resolve();
+  let transferDone = Promise.resolve();
+  let capturedScale = 0.3; // the captured page's scale inside the phone
 
   function setPhoneOff(x, y) {
     phoneOff = { x, y };
@@ -669,14 +765,11 @@ function track(event, data) {
     const p = geo.portrait;
     if (phoneStage === 0) cue.textContent = p ? 'Drag ↑' : 'Drag ←';
     else cue.textContent = p ? 'Drag ↓' : 'Drag →';
-    cue.style.cssText = '';
-    if (phoneStage === 1) {
-      if (p) Object.assign(cue.style, { bottom: 'auto', top: '104%' });
-      else Object.assign(cue.style, { right: 'auto', left: '112%' });
-    }
+    phone.classList.toggle('cue-on', phoneStage > 0);
   }
 
   async function glideTo(pt, ms = 420) {
+    phone.style.setProperty('--glide', `${ms}ms`);
     phone.classList.add('is-gliding');
     setPhoneOff(pt.x - (geo.phone.x + geo.phone.w / 2), pt.y - (geo.phone.y + geo.phone.h / 2));
     await wait(ms);
@@ -686,45 +779,73 @@ function track(event, data) {
   function snap() {
     if (phoneStage !== 0) return;
     phoneStage = 1;
-    // The shutter shrinks the viewfinder's page into the phone, where the captured card appears.
+    // The shutter: a flash, then the page in the viewfinder straightens and settles in the middle of the screen.
     const view = $('.phone-view', phone);
     const scr = $('.phone-screen', phone);
-    const k = (scr.clientWidth * 0.56) / Math.max(1, view.offsetWidth);
+    const w = view.offsetWidth;
+    const h = view.offsetHeight;
+    capturedScale = Math.min((scr.clientWidth * 0.8) / w, (scr.clientHeight * 0.68) / h);
     view.style.transform = getComputedStyle(view).transform;
     void view.offsetWidth;
     view.classList.add('is-captured');
-    view.style.transform = `translate(${((scr.clientWidth - view.offsetWidth) / 2).toFixed(1)}px, ${((scr.clientHeight * 0.94 - view.offsetHeight) / 2).toFixed(1)}px) scale(${k.toFixed(3)})`;
-    phone.classList.add('is-snapped');
+    view.style.transform = `translate(${((scr.clientWidth - w) / 2).toFixed(1)}px, ${(scr.clientHeight * 0.43 - h / 2).toFixed(1)}px) scale(${capturedScale.toFixed(3)})`;
+    phone.classList.add('is-snapped', 'cue-wait');
     $('.phone-flash', phone).classList.add('is-on');
+    $('.phone-body', phone).classList.add('is-settle');
     sheet.classList.add('is-flash');
     setCue();
+    stage.dataset.open = 'snapped';
     track('phone_snapped');
+    arrival = laptopArrives();
+    arrival.catch(() => {});
+  }
+
+  // After the picture: the captured page holds in the phone, then the closed laptop slides in from the right
+  // and its baked wordmark takes over from the small one.
+  async function laptopArrives() {
+    await wait(CAPTURE_HOLD_MS);
+    stage.classList.add('laptop-in');
+    stage.dataset.open = 'laptop';
+    await wait(LAPTOP_IN_MS);
+    laptopReady = true;
+    stage.dataset.open = 'laptop-ready';
+    phone.classList.remove('cue-wait');
+    // The hand-over waits for the visitor too, on the later idle clock.
+    const g = gestureNow;
+    if (g && g.name === 'phone' && !g.busy) {
+      g.idleMs = IDLE_LATER_MS;
+      armIdle();
+    }
   }
 
   async function bump() {
     phoneStage = 2;
+    stage.dataset.open = 'transfer';
     phone.classList.add('is-bumped');
     const body = $('.phone-body', phone);
+    body.classList.remove('is-settle');
     body.classList.add('is-shake');
     const from = phoneCenter();
     const to = { x: (geo.laptop.x0 + geo.laptop.x1) / 2, y: (geo.laptop.y0 + geo.laptop.y1) / 2 };
-    // The captured page card flies out of the phone into the laptop, under the label; the rim flashes as it lands.
-    const cw = geo.phone.w * 0.49;
-    const ch = geo.phone.h * 0.38;
+    // The captured page flies out of the phone into the laptop, under the label; the rim flashes as it lands.
+    const cw = geo.sheet.w;
+    const ch = geo.sheet.h;
+    const k = capturedScale;
+    const fromY = geo.phone.y + phoneOff.y + geo.phone.h * (0.045 + 0.91 * 0.43);
     fly.style.width = `${cw}px`;
     fly.style.height = `${ch}px`;
-    const f0 = `translate(${from.x - cw / 2}px, ${from.y - ch / 2}px) scale(1)`;
-    const f1 = `translate(${to.x - cw / 2}px, ${to.y - ch / 2 + 6}px) scale(0.45) rotate(-6deg)`;
+    const f0 = `translate(${from.x - cw / 2}px, ${fromY - ch / 2}px) scale(${k.toFixed(3)})`;
+    const f1 = `translate(${to.x - cw / 2}px, ${to.y - ch / 2 + 6}px) scale(${(k * 0.45).toFixed(3)}) rotate(-6deg)`;
     animate(fly, [
       { transform: f0, opacity: 1 },
       { transform: f1, opacity: 1, offset: 0.8 },
       { transform: f1, opacity: 0 },
-    ], { duration: 820, easing: 'cubic-bezier(0.5, 0, 0.3, 1)' });
+    ], { duration: 900, easing: 'cubic-bezier(0.5, 0, 0.3, 1)' });
     const t = setTimeout(() => {
       rim.classList.remove('is-glowing');
       void rim.offsetWidth;
       rim.classList.add('is-glowing');
-    }, RM ? 0 : 600);
+    }, RM ? 0 : 650);
     run.timers.add(t);
     // The local hand-over label: phone → laptop centre.
     const tw = transfer.offsetWidth;
@@ -740,11 +861,13 @@ function track(event, data) {
       { transform: p1, opacity: 1, offset: 0.85 },
       { transform: p1, opacity: 0 },
     ], { duration: 1900, easing: 'ease-in-out' });
+    transferDone = pulse.then(() => { phone.hidden = true; });
     await wait(340);
     phone.classList.add('is-dropping');
-    sheet.classList.add('is-gone');
+    // The paper fades: it is in the laptop now.
+    const t2 = setTimeout(() => sheet.classList.add('is-gone'), 380);
+    run.timers.add(t2);
     await wait(500);
-    pulse.then(() => { phone.hidden = true; });
   }
 
   async function phoneAuto(method) {
@@ -752,21 +875,33 @@ function track(event, data) {
       phoneStage = 2;
       phone.hidden = true;
       sheet.classList.add('is-gone');
+      stage.classList.add('laptop-in');
+      laptopReady = true;
       track('phone_snapped', { method });
       return;
     }
     if (phoneStage === 0) {
       const s = geo.sheet;
-      await glideTo({ x: s.x + s.w / 2, y: s.y + s.h / 2 }, 460);
+      await glideTo({ x: s.x + s.w / 2, y: s.y + s.h / 2 }, 650);
       snap();
-      await wait(380);
     }
-    await glideTo(geo.bump, 420);
+    await arrival;
+    // Done for the visitor (tap, key or idle): the cue reads before the phone moves on.
+    if (method !== 'drag') await wait(800);
+    await glideTo(geo.bump, method === 'drag' ? 260 : 600);
     await bump();
   }
 
-  const inside = (p, b, pad) => p.x > b.x0 - pad && p.x < b.x1 + pad && p.y > b.y0 - pad && p.y < b.y1 + pad;
-  const sheetBox = () => ({ x0: geo.sheet.x, x1: geo.sheet.x + geo.sheet.w, y0: geo.sheet.y, y1: geo.sheet.y + geo.sheet.h });
+  const insideXY = (p, b, px, py) => p.x > b.x0 - px && p.x < b.x1 + px && p.y > b.y0 - py && p.y < b.y1 + py;
+  const sheetMid = () => ({ x: geo.sheet.x + geo.sheet.w / 2, y: geo.sheet.y + geo.sheet.h / 2 });
+  // The shutter fires once the phone is well over the page, so the viewfinder is seen first.
+  const overPage = (c) => insideXY(c, { x0: geo.sheet.x, x1: geo.sheet.x + geo.sheet.w, y0: geo.sheet.y, y1: geo.sheet.y + geo.sheet.h },
+    -0.26 * geo.sheet.w, -0.22 * geo.sheet.h);
+  // The phone reaches the laptop once its leading edge is well onto it.
+  const overLaptop = (c) => (geo.portrait
+    ? insideXY(c, geo.laptop, 0, 0.36 * geo.phone.h)
+    : insideXY(c, geo.laptop, 0.36 * geo.phone.w, 0.2 * geo.phone.h));
+  const offStage = (c) => c.x < 0 || c.y < 0 || c.x > geo.V || c.y > geo.VH;
 
   phone.addEventListener('pointerdown', (e) => {
     if (!gestureNow || gestureNow.name !== 'phone' || gestureNow.busy) return;
@@ -789,9 +924,8 @@ function track(event, data) {
     }
     setPhoneOff(d.ox + dx, d.oy + dy);
     const c = phoneCenter();
-    // The shutter fires once the phone is well over the page, so the viewfinder is seen first.
-    if (phoneStage === 0 && inside(c, sheetBox(), -14)) snap();
-    else if (phoneStage === 1 && inside(c, geo.laptop, 10)) {
+    if (phoneStage === 0 && overPage(c)) snap();
+    else if (phoneStage === 1 && laptopReady && overLaptop(c)) {
       phoneDrag = null;
       phone.classList.remove('is-dragging');
       gestureNow && gestureNow.perform('drag');
@@ -810,14 +944,15 @@ function track(event, data) {
       return;
     }
     const c = phoneCenter();
-    const s = geo.sheet;
-    const near = Math.hypot(c.x - (s.x + s.w / 2), c.y - (s.y + s.h / 2)) < 150;
-    // Forgiving: after the snap, or near the page, the phone finishes the trip itself.
-    if (phoneStage === 1 || near) gestureNow.perform('drag');
-    else {
-      phone.classList.add('is-gliding');
-      setPhoneOff(0, 0);
-      setTimeout(() => phone.classList.remove('is-gliding'), 450);
+    const s = sheetMid();
+    if (phoneStage === 0) {
+      // Forgiving: let go near the page and the phone lines up and takes the picture itself.
+      if (Math.hypot(c.x - s.x, c.y - s.y) < 0.75 * Math.max(geo.sheet.w, geo.sheet.h)) glideTo(s, 360).then(snap, () => {});
+      else glideTo({ x: geo.phone.x + geo.phone.w / 2, y: geo.phone.y + geo.phone.h / 2 }, 450).catch(() => {});
+    } else if (phoneStage === 1) {
+      if (laptopReady && overLaptop(c)) gestureNow.perform('drag');
+      // Let go elsewhere and it holds the picture where it is, unless that is the laptop's place or off the stage.
+      else if (overLaptop(c) || offStage(c)) glideTo(s, 450).catch(() => {});
     }
   }
 
@@ -1350,28 +1485,36 @@ function track(event, data) {
   // ---------- The story ----------
 
   async function story() {
-    // Act I — the ambush and the snap (lines type fast; each stays up until the next replaces it)
+    // Act I — the ambush and the snap. A bare stage: the chat types dead centre, then makes room for the paper.
     setAct(1);
-    await wait(200);
+    await wait(400);
     await say('jimmy', 'jimmy1');
     await say('bob', 'bob1');
-    const bubble3 = say('jimmy', 'jimmy2', false);
-    await wait(150);
+    await say('jimmy', 'jimmy2', false);
+    await wait(600);
+    stripTo('top');
+    stage.dataset.open = 'sheet';
+    layout();                                      // on portrait the paper sits under the strip's new place
+    await wait(520);                               // the strip has mostly cleared the middle
     sheet.classList.add('is-in');
-    await wait(250);
+    await wait(1000);
     phone.classList.add('is-in');
+    stage.dataset.open = 'phone';
     setCue();
     // Each gesture is armed as soon as its prompt appears; its idle clock starts then.
-    const g1 = gesture('phone', IDLE_FIRST_MS, phoneAuto, phone);
-    await Promise.all([bubble3, g1]);
+    await gesture('phone', IDLE_FIRST_MS, phoneAuto, phone);
     phone.setAttribute('tabindex', '-1');
     clearStrip('.msg:not(.think)');
 
     // Act II — open the laptop, pull the plug
     setAct(2);
+    await wait(360);
+    stripTo(null);                                 // the chat has gone; the strip is back to its own size
     const thoughts = think('snapped').then(() => think('noTrust', false));
-    await wait(300);
-    camera('center');
+    await transferDone;
+    stage.dataset.open = 'done';
+    camera('center');                              // the laptop glides to dead centre
+    await wait(450);
     let g2 = Promise.resolve();
     if (!RM) {
       setLidArmed(true);
@@ -1514,6 +1657,7 @@ function track(event, data) {
   window.addEventListener('resize', () => {
     measureTagline();
     if (shownFrame >= 0) dimTagline(shownFrame);
+    placeStrip();
     layout();
   });
 
@@ -1560,6 +1704,7 @@ function track(event, data) {
     get frameSet() { return frameSet; },
     get ended() { return storyEndedAt ? Math.round(storyEndedAt - storyStartedAt) : 0; },
     get camera() { return camMode; },
+    get opening() { return stage.dataset.open || ''; },
     perform: (method = 'debug') => gestureNow && gestureNow.perform(method),
     replay: start,
   };
