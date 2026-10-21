@@ -572,6 +572,42 @@ test('below the hero: every section, both modals, numbers and image sizes', asyn
   expect(privacy).not.toMatch(/private servers/);
 });
 
+test('the living O: the wordmark overlay rides the drift, the bubble O grows, the small O turns', async ({ page }, info) => {
+  await page.goto('/');
+  await page.waitForTimeout(800);
+  // The overlay's centre sits on the baked O's measured centre (frame 1: 857.0, 202.0 of 1920 x 1080).
+  const at = async (fx, fy) => {
+    const s = await page.locator('.scene').boundingBox();
+    const o = await page.locator('.logo-o').boundingBox();
+    return { dx: o.x + o.width / 2 - (s.x + fx * s.width), dy: o.y + o.height / 2 - (s.y + fy * s.height) };
+  };
+  const f1 = await at(857.0 / 1920, 202.0 / 1080);
+  expect(Math.abs(f1.dx)).toBeLessThan(1.5);
+  expect(Math.abs(f1.dy)).toBeLessThan(1.5);
+  expect(await page.locator('.logo-o-a').evaluate((e) => e.getAnimations()[0].playState)).toBe('running');
+  await runTo(page, 'mark');
+  // Frame 45 after the lid opened: the O has drifted to (852.3, 196.6); the scene may be zoomed, so measure unscaled.
+  const drift = await page.evaluate(() => {
+    const st = getComputedStyle(document.querySelector('.logo-o'));
+    return [st.getPropertyValue('--odx'), st.getPropertyValue('--ody')].map(Number);
+  });
+  expect(Math.abs(drift[0] * 1920 - (852.3 - 857.0))).toBeLessThan(0.6);
+  expect(Math.abs(drift[1] * 1920 - (196.6 - 202.0))).toBeLessThan(0.6);
+  await page.waitForFunction(() => document.querySelector('.zoe').classList.contains('is-talking') || document.querySelector('.zoe').classList.contains('is-working'), null, { timeout: 30000 });
+  const grown = await page.locator('.zoe-mark .o-wrap').evaluate((e) => new DOMMatrix(getComputedStyle(e).transform).a);
+  expect(grown).toBeGreaterThan(1.5);
+  await page.locator('#site-footer').scrollIntoViewIfNeeded();
+  expect(await page.locator('.foot-logo .wordmark-o').evaluate((e) => e.getAnimations()[0].playState)).toBe('running');
+  await page.locator('.logo-o').screenshot({ path: path.join(SHOTS, `${info.project.name}-logo-o.png`) }).catch(() => {});
+});
+
+test('the living O under reduced motion: still', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  await page.waitForTimeout(500);
+  expect(await page.locator('.logo-o-a').evaluate((e) => e.getAnimations().length)).toBe(0);
+});
+
 test('comparison: nothing until a choice, each panel animates, switching works', async ({ page }, info) => {
   await page.goto('/');
   await page.locator('#dataflow').scrollIntoViewIfNeeded();

@@ -580,3 +580,22 @@
   .sec { padding-left: 16px; padding-right: 16px; }
 }
 
+
+/* The small light wordmark: the word, and its O on top, turning slowly (one turn every 10 s). */
+.wordmark { position: relative; display: block; }
+.wordmark img { display: block; width: 100%; height: auto; }
+.wordmark .wordmark-o {
+  position: absolute;
+  left: 32.618%;   /* 152 / 466 */
+  top: 7.983%;     /* 19 / 238 */
+  width: 36.052%;  /* 168 / 466 */
+  animation: logo-spin 10s linear infinite;
+}
+
+@keyframes logo-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wordmark .wordmark-o { animation: none; }
+}

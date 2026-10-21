@@ -122,6 +122,35 @@ body {
 .lid { opacity: 0; }
 .lid.is-live { opacity: 1; }
 
+/* The baked wordmark's O, alive. The box is centred on the O as it sits on frame 1
+   (857.0, 202.0 of 1920 x 1080) and is 200 frame-pixels square; hero.js moves and scales it
+   per frame (--odx, --ody in scene widths, --os) so it rides the logo's drift exactly. */
+.logo-o {
+  position: absolute;
+  left: 44.635%;            /* 857.0 / 1920 */
+  top: 18.704%;             /* 202.0 / 1080 */
+  width: 10.417%;           /* 200 / 1920 */
+  aspect-ratio: 1;
+  margin: -5.208% 0 0 -5.208%;   /* half the box, in scene widths */
+  transform: translate(calc(var(--odx, 0) * var(--scene-w)), calc(var(--ody, 0) * var(--scene-w))) scale(var(--os, 1));
+  pointer-events: none;
+}
+
+.logo-o img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  animation: logo-spin 10s linear infinite;
+}
+
+/* The frame-45 crop was cut where the O is 2.4 % smaller, so it is scaled back to match. */
+.logo-o .logo-o-b { opacity: 0; scale: 1.0245; }
+
+@keyframes logo-spin {
+  to { transform: rotate(360deg); }
+}
+
 .tagline {
   position: absolute;
   top: 27.4%;
@@ -1015,10 +1044,33 @@ body {
   box-shadow: 0 0 0 1px rgba(156, 201, 255, 0.35), 0 0 18px rgba(95, 168, 255, 0.35);
 }
 
-.zoe-mark span { display: inline-block; transition: transform 0.3s ease, opacity 0.3s ease; }
-.zoe-mark svg { width: 20px; height: 20px; display: block; }
-.zoe.is-working .zoe-mark span { transform: scale(0.6); opacity: 0.55; }
-.zoe.is-working .zoe-mark svg { animation: spin 1.1s linear infinite; }
+.zoe-mark .zl { display: inline-block; transition: transform 0.45s var(--ease-out); }
+.zoe-mark .o-wrap { position: relative; display: block; width: 20px; height: 20px; transition: transform 0.45s var(--ease-out); }
+.zoe-mark svg { position: relative; width: 20px; height: 20px; display: block; overflow: visible; }
+.zoe-mark .o-turn { transform-box: view-box; transform-origin: 12px 12px; }
+
+/* A soft glow behind the O, shown while ZOE talks. */
+.zoe-mark .o-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(150, 205, 255, 0.75), rgba(150, 205, 255, 0));
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+/* While ZOE talks or works: the O grows past the Z and E, which step aside, and turns slowly. */
+.zoe.is-talking .zoe-mark .o-wrap,
+.zoe.is-working .zoe-mark .o-wrap { transform: scale(1.7); }
+.zoe.is-talking .zoe-mark .o-wrap::before,
+.zoe.is-working .zoe-mark .o-wrap::before { opacity: 1; }
+.zoe.is-talking .zoe-mark .zl:first-child,
+.zoe.is-working .zoe-mark .zl:first-child { transform: translateX(-8px); }
+.zoe.is-talking .zoe-mark .zl:last-child,
+.zoe.is-working .zoe-mark .zl:last-child { transform: translateX(8px); }
+.zoe.is-talking .zoe-mark .o-turn,
+.zoe.is-working .zoe-mark .o-turn { animation: spin 3.5s linear infinite; }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
@@ -1517,6 +1569,7 @@ body {
   .cue,
   .lip,
   .phone-cue { display: none; }
+  .logo-o img { animation: none; }
   .stage *,
   .stage *::before,
   .stage *::after {

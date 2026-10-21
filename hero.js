@@ -161,6 +161,10 @@ function track(event, data) {
     30.4, 30.7, 31.1, 31.7, 32.2, 32.9, 33.8, 34.0, 34.4, 34.7, 35.0, 35.3, 35.4, 35.7, 35.8,
   ];
 
+  // The baked wordmark's O, per frame: [dx, dy] from its frame-1 centre in frame widths, and its
+  // scale, from a circle fit on all 45 frames (smoothed over five). Moves .logo-o with the drift.
+  const LOGO_O = [[0.0, 0.0, 1.0], [0.0, -1e-05, 1.0], [-1e-05, 1e-05, 1.0003], [2e-05, -3e-05, 0.9994], [1e-05, -5e-05, 0.9997], [3e-05, -6e-05, 0.9991], [3e-05, -6e-05, 0.9991], [5e-05, -9e-05, 0.9986], [5e-05, -9e-05, 0.9986], [2e-05, -2e-05, 0.9994], [-2e-05, 2e-05, 1.0006], [-6e-05, 6e-05, 1.0014], [-0.0001, 6e-05, 1.0017], [-0.00022, 0.0001, 1.0034], [-0.00032, 6e-05, 1.004], [-0.00043, 1e-05, 1.004], [-0.00056, -5e-05, 1.0046], [-0.00072, -6e-05, 1.0057], [-0.00082, -0.00013, 1.0055], [-0.00094, -0.00019, 1.0055], [-0.00105, -0.00025, 1.0055], [-0.00114, -0.00037, 1.0043], [-0.00121, -0.00049, 1.0032], [-0.00129, -0.00061, 1.0023], [-0.00133, -0.00075, 1.0003], [-0.0014, -0.00088, 0.9991], [-0.00146, -0.00098, 0.9983], [-0.00153, -0.00109, 0.9971], [-0.00157, -0.00122, 0.9951], [-0.00164, -0.00134, 0.994], [-0.0017, -0.00145, 0.9925], [-0.00176, -0.00156, 0.9911], [-0.00182, -0.00166, 0.99], [-0.0019, -0.00175, 0.9891], [-0.00197, -0.00182, 0.9885], [-0.00203, -0.00191, 0.9877], [-0.00207, -0.00206, 0.9859], [-0.00212, -0.00218, 0.9845], [-0.00217, -0.0023, 0.9828], [-0.00222, -0.00242, 0.9811], [-0.00227, -0.00253, 0.9793], [-0.00232, -0.00261, 0.9782], [-0.00238, -0.0027, 0.977], [-0.00241, -0.00274, 0.9767], [-0.00243, -0.0028, 0.9761]];
+
   // Screen rectangle on lid_45 as fractions of the frame (matches --screen-* in styles.css).
   const SCR = { x: 0.3068, y: 0.3602, w: 0.3839, h: 0.3963 };
 
@@ -172,6 +176,8 @@ function track(event, data) {
   const ctx2d = canvas.getContext('2d', { alpha: false });
   const lidHit = $('.lid-hit', stage);
   const tagline = $('.tagline', stage);
+  const logoO = $('.logo-o', stage);
+  const logoOB = $('.logo-o-b', stage);
   const rim = $('.rim', stage);
   const screen = $('.screen', stage);
   const strip = $('.strip', stage);
@@ -346,11 +352,22 @@ function track(event, data) {
     });
   }
 
+  // While ZOE talks, its O grows and turns; it settles back once the line has been read.
+  let talkTimer = 0;
   async function zoeSay(key, hold = true) {
     const line = LINES[key];
     announce('zoe', line);
+    clearTimeout(talkTimer);
+    zoe.classList.add('is-talking');
     await typeInto($('.zoe-say', zoe), line);
-    if (hold) await wait(dwell(line));
+    const settle = () => zoe.classList.remove('is-talking');
+    if (hold) {
+      await wait(dwell(line));
+      settle();
+    } else {
+      talkTimer = setTimeout(settle, RM ? 0 : dwell(line));
+      run.timers.add(talkTimer);
+    }
   }
 
   async function cloudSay(key, hold = true) {
@@ -533,7 +550,7 @@ function track(event, data) {
 
   function buildZoe() {
     zoe.className = 'zoe';
-    zoe.innerHTML = '<div class="zoe-mark"><span>Z</span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#cfe0f5" stroke-width="3" stroke-dasharray="44 13"/><circle cx="12" cy="13" r="3.6" fill="#cfe0f5"/><circle cx="10.2" cy="7.6" r="1.1" fill="#cfe0f5"/><circle cx="13.4" cy="7.2" r="1.1" fill="#cfe0f5"/></svg><span>E</span></div><p class="zoe-say"></p>';
+    zoe.innerHTML = '<div class="zoe-mark"><span class="zl">Z</span><span class="o-wrap"><svg viewBox="0 0 24 24"><g class="o-turn"><circle cx="12" cy="12" r="9" fill="none" stroke="#cfe0f5" stroke-width="3" stroke-dasharray="44 13"/><circle cx="12" cy="13" r="3.6" fill="#cfe0f5"/><circle cx="10.2" cy="7.6" r="1.1" fill="#cfe0f5"/><circle cx="13.4" cy="7.2" r="1.1" fill="#cfe0f5"/></g></svg></span><span class="zl">E</span></div><p class="zoe-say"></p>';
   }
 
   function buildCloud() {
@@ -954,6 +971,7 @@ function track(event, data) {
     ctx2d.drawImage(img, 0, 0, canvas.width, canvas.height);
     shownFrame = f;
     dimTagline(f);
+    placeLogoO(f);
     canvas.classList.add('is-live');
   }
 
@@ -970,6 +988,16 @@ function track(event, data) {
   function requestRender() {
     if (!renderRaf) renderRaf = requestAnimationFrame(render);
   }
+
+  // The live O follows the baked one; the frame-45 crop fades in as the lid opens.
+  function placeLogoO(f) {
+    const [dx, dy, s] = LOGO_O[f];
+    logoO.style.setProperty('--odx', String(dx));
+    logoO.style.setProperty('--ody', String(dy));
+    logoO.style.setProperty('--os', String(s));
+    logoOB.style.opacity = String(Math.pow(f / (FRAMES - 1), 2).toFixed(3));
+  }
+  if (RM) placeLogoO(FRAMES - 1); // the open frame is shown from the start
 
   const easeOutCubic = (k) => 1 - Math.pow(1 - k, 3);
   const easeInOutCubic = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
@@ -1627,6 +1655,27 @@ function track(event, data) {
       document.body.appendChild(s);
     }, { rootMargin: '600px 0px' });
     badgeIo.observe(founder);
+  }
+
+  // The comparison's script loads when its section comes near, so it never competes with first paint.
+  const flow = document.getElementById('dataflow');
+  if (flow) {
+    const loadCompare = () => {
+      if (document.querySelector('script[src="compare.js"]')) return;
+      const s = document.createElement('script');
+      s.src = 'compare.js';
+      document.body.appendChild(s);
+    };
+    if ('IntersectionObserver' in window) {
+      const cmpIo = new IntersectionObserver((entries) => {
+        if (!entries.some((en) => en.isIntersecting)) return;
+        cmpIo.disconnect();
+        loadCompare();
+      }, { rootMargin: '800px 0px' });
+      cmpIo.observe(flow);
+    } else {
+      loadCompare();
+    }
   }
 
   // Privacy and Terms are :target modals; Escape closes them.
