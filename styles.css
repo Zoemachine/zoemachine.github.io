@@ -1248,34 +1248,77 @@ body {
   pointer-events: none;
 }
 
-.fan .file {
+.fan .page6 {
   position: absolute;
-  left: -9px;
-  top: -12px;
-  width: 18px;
+  left: -20px;
+  top: -26px;
+  width: 40px;
+  height: 52px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #eef1f5;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
   opacity: 0;
-  transition: transform 0.5s var(--ease-out), opacity 0.3s ease;
+  transition: transform 0.25s var(--ease-out), opacity 0.2s ease;
 }
 
-.fan .file.is-in { opacity: 1; }
+.fan .page6.is-in { opacity: 1; }
 
-.packet {
-  position: absolute;
-  white-space: nowrap;
-  left: -16px;
-  top: -12px;
-  padding: 3px 7px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #fff;
-  background: #2d63c8;
-  box-shadow: 0 0 14px rgba(95, 168, 255, 0.9);
+/* Lifted and sent: it travels to the cloud and fades as it arrives. */
+.fan .page6.is-flying {
   opacity: 0;
-  transition: transform 0.9s var(--ease-io), opacity 0.25s ease;
+  box-shadow: 0 0 16px rgba(95, 168, 255, 0.9);
+  transition: transform 0.7s var(--ease-io), opacity 0.25s ease 0.45s;
 }
 
-.packet.is-in { opacity: 1; }
+.page6-lines {
+  position: absolute;
+  inset: 7px 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.page6-lines i {
+  position: relative;
+  display: block;
+  width: var(--w);
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(40, 50, 70, 0.32);
+}
+
+/* The masked blue, stacked over the grey and switched on as the pass crosses. */
+.page6-lines i::after {
+  content: "";
+  position: absolute;
+  inset: -0.5px 0;
+  border-radius: 2px;
+  background: #3f8cff;
+  opacity: 0;
+  transition: opacity 0.08s linear;
+}
+
+.page6-lines i.is-on::after { opacity: 1; }
+
+.page6-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -3px;
+  height: 100%;
+  border-top: 2px solid rgba(120, 190, 255, 0.95);
+  box-shadow: 0 -2px 8px rgba(95, 168, 255, 0.8);
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (orientation: portrait) {
+  .fan .page6 { left: -17px; top: -22px; width: 34px; height: 44px; }
+  .page6-lines { inset: 6px 5px; }
+  /* During the round trip the label sits on the rising stream, on a dark backing. */
+  .stream-label { background: rgba(0, 0, 0, 0.82); border-radius: 8px; padding: 2px 0; }
+}
 
 /* ---------- End pills, progress, footnote ---------- */
 
@@ -1544,6 +1587,13 @@ body {
     pointer-events: none;
   }
   .stage.is-zoomed::before { opacity: 1; }
+  /* The round trip goes up: the cloud takes the top, so the veil lifts and the strip moves to the bottom. */
+  .stage.is-up::before { height: 318px; background: linear-gradient(#000 78%, rgba(0, 0, 0, 0)); }
+  .stage.is-up .cloud,
+  .stage.is-up .stream,
+  .stage.is-up .stream-label,
+  .stage.is-up .fan { z-index: 4; }
+  .stage.is-up .strip { top: auto; bottom: 64px; }
   .strip { z-index: 4; }
   .progress { bottom: calc(max(16px, env(safe-area-inset-bottom)) + 30px); }
 

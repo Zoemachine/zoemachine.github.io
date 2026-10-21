@@ -1,5 +1,5 @@
 // Records a full run of the hero as an animated GIF (and reports its running time).
-//   node tools/record-gif.js <narrow|wide|wideHi> <untouched|touched|drawer|lid|compare-cloud|compare-zoe|logo> [out.gif] [--throttle]
+//   node tools/record-gif.js <narrow|wide|wideHi> <untouched|touched|drawer|lid|compare-cloud|compare-zoe|logo|act4> [out.gif] [--throttle]
 // Needs playwright, gifenc and pngjs on NODE_PATH; serve the site on :8000 first.
 // Frames come from the browser's own screencast, resampled to a steady 8 fps.
 const fs = require('fs');
@@ -86,7 +86,20 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
   let ended = 0;
   let crop = null; // [x, y, w, h] in screencast pixels
   let trimBefore = 0; // drop frames captured before this (epoch seconds)
-  if (mode === 'logo') {
+  if (mode === 'act4') {
+    // Act IV from the Scrub click to Act V: the earlier gestures are tapped through, unrecorded.
+    for (;;) {
+      const st = await page.evaluate(() => ({ g: window.__zoeHero.gesture, f: window.__zoeHero.framesReady }));
+      if (st.g === 'scrub') break;
+      if (st.g && (st.g !== 'lid' || st.f)) await page.evaluate(() => window.__zoeHero.perform('tap'));
+      await page.waitForTimeout(150);
+    }
+    await page.waitForTimeout(800);
+    trimBefore = Date.now() / 1000;
+    await page.locator('.btn-scrub').click();
+    await page.waitForFunction(() => window.__zoeHero.act === 5, null, { timeout: 120000, polling: 200 });
+    await page.waitForTimeout(1500);
+  } else if (mode === 'logo') {
     // Close on the big wordmark: its O turning on the closed laptop for 12 s.
     await page.waitForTimeout(800);
     const r = await page.locator('.logo-o').boundingBox();
@@ -136,7 +149,7 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     await page.locator('.site-footer a[href="#privacy"]').click();
     await page.waitForTimeout(2500);
   } else {
-    await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 160000, polling: 200 });
+    await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 200000, polling: 200 });
     ended = await page.evaluate(() => window.__zoeHero.ended);
   }
   await page.waitForTimeout(2000);

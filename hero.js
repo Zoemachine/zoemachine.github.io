@@ -145,10 +145,16 @@ function track(event, data) {
   // Pacing: the reading side (typing, holds, pauses) runs at half speed; the animations keep their durations.
   const TYPE_MS = 24;          // per character
   const SWEEP_MS = 1600;       // keep in step with .sweep.is-running in styles.css
+  const PAGE_SCRUB_MS = 640;   // one redacted page: the pass down its lines (six pages, about 5 s)
+  const PAGE_FLIGHT_MS = 700;  // a page's trip to the cloud (styles.css .page6.is-flying)
   const SCROLL_MS = 450;       // the editor scrolling to the next screen of the sheet (styles.css .ed-page)
   const HOLD = 2;              // reading time: every spoken line and the pauses between beats
-  const MOTION = 1;            // the file web, the streams, the six-file packet, the card flight, the rehydration
-  const KEY_LINE_MS = 3000;    // the catch and the fix stay on screen at least this long
+  const MOTION = 1;            // the file web, the streams, the card flight, the rehydration
+  const KEY_LINE_MS = 3000;
+  // Portrait round trip: where the screen's top edge sits, the cloud's height, and the gap for the stream.
+  const PORTRAIT_SCREEN_UP = 318;
+  const PORTRAIT_CLOUD_H = 150;
+  const PORTRAIT_GAP = 140;    // the catch and the fix stay on screen at least this long
   const VIEW_K = 0.62;         // viewfinder scale: the page as the phone's camera sees it
   const SHEET_TYPE = 0.025;    // the paper's type size, as a share of its width: a full page of small type
 
@@ -432,7 +438,8 @@ function track(event, data) {
       } else if (camMode === 'zoom' || camMode === 'slide') {
         cs = zoomS;
         cx = 8 - S.x - cs * SCR.x * S.w;
-        cy = screenTop - S.y - cs * SCR.y * S.h;
+        // The round trip (slide): the screen moves down so the cloud fits above it.
+        cy = (camMode === 'slide' ? PORTRAIT_SCREEN_UP : screenTop) - S.y - cs * SCR.y * S.h;
       } else if (camMode === 'end') {
         const top = stripR;
         cs = Math.min(1, (VH - top - 150) / S.h);
@@ -446,6 +453,7 @@ function track(event, data) {
       cy = 0.05 * S.h;
     }
     stage.classList.toggle('is-zoomed', portrait && (camMode === 'zoom' || camMode === 'slide'));
+    stage.classList.toggle('is-up', portrait && camMode === 'slide');
 
     scene.style.setProperty('--cam-x', `${cx}px`);
     scene.style.setProperty('--cam-y', `${cy}px`);
@@ -470,14 +478,15 @@ function track(event, data) {
       const below = scr.br.y + 12;
       g.zoe = { x: 12, y: below, w: V - 24 };
       g.labelFs = 17;
-      g.label = { x: 8, y: below + 76, w: V - 16 };
-      // The cloud sits above the progress dots; on short screens it gives up height first.
-      const floor = VH - (RM ? 104 : 66);
-      const cloudH = Math.max(112, Math.min(136, floor - (g.label.y + 72)));
-      const cloudY = Math.max(g.label.y + 72, floor - cloudH);
-      g.cloud = { x: 12, y: cloudY, w: V - 24, h: cloudH };
-      g.stream = { x: V / 2, y: g.label.y + 30, len: Math.max(30, cloudY - (g.label.y + 30) - 6), rot: 90 };
-      g.fan = { x: V / 2, y: scr.br.y };
+      // The round trip goes up: the cloud above the laptop, the stream rising from the screen's top
+      // edge to the cloud, the label across the middle of the stream.
+      const cloudY = Math.max(12, PORTRAIT_SCREEN_UP - PORTRAIT_GAP - PORTRAIT_CLOUD_H);
+      g.cloud = { x: 12, y: cloudY, w: V - 24, h: PORTRAIT_CLOUD_H };
+      const s0 = scr.tl.y - 6;
+      const s1 = cloudY + PORTRAIT_CLOUD_H + 6;
+      g.stream = { x: V / 2, y: s0, len: Math.max(30, s0 - s1), rot: -90 };
+      g.label = { x: 8, y: (s0 + s1) / 2 - 12, w: V - 16 };
+      g.fan = { x: V / 2, y: scr.tl.y };
       g.pills = { x: 12, y: camMode === 'end' ? stripR + cs * S.h * 0.93 : VH - 100, w: V - 24 };
     } else {
       // On wide screens the paper and the phone are the subject of Act I: a page you could read,
@@ -591,8 +600,11 @@ function track(event, data) {
       </div>`;
   }
 
+  // Six pages for the redaction beat: lines of type (no words), each with a grey and a blue layer.
+  const PAGE_LINES = 8;
   function buildFan() {
-    fan.innerHTML = Array.from({ length: 6 }, () => '<span class="file"></span>').join('') + '<span class="packet">6 files</span>';
+    const lines = Array.from({ length: PAGE_LINES }, (_, i) => `<i style="--w:${[92, 78, 88, 64, 90, 72, 84, 58][i]}%"></i>`).join('');
+    fan.innerHTML = Array.from({ length: 6 }, () => `<span class="page6"><span class="page6-lines">${lines}</span><span class="page6-bar"></span></span>`).join('');
   }
 
   function resetStage() {
@@ -1333,31 +1345,35 @@ function track(event, data) {
     });
   }
 
-  // Six redacted files fan out of the laptop, flash blue, and travel as one packet.
+  // Redacting 6 files: one page at a time, a pass runs down it and each line turns from grey to the
+  // masked blue as the pass crosses it; then the page lifts and travels to the cloud under the label
+  // while the next page starts.
   async function sendFiles() {
-    const cards = Array.from(fan.querySelectorAll('.file'));
-    const packet = $('.packet', fan);
+    const pages = Array.from(fan.querySelectorAll('.page6'));
     const end = geo.portrait
-      ? { x: geo.stream.x, y: geo.stream.y + geo.stream.len }
+      ? { x: geo.stream.x, y: geo.stream.y - geo.stream.len }
       : { x: geo.stream.x + geo.stream.len, y: geo.stream.y };
-    const vec = { x: end.x - geo.fan.x, y: end.y - geo.fan.y };
-    cards.forEach((c, i) => {
-      const a = (i - 2.5) * 16;
-      const spread = geo.portrait
-        ? `translate(${(i - 2.5) * 26}px, 26px) rotate(${a}deg)`
-        : `translate(30px, ${(i - 2.5) * 22}px) rotate(${a}deg)`;
-      c.classList.add('is-in');
-      c.style.transform = spread;
-    });
-    await motion(420);
-    cards.forEach((c) => c.classList.add('is-blue'));
-    await motion(300);
-    cards.forEach((c) => { c.style.transform = ''; c.classList.remove('is-in'); });
-    packet.classList.add('is-in');
-    await wait(60);
-    packet.style.transform = `translate(${vec.x}px, ${vec.y}px)`;
-    await motion(900);
-    packet.classList.remove('is-in');
+    const start = geo.portrait ? { x: 0, y: -46 } : { x: 52, y: -22 };
+    const flight = { x: end.x - geo.fan.x, y: end.y - geo.fan.y };
+    for (const page of pages) {
+      page.style.transform = `translate(${start.x}px, ${start.y}px) scale(0.85)`;
+      void page.offsetWidth;
+      page.classList.add('is-in');
+      page.style.transform = `translate(${start.x}px, ${start.y}px)`;
+      const lines = Array.from(page.querySelectorAll('.page6-lines i'));
+      if (!RM) {
+        animate($('.page6-bar', page), [{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(100%)', opacity: 1 }], { duration: PAGE_SCRUB_MS, easing: 'linear' });
+      }
+      lines.forEach((ln, i) => {
+        const t = setTimeout(() => ln.classList.add('is-on'), RM ? 0 : ((i + 0.5) / lines.length) * PAGE_SCRUB_MS);
+        run.timers.add(t);
+      });
+      await wait(PAGE_SCRUB_MS + 80);
+      // Lift and send; the next page starts while this one travels.
+      page.classList.add('is-flying');
+      page.style.transform = `translate(${flight.x}px, ${flight.y}px) scale(0.55)`;
+    }
+    await wait(PAGE_FLIGHT_MS);
   }
 
   async function rehydrate() {

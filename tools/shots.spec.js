@@ -397,10 +397,19 @@ test('Act IV: the catch is spoken by ZOE, the fix by the cloud, then the rehydra
   await page.waitForFunction(() => document.querySelector('.zoe-say').textContent.includes('empty shell'), null, { timeout: 20000 });
   await page.waitForTimeout(700);
   await shot(page, info, 'act4-catch');
-  await page.waitForFunction(() => document.querySelector('.packet').classList.contains('is-in'), null, { timeout: 8000 });
-  await page.waitForTimeout(400);
+  // Six pages, each scrubbed line by line, then sent: about 5 s in all.
+  await page.waitForFunction(() => document.querySelector('.page6.is-in'), null, { timeout: 15000 });
+  const t0 = Date.now();
+  await page.waitForTimeout(450);
+  expect(await page.locator('.page6').first().locator('i.is-on').count()).toBeGreaterThan(2);
   await expect(page.locator('.stream-label')).toHaveClass(/is-on/);
   await shot(page, info, 'act4-packet');
+  await page.waitForFunction(() => document.querySelectorAll('.page6.is-flying').length === 6, null, { timeout: 15000 });
+  metrics.six_pages_ms = Date.now() - t0 + 700;
+  expect(metrics.six_pages_ms).toBeGreaterThan(4000);
+  expect(metrics.six_pages_ms).toBeLessThan(6500);
+  expect(await page.locator('.page6 i.is-on').count()).toBe(48);
+  expect(await page.locator('.zoe-say').textContent()).toContain('Redacting 6 files');
   await page.waitForFunction(() => document.querySelector('.draft').classList.contains('is-in'), null, { timeout: 12000 });
   await page.waitForTimeout(350);
   const before = await page.$eval('.draft', (el) => el.textContent);
@@ -606,6 +615,22 @@ test('the living O under reduced motion: still', async ({ page }) => {
   await page.goto('/');
   await page.waitForTimeout(500);
   expect(await page.locator('.logo-o-a').evaluate((e) => e.getAnimations().length)).toBe(0);
+});
+
+test('portrait round trip: the cloud above the laptop, the stream rising to it', async ({ page }, info) => {
+  test.skip(isWide(info), 'portrait layout');
+  await open(page);
+  await runTo(page, 'scrub');
+  await page.evaluate(() => window.__zoeHero.perform('click'));
+  await page.waitForFunction(() => document.querySelector('.stream-label').classList.contains('is-on'), null, { timeout: 60000 });
+  await page.waitForTimeout(1200);
+  const cloud = await page.locator('.cloud').boundingBox();
+  const screen = await page.locator('.screen').boundingBox();
+  const label = await page.locator('.stream-label').boundingBox();
+  expect(cloud.y + cloud.height).toBeLessThan(screen.y);
+  expect(label.y).toBeGreaterThan(cloud.y + cloud.height - 4);
+  expect(label.y + label.height).toBeLessThan(screen.y);
+  expect(await page.locator('.stream-label').evaluate((e) => parseFloat(getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(16);
 });
 
 test('comparison: nothing until a choice, each panel animates, switching works', async ({ page }, info) => {
