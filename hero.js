@@ -433,11 +433,13 @@ function track(event, data) {
       g.fan = { x: V / 2, y: scr.br.y };
       g.pills = { x: 12, y: camMode === 'end' ? stripR + cs * S.h * 0.93 : VH - 100, w: V - 24 };
     } else {
-      const sw = 0.13 * S.w;
-      g.sheet = { x: S.x + 0.045 * S.w, y: S.y + 0.42 * S.h, w: sw, h: sw * 1.29 };
-      const pw = Math.min(110, Math.max(70, 0.062 * S.w));
+      // On wide screens the paper and the phone are the subject of Act I: about 1.4x larger, lifted.
+      const big = V >= 900 ? 1.4 : 1;
+      const sw = 0.13 * big * S.w;
+      g.sheet = { x: S.x + (big > 1 ? 0.03 : 0.045) * S.w, y: S.y + (big > 1 ? 0.36 : 0.42) * S.h, w: sw, h: sw * 1.29 };
+      const pw = Math.min(110 * big, Math.max(70, 0.062 * big * S.w));
       const ph = pw * 2.05;
-      g.phone = { x: S.x + 0.865 * S.w - pw / 2, y: S.y + 0.38 * S.h, w: pw, h: ph };
+      g.phone = { x: S.x + 0.86 * S.w - pw / 2, y: S.y + (big > 1 ? 0.37 : 0.38) * S.h, w: pw, h: ph };
       g.laptop = { x0: S.x + 0.22 * S.w, x1: S.x + 0.78 * S.w, y0: S.y + 0.53 * S.h, y1: S.y + 0.8 * S.h };
       g.bump = { x: S.x + 0.215 * S.w - pw * 0.32, y: S.y + 0.64 * S.h };
       const x0 = scr.br.x + 0.012 * S.w;
@@ -488,7 +490,7 @@ function track(event, data) {
     phone.hidden = false;
     phone.style.removeProperty('--px');
     phone.style.removeProperty('--py');
-    phone.innerHTML = '<div class="phone-body"><div class="phone-screen"><div class="phone-view"></div><div class="phone-grid"></div><div class="phone-shot"></div><div class="phone-shutter"></div><div class="phone-flash"></div></div><div class="phone-island"></div></div><span class="phone-cue"></span>';
+    phone.innerHTML = '<div class="phone-body" aria-hidden="true"><div class="phone-screen"><div class="phone-view"></div><div class="phone-grid"></div><div class="phone-shot"></div><div class="phone-shutter"></div><div class="phone-flash"></div></div><div class="phone-island"></div></div><span class="phone-cue" aria-hidden="true"></span>';
     phone.setAttribute('tabindex', '-1');
     // The viewfinder: a copy of the paper that stays aligned with the real one as the phone moves over it.
     $('.phone-view', phone).innerHTML = sheet.innerHTML;
@@ -1526,6 +1528,26 @@ function track(event, data) {
     }, { threshold: 0.3 });
     if (how) io.observe(how);
   }
+
+  // Below the hero: the certification badge's script loads when the founder section comes near,
+  // so the third-party request never competes with the first paint.
+  const founder = document.getElementById('founder');
+  if (founder && 'IntersectionObserver' in window) {
+    const badgeIo = new IntersectionObserver((entries) => {
+      if (!entries.some((en) => en.isIntersecting)) return;
+      badgeIo.disconnect();
+      const s = document.createElement('script');
+      s.src = 'https://cdn.credly.com/assets/utilities/embed.js';
+      s.async = true;
+      document.body.appendChild(s);
+    }, { rootMargin: '600px 0px' });
+    badgeIo.observe(founder);
+  }
+
+  // Privacy and Terms are :target modals; Escape closes them.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && /^#(privacy|terms)$/.test(location.hash)) location.hash = 'site-footer';
+  });
 
   start();
 

@@ -4,16 +4,23 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>ZOE AI — Safe. Sovereign. System-bound.</title>
-  <meta name="description" content="ZOE AI is local-first legal AI for M&amp;A attorneys. Safe. Sovereign. System-bound.">
+  <meta name="description" content="ZOE is legal AI that runs on the attorney's own laptop: client names and numbers are masked locally before any frontier model sees them, and restored locally when the answer returns.">
   <meta name="theme-color" content="#000000">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://zoemachine.com/">
   <meta property="og:title" content="ZOE AI — Safe. Sovereign. System-bound.">
-  <meta property="og:description" content="Local-first legal AI for M&amp;A attorneys.">
-  <meta property="og:image" content="https://zoemachine.com/assets/poster-closed.jpg">
+  <meta property="og:description" content="Legal AI that runs on the attorney's own laptop: client names and numbers are masked locally before any frontier model sees them, and restored locally when the answer returns.">
+  <meta property="og:image" content="https://zoemachine.com/assets/site/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="A closed silver laptop under the ZOE AI wordmark">
+  <link rel="canonical" href="https://zoemachine.com/">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" type="image/png" href="assets/favicon-96.png">
+  <link rel="apple-touch-icon" href="assets/site/apple-touch-icon.png">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="drawer.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="drawer.css"></noscript>
   <script src="hero.js" defer></script>
 </head>
 <body>
@@ -111,9 +118,333 @@
       </section>
     </noscript>
 
-    <section class="how" id="how">
-      <h2>How does it work</h2>
+    <!-- ============ Below the hero ============ -->
+
+    <section class="sec" id="how" aria-labelledby="how-h">
+      <div class="wrap">
+        <h2 class="sec-h" id="how-h">How does it work</h2>
+        <div class="how-grid">
+          <article class="how-card">
+            <h3>What stays on the laptop</h3>
+            <p>Your client's documents, the confidential data ZOE marks in them, and the local table that maps every real value to its mask. Every name, entity and address is swapped for a placeholder — <span class="tok">[BUYER]</span>, <span class="tok">[PERSON_1]</span> — before anything leaves your machine. Catch a name once and it disappears everywhere it appears, right through the exhibits. None of this ever leaves the machine.</p>
+          </article>
+          <article class="how-card">
+            <h3>What leaves</h3>
+            <p><strong>The model gets tools, not files.</strong> The cloud AI never receives your document set: it can ask for what it needs; it never receives your documents. What crosses the wire is masked text and the question, and not until you click. ZOE shows you the redline of what is about to leave, with every substitution listed. You read it. You approve it.</p>
+          </article>
+          <article class="how-card">
+            <h3>What comes back, and how it is restored</h3>
+            <p>The draft returns as data. When the model returns a draft, ZOE restores the real names locally and places the result in your document as a tracked change you accept or reject. Every edit, local or cloud, is visible. ZOE never silently rewrites a word of your document.</p>
+          </article>
+          <article class="how-card">
+            <h3>What happens with no internet</h3>
+            <p>Air-gapped by default. Due diligence, who signed and in what capacity, clause and template search, and drafting in Word all keep running with the connection off, effectively creating an air-gap between your client's documents and the outside world. It works on a plane. In a data room with guest wifi you would never put client documents on. In a courthouse basement with no signal at all.</p>
+            <dl class="specs">
+              <div><dt>16 GB</dt><dd>MacBook or Windows laptop</dd></div>
+              <div><dt>$0</dt><dd>Per document processed locally</dd></div>
+            </dl>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec sec-flow" id="dataflow" aria-labelledby="flow-h">
+      <div class="wrap">
+        <h2 class="sec-h" id="flow-h">Your document takes a trip. Or it doesn't.</h2>
+        <p class="lede">Cloud-first legal AI systems route client and firm legal documents to their servers and then redistribute them to multiple specialized cloud servers, where each server acts as an additional point of potential failure. ZOE AI keeps all documents local by default, on the laptop or on a local server, so uploading anything is your choice.</p>
+        <div class="flow-cols">
+          <figure class="flow-panel is-risk">
+            <figcaption><span class="flow-tag">Cloud legal AI</span>Your document takes a trip.</figcaption>
+            <div class="flow-scroll">
+              <svg class="flow-svg" viewBox="0 0 1160 510" role="img" aria-labelledby="flowCloudDesc">
+                <title id="flowCloudDesc">In a cloud legal AI, the document leaves your laptop, passes through your office router, your internet provider and the public internet to a vendor's cloud, which then hands it to a name reader, a search index, a drafting model and a page renderer, all running on hardware you do not control.</title>
+                <defs><marker id="arwRisk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#ff7a72"/></marker></defs>
+                <rect x="96" y="6" width="196" height="26" rx="13" class="fl-pill"/>
+                <text class="fl-badge" x="194" y="24">Your control ends here</text>
+                <line x1="194" y1="40" x2="194" y2="372" class="fl-edge" stroke-dasharray="5 6"/>
+                <rect class="fl-box" x="24" y="226" width="150" height="88" rx="14"/>
+                <text class="fl-t" x="99" y="264">Your laptop</text>
+                <text class="fl-s" x="99" y="286">your client's file</text>
+                <rect class="fl-box is-risk" x="214" y="226" width="130" height="88" rx="14"/>
+                <text class="fl-t" x="279" y="264">Router</text>
+                <text class="fl-s" x="279" y="286">your office</text>
+                <rect class="fl-box is-risk" x="384" y="226" width="130" height="88" rx="14"/>
+                <text class="fl-t" x="449" y="258">Internet</text>
+                <text class="fl-t" x="449" y="280">provider</text>
+                <text class="fl-s" x="449" y="300">public internet</text>
+                <rect class="fl-box is-risk" x="554" y="214" width="180" height="112" rx="16"/>
+                <text class="fl-t" x="644" y="258">Vendor cloud</text>
+                <text class="fl-s" x="644" y="280">their servers</text>
+                <text class="fl-s" x="644" y="298">their hardware</text>
+                <g class="fl-hop"><line x1="174" y1="270" x2="208" y2="270" marker-end="url(#arwRisk)"/><line x1="344" y1="270" x2="378" y2="270" marker-end="url(#arwRisk)"/><line x1="514" y1="270" x2="548" y2="270" marker-end="url(#arwRisk)"/></g>
+                <g class="fl-doc"><rect x="185" y="234" width="14" height="18" rx="2"/><rect x="355" y="234" width="14" height="18" rx="2"/><rect x="525" y="234" width="14" height="18" rx="2"/></g>
+                <g class="fl-fan"><path d="M734 270 C 776 270, 776 82, 812 82"/><path d="M734 270 C 776 270, 776 208, 812 208"/><path d="M734 270 C 776 270, 776 334, 812 334"/><path d="M734 270 C 776 270, 776 460, 812 460"/></g>
+                <rect class="fl-box is-risk" x="812" y="46" width="324" height="72" rx="14"/>
+                <text class="fl-mt" x="838" y="80">Name reader</text>
+                <text class="fl-ms" x="838" y="100">reads every name in your file</text>
+                <rect class="fl-box is-risk" x="812" y="172" width="324" height="72" rx="14"/>
+                <text class="fl-mt" x="838" y="206">Search index</text>
+                <text class="fl-ms" x="838" y="226">your clauses, stored on their disk</text>
+                <rect class="fl-box is-risk" x="812" y="298" width="324" height="72" rx="14"/>
+                <text class="fl-mt" x="838" y="332">Drafting model</text>
+                <text class="fl-ms" x="838" y="352">generates from your text</text>
+                <rect class="fl-box is-risk" x="812" y="424" width="324" height="72" rx="14"/>
+                <text class="fl-mt" x="838" y="458">Page renderer</text>
+                <text class="fl-ms" x="838" y="478">your pages turned into images</text>
+                <text class="fl-cap is-risk" x="24" y="410">Four hops. Three systems you don't control.</text>
+                <text class="fl-cap2" x="24" y="436">The file left the building at hop one — and every model downstream</text>
+                <text class="fl-cap2" x="24" y="458">reads it in the clear.</text>
+              </svg>
+            </div>
+          </figure>
+          <figure class="flow-panel is-zoe">
+            <figcaption><span class="flow-tag">ZOE</span>Your document doesn't move.</figcaption>
+            <div class="flow-scroll">
+              <svg class="flow-svg" viewBox="0 0 1160 530" role="img" aria-labelledby="flowZoeDesc">
+                <title id="flowZoeDesc">With ZOE, everything runs inside your laptop. The document never travels. An optional dashed link to a frontier model carries a masked question you have approved.</title>
+                <defs><marker id="arwZoe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5fa8ff"/></marker></defs>
+                <rect x="130" y="12" width="286" height="28" rx="14" class="fl-pill is-zoe"/>
+                <text class="fl-badge is-zoe" x="273" y="31">Everything below runs on this machine</text>
+                <rect x="130" y="56" width="770" height="372" rx="18" class="fl-laptop"/>
+                <rect x="96" y="434" width="838" height="16" rx="8" class="fl-base"/>
+                <g class="fl-web"><path d="M268 140 L430 232"/><path d="M268 346 L430 250"/><path d="M790 140 L630 232"/><path d="M790 346 L630 250"/><path d="M268 140 L268 346"/><path d="M790 140 L790 346"/><path d="M268 140 L790 140"/><path d="M268 346 L790 346"/></g>
+                <rect class="fl-box" x="170" y="108" width="196" height="64" rx="12"/>
+                <text class="fl-nt" x="268" y="135">Name finder</text>
+                <text class="fl-ns" x="268" y="155">finds every identifier</text>
+                <rect class="fl-box" x="170" y="314" width="196" height="64" rx="12"/>
+                <text class="fl-nt" x="268" y="341">Document reader</text>
+                <text class="fl-ns" x="268" y="361">reads your files locally</text>
+                <rect class="fl-box" x="692" y="108" width="196" height="64" rx="12"/>
+                <text class="fl-nt" x="790" y="135">Clause library</text>
+                <text class="fl-ns" x="790" y="155">your templates and clauses</text>
+                <rect class="fl-box" x="692" y="314" width="196" height="64" rx="12"/>
+                <text class="fl-nt" x="790" y="341">Signature reader</text>
+                <text class="fl-ns" x="790" y="361">reads signature pages</text>
+                <rect x="430" y="203" width="200" height="76" rx="15" class="fl-core"/>
+                <text class="fl-ot" x="530" y="236">ZOE</text>
+                <text class="fl-os" x="530" y="258">on your laptop</text>
+                <line x1="904" y1="241" x2="994" y2="241" class="fl-opt" stroke-dasharray="6 6" marker-end="url(#arwZoe)"/>
+                <path d="M1032 253 a26 26 0 0 1 4 -51 a34 34 0 0 1 63 8 a22 22 0 0 1 -3 43 z" class="fl-cloud"/>
+                <text class="fl-ns" x="1066" y="288">frontier model</text>
+                <text class="fl-ns" x="1066" y="306">(optional)</text>
+                <text class="fl-cap is-zoe" x="530" y="486">Zero hops. The document never leaves this box.</text>
+                <text class="fl-cap2 is-mid" x="530" y="512">What can travel: a masked question you approved.</text>
+              </svg>
+            </div>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="workflows" aria-labelledby="wf-h">
+      <div class="wrap">
+        <h2 class="sec-h" id="wf-h">Five ways to put it to work.</h2>
+        <p class="lede">One system, five ways in. You decide how deep it goes.</p>
+        <div class="wf-grid">
+          <article class="wf-card">
+            <div class="still still-ws" aria-hidden="true">
+              <div class="ws-nav"><b>ZOE Workspace</b><i class="on">Due diligence</i><i>Clause library</i><i>Template finder</i></div>
+              <div class="ws-main">
+                <p class="ws-row"><span>Asset Purchase Agreement</span><em>signers found</em></p>
+                <p class="ws-row"><span>Disclosure Schedule</span><em>counterparties listed</em></p>
+                <p class="ws-row"><span>Officer's Certificate</span><em>capacity confirmed</em></p>
+              </div>
+            </div>
+            <h3>Precision Due Diligence</h3>
+            <p>The deep pass. Every document fully processed, every entity mapped, every relationship traced across the whole data room — with a citation behind each one.</p>
+          </article>
+          <article class="wf-card">
+            <div class="still still-stack" aria-hidden="true"><i></i><i></i><i></i><span class="still-chip">Reading the room</span></div>
+            <h3>Batch Due Diligence</h3>
+            <p>The fast sweep. Hundreds of documents read and searchable in a single sitting, so you know what is in the room before you decide where to spend the hours.</p>
+          </article>
+          <article class="wf-card">
+            <div class="still still-stack" aria-hidden="true"><i></i><i></i><i></i><span class="still-chip">“a deadlock provision that favors the minority”</span></div>
+            <h3>Clause Library</h3>
+            <p>Search every clause your firm has ever negotiated. Ask by concept — "a deadlock provision that favors the minority" — not by keyword.</p>
+          </article>
+          <article class="wf-card">
+            <div class="still still-stack" aria-hidden="true"><i></i><i></i><i></i><span class="still-chip">Asset Purchase Agreement · Kestrel deal</span></div>
+            <h3>Template Finder</h3>
+            <p>Find the document, not the folder. "That asset purchase agreement from the Kestrel deal." ZOE knows the one you mean.</p>
+          </article>
+          <article class="wf-card">
+            <div class="still still-word" aria-hidden="true">
+              <div class="wd-page"><i></i><i></i><i class="ins"></i><i></i><i></i></div>
+              <div class="wd-side"><b>ZOE for Word</b><span>Similar in this document</span><span>Alternatives from library</span><em>Insert as tracked change</em></div>
+            </div>
+            <h3>Drafting in Word</h3>
+            <p>Clause search and insert without leaving your document. Smarter find and replace. Defined terms used but never defined. Broken cross-references and missing schedules. Every change arrives as a tracked change.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="evidence" aria-labelledby="ev-h">
+      <div class="wrap wrap-narrow">
+        <h2 class="sec-h" id="ev-h">Measured, not claimed.</h2>
+        <p class="lede">Signature pages are the hardest part of a deal document to get right, so it is the piece we hold to the strictest standard. Here is how ZOE performs against real contract signature blocks — all of it running on the laptop in front of you.</p>
+        <div class="ev-card">
+          <p class="ev-num">99%+</p>
+          <p class="ev-label">signature-page accuracy on real contract signature blocks</p>
+          <p class="ev-note">Internal benchmarks on ZOE's own evaluation set; not an audited result.</p>
+        </div>
+        <p class="lede">The number we care about most is the escape hatch score. When ZOE cannot read a field with confidence, it says so rather than inventing a name — because a confident wrong answer is far more dangerous to a client than a blank one.</p>
+      </div>
+    </section>
+
+    <section class="sec" id="why" aria-labelledby="why-h">
+      <div class="wrap">
+        <h2 class="sec-h" id="why-h">Why ZOE.</h2>
+        <p class="lede">Keep your data — outsource just the most intensive AI “thinking.”</p>
+        <div class="why-grid">
+          <article class="why-card">
+            <span class="why-num">01</span>
+            <h3>Reduce AI Expenses.</h3>
+            <p>Frontier AI costs will always be sensitive to compute (token) economics, and token counts naturally balloon as AI gets “smarter.” ZOE AI uses your laptop hardware to “preprocess” local data (like a junior associate) so that just the more difficult issues (typically done by a partner) are tackled by the hyperscaler, reducing compute costs by up to 99%.</p>
+          </article>
+          <article class="why-card">
+            <span class="why-num">02</span>
+            <h3>Protect Client Data.</h3>
+            <p>Sophisticated clients are becoming more cautious about third-party AI vendors and datacenter security. ZOE AI keeps the vast majority of the client's data (including all client PII) local, on your system of choice. A ZOE AI user can calmly tell their client that <em>“your documents never leave my laptop”</em> while they leverage all of the benefits of modern legal tech powered by the world's best hyperscalers.</p>
+          </article>
+          <article class="why-card">
+            <span class="why-num">03</span>
+            <h3>Protect Firm Data.</h3>
+            <p>In today's AI driven world, your templates, preferred clauses, and negotiating playbooks represent the differentiators and competitive “moat” of your firm. When using ZOE AI, these precious assets that your firm has built over decades will stay on your laptop, desktop or server of choice. When you search for a preferred template or legal clause, the search is entirely local; when the hyperscaler (of your choice) helps you draft, the drafting flow sends just the skeleton it needs, about 90% fewer tokens, and sees small snippets of information on a need-to-know basis, when you allow it.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="servers" aria-labelledby="srv-h">
+      <div class="wrap srv-grid">
+        <img class="srv-img" src="assets/site/server.webp" width="720" height="720" alt="ZOE AI on-premises server" loading="lazy" decoding="async">
+        <div>
+          <h2 class="sec-h" id="srv-h">And when a firm wants it shared.</h2>
+          <p class="lede">ZOE Servers put the same system on-premises for an entire practice group — one shared library behind your own firewall. Same architecture, same guarantees. Nothing leaves the building here either.</p>
+          <a class="pill-link" href="#contact">Express Interest</a>
+          <div class="roadmap">
+            <p class="eyebrow">On the roadmap</p>
+            <h3>Claims screening for e-discovery.</h3>
+            <p>The engine that finds a client's private data inside a contract can read a mailbox just as well. ZOE is being trained to recognize the communications that matter in a dispute — the language that signals an emerging claim, the message someone will wish had been found in week one rather than month six.</p>
+            <p>Two jobs, one pass: surface the exposure, and scrub the client's identifiers at the same time. Review sets are the single most expensive place a firm leaks confidential data. Screening them locally means the exposure and the privacy problem get solved by the same sweep.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="founder" aria-labelledby="founder-h">
+      <div class="wrap person">
+        <div class="person-side">
+          <img class="person-img" src="assets/site/william-wei.webp" width="480" height="551" alt="William Wei" loading="lazy" decoding="async">
+          <div class="credly-badge"><div data-iframe-width="150" data-iframe-height="270" data-share-badge-id="83a23c67-2b3f-47f5-b413-0e97101b8ec3" data-share-badge-host="https://www.credly.com"></div></div>
+        </div>
+        <div>
+          <p class="eyebrow" id="founder-h">Meet the Founder</p>
+          <h2 class="sec-h">William Wei</h2>
+          <p class="person-role">Founder &amp; Lead Developer</p>
+          <div class="person-links">
+            <a class="pill-link is-ghost" href="https://www.linkedin.com/in/william-w-239b0912/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <span class="inception"><img src="assets/site/nvidia-inception.webp" width="386" height="168" alt="NVIDIA Inception Program" loading="lazy" decoding="async"><span>ZOE AI Inc. is an NVIDIA Inception Program member.</span></span>
+          </div>
+          <div class="person-bio">
+            <p>William Wei is a Nvidia Certified Agentic AI Professional who began his career at San Francisco-based technology consulting firm Alt-Think, where he primarily worked on projects for Microsoft before attending Northwestern University Pritzker School of Law.</p>
+            <p>As an attorney, William quarterbacked dozens of public and middle-market business combinations totaling billions of dollars in mergers and acquisitions. He previously worked as part of a legal team that ranked first in the U.S. by volume in de-SPAC mergers and has served as outside general counsel to companies across transactional, tax, employment, and corporate matters, representing clients ranging from large public companies to high-net-worth individuals.</p>
+            <p>ZOE is built the way it is because William spent those years doing the work by hand — and because he knows precisely which shortcuts an attorney cannot ethically take. Every design decision in the system answers to that: the software surfaces, the lawyer decides.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="advisory" aria-labelledby="adv-h">
+      <div class="wrap person">
+        <img class="person-img" src="assets/site/aaron-vanblarcom.webp" width="480" height="479" alt="Aaron Van Blarcom" loading="lazy" decoding="async">
+        <div>
+          <p class="eyebrow" id="adv-h">Advisory Board</p>
+          <h2 class="sec-h">Aaron Van Blarcom</h2>
+          <p class="person-role">Chief Platform Architect</p>
+          <div class="person-bio">
+            <p>Aaron Van Blarcom is the Chief Platform Architect at ZOE AI, specializing in need-to-know architecture, secure on-premises systems, and high-assurance platform design. He has extensive experience engineering and maintaining environments that demand strict data protection, constant uptime, and clear, auditable security boundaries.</p>
+            <p>Aaron's background includes building hardened endpoint ecosystems, isolated network architectures, secure mobility solutions, and reliable, fault-tolerant infrastructure for organizations where privacy and operational integrity are essential. He brings a practical, engineering-focused approach to implementing strong security controls that remain usable, scalable, and resilient.</p>
+            <p>At ZOE AI, Aaron leads the platform architecture behind sovereign, local-first AI systems, ensuring the company's technology is built with the same rigor, reliability, and trustworthiness he has applied throughout his career.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="contact" aria-labelledby="contact-h">
+      <div class="wrap wrap-narrow">
+        <h2 class="sec-h" id="contact-h">Express Interest</h2>
+        <div class="cta-rows">
+          <p class="cta-row"><span>NYC M&amp;A firms: become a design partner</span><a class="pill-link" href="book-demo.html">Book a tech demo</a></p>
+          <p class="cta-row"><span>Investors</span><a class="pill-link is-ghost" href="mailto:info@zoemachine.com">info@zoemachine.com</a></p>
+        </div>
+        <h3 class="form-h">Send a message</h3>
+        <form class="msg-form" action="https://formsubmit.co/info@zoemachine.com" method="POST">
+          <input type="hidden" name="_subject" value="New Express Interest from ZOE AI Website">
+          <input type="hidden" name="_captcha" value="false">
+          <input type="hidden" name="_next" value="https://zoemachine.com/index.html#contact">
+          <div class="form-2">
+            <label>Full Name<input type="text" name="name" placeholder="Your full name" required autocomplete="name"></label>
+            <label>Email Address<input type="email" name="email" placeholder="you@example.com" required autocomplete="email"></label>
+          </div>
+          <label>Message<textarea name="message" rows="5" placeholder="Tell us about your practice and what you'd want ZOE to do..." required></textarea></label>
+          <button class="pill-link" type="submit">Send Message</button>
+        </form>
+        <p class="form-note">Your message is relayed by formsubmit.co to info@zoemachine.com and used solely to contact you about ZOE AI&trade;. See the <a href="#privacy">Privacy Policy</a>.</p>
+      </div>
     </section>
   </main>
+
+  <footer class="site-footer" id="site-footer">
+    <div class="wrap">
+      <img class="foot-logo" src="assets/site/wordmark-light.png" width="466" height="238" alt="ZOE AI" loading="lazy" decoding="async">
+      <nav class="foot-links" aria-label="Legal"><a href="#privacy">Privacy Policy</a><a href="#terms">Terms of Use</a></nav>
+      <p>Product images and the interactive demonstration are illustrative. Features and specifications are subject to change.</p>
+      <p>NVIDIA and the NVIDIA logo are registered trademarks of NVIDIA Corporation in the U.S. and other countries.</p>
+      <p>&copy; 2026 ZOE AI&trade;. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <div class="modal" id="privacy" role="dialog" aria-modal="true" aria-labelledby="privacy-h">
+    <div class="modal-box">
+      <a class="modal-x" href="#site-footer" aria-label="Close the Privacy Policy">&times;</a>
+      <h2 id="privacy-h">Privacy Policy</h2>
+      <p><strong>Last updated: October 21, 2026</strong></p>
+      <h3>No servers of our own</h3>
+      <p>ZOE AI operates no servers of its own for this website. The site is a set of static files served by GitHub Pages. GitHub may keep standard request logs under its own <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener noreferrer">privacy statement</a>.</p>
+      <h3>The contact form</h3>
+      <p>The "Send a message" form is handled by formsubmit.co, a third-party relay, which forwards your name, email address and message to info@zoemachine.com. Its handling of your message is described in the <a href="https://formsubmit.co/privacy.pdf" target="_blank" rel="noopener noreferrer">formsubmit.co privacy policy</a>.</p>
+      <h3>Booking a demo and signing the NDA</h3>
+      <p>Booking a tech demo stores your name, email address and chosen date and time; signing the mutual non-disclosure agreement stores your full legal name and street address. Both are written to a spreadsheet controlled by ZOE AI (Google Sheets) through Google Apps Script.</p>
+      <h3>Analytics and third-party content</h3>
+      <p>No visitor analytics are collected at present. The founder's certification badge is displayed by Credly and loads from Credly's servers.</p>
+      <h3>How we use your information</h3>
+      <p>We use what you send solely to reply to you about ZOE AI&trade;. We do not sell or rent it, and we do not share it with third parties for marketing purposes.</p>
+      <h3>Your rights</h3>
+      <p>You can ask to see, correct or delete your information by writing to <a href="mailto:info@zoemachine.com">info@zoemachine.com</a>.</p>
+    </div>
+  </div>
+
+  <div class="modal" id="terms" role="dialog" aria-modal="true" aria-labelledby="terms-h">
+    <div class="modal-box">
+      <a class="modal-x" href="#site-footer" aria-label="Close the Terms of Use">&times;</a>
+      <h2 id="terms-h">Terms of Use</h2>
+      <p><strong>Last updated: October 21, 2026</strong></p>
+      <h3>Acceptance of terms</h3>
+      <p>By accessing and using this website, you accept and agree to be bound by these Terms of Use.</p>
+      <h3>Intellectual property</h3>
+      <p>All content on this website, including text, graphics, logos, and software, is the property of ZOE AI&trade; (the trade name of ZOE AI Inc.) and is protected by copyright and trademark laws.</p>
+      <h3>Use of the website</h3>
+      <p>You may use this website for lawful purposes. You may not use this website in any way that could damage, disable, or impair it.</p>
+      <h3>Product information</h3>
+      <p>The interactive demonstration on this page is illustrative: its parties, documents and figures are invented, and it does not show a shipped feature or a real matter. Product specifications and features are subject to change without notice. We strive to provide accurate information but do not warrant the completeness or accuracy of website content.</p>
+      <h3>Limitation of liability</h3>
+      <p>ZOE AI&trade; shall not be liable for any indirect, incidental, or consequential damages arising from the use of this website or our products.</p>
+      <h3>Changes to these terms</h3>
+      <p>We reserve the right to modify these terms at any time. Continued use of the website constitutes acceptance of modified terms.</p>
+    </div>
+  </div>
 </body>
 </html>

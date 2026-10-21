@@ -1191,6 +1191,10 @@ body {
 .progress li.is-done { background: rgba(156, 201, 255, 0.55); }
 .progress li.is-on { background: #cfe5ff; box-shadow: 0 0 8px rgba(156, 201, 255, 0.9); }
 
+/* The footnote and the skip link read at 4.5:1 or better on black. */
+.footnote,
+.skip { --ink-faint: rgba(230, 235, 242, 0.64); }
+
 .footnote {
   position: absolute;
   left: max(14px, env(safe-area-inset-left));
@@ -1345,21 +1349,6 @@ body {
 .skip:hover,
 .skip:focus-visible { color: var(--ink); }
 .skip:focus-visible { outline: 1px solid rgba(156, 201, 255, 0.6); outline-offset: 2px; border-radius: 4px; }
-
-/* ---------- Below the hero (placeholder for Step 3) ---------- */
-
-.how {
-  min-height: 100vh;
-  padding: 18vh 24px;
-  text-align: center;
-}
-
-.how h2 {
-  margin: 0;
-  font-size: clamp(24px, 3vw, 40px);
-  font-weight: 500;
-  letter-spacing: 0.01em;
-}
 
 /* ---------- Portrait screens ----------
    The frame is cropped at the sides (the laptop spans ~24–76% of its width);

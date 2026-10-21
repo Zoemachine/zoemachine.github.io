@@ -1,5 +1,5 @@
 // Records a full run of the hero as an animated GIF (and reports its running time).
-//   node tools/record-gif.js <narrow|wide> <untouched|touched> [out.gif] [--throttle]
+//   node tools/record-gif.js <narrow|wide> <untouched|touched|drawer> [out.gif] [--throttle]
 // Needs playwright, gifenc and pngjs on NODE_PATH; serve the site on :8000 first.
 // Frames come from the browser's own screencast, resampled to a steady 8 fps.
 const fs = require('fs');
@@ -81,8 +81,24 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     await page.waitForTimeout(1500);
     await page.locator('.btn-scrub').click();
   }
-  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 90000, polling: 200 });
-  const ended = await page.evaluate(() => window.__zoeHero.ended);
+  let ended = 0;
+  if (mode === 'drawer') {
+    // Below the hero: skip link, then a slow scroll to the footer, then the Privacy Policy.
+    await page.waitForTimeout(1200);
+    await page.locator('.skip').click();
+    await page.waitForTimeout(1500);
+    const H = await page.evaluate(() => document.documentElement.scrollHeight);
+    for (let y = await page.evaluate(() => scrollY); y < H; y += 24) {
+      await page.evaluate((v) => window.scrollTo(0, v), y);
+      await page.waitForTimeout(40);
+    }
+    await page.waitForTimeout(800);
+    await page.locator('.site-footer a[href="#privacy"]').click();
+    await page.waitForTimeout(2500);
+  } else {
+    await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 90000, polling: 200 });
+    ended = await page.evaluate(() => window.__zoeHero.ended);
+  }
   await page.waitForTimeout(2000);
   await cdp.send('Page.stopScreencast');
   await browser.close();

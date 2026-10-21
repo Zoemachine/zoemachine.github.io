@@ -17,7 +17,12 @@ const isWide = (info) => info.project.name === 'wide';
 
 // Restricted words for the page, its CSS, its JS and their comments ({re, cs: case-sensitive}).
 // Stored encoded so this file does not itself put the words into the public repo.
-const RESTRICTED = JSON.parse(Buffer.from('W3sicmUiOiAiXFxiR0xpTkVSXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYkdlbW1hXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYk9jdGVuXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYlRlc3NlcmFjdFxcYiIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJSQUdcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJNQ1BcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJORVJcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJPQ1JcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJ2ZWN0b3IiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiZW1iZWRkaW5nIiwgImNzIjogZmFsc2V9LCB7InJlIjogInRvb2wgY2FsbCIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJkZW5zZVxcYiIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJzcGFyc2VcXGIiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiQXJjdGljXFxiIiwgImNzIjogdHJ1ZX0sIHsicmUiOiAiU3BpZGVyID93ZWIiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiU3BpZGVyIEdyYXBoIiwgImNzIjogZmFsc2V9LCB7InJlIjogIk1hdHJ5b3Noa2EiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiU01GVlxcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIk1pc3Npb24gW0FCQ1JdXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogInRoZSBzcGluZSIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJDKD86MTB8WzAtOV0pXFxiIiwgImNzIjogdHJ1ZX0sIHsicmUiOiAiV2lsbGlhbSBXYXkiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiTGl0ZVxcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIlxcYlByb1xcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIlxcYjRCXFxiIiwgImNzIjogdHJ1ZX0sIHsicmUiOiAiemVybyB0cnVzdCIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJoYWxsdWNpbmF0IiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYm9ubHlcXGIiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiQm9hdFxcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIlxcYktpdGNoZW5cXGIiLCAiY3MiOiB0cnVlfV0=', 'base64').toString());
+const RESTRICTED = JSON.parse(Buffer.from('W3sicmUiOiAiXFxiR0xpTkVSXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYkdlbW1hXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYk9jdGVuXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYlRlc3NlcmFjdFxcYiIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJSQUdcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJNQ1BcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJORVJcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJPQ1JcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJ2ZWN0b3IiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiZW1iZWRkaW5nIiwgImNzIjogZmFsc2V9LCB7InJlIjogInRvb2wgY2FsbCIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJkZW5zZVxcYiIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJzcGFyc2VcXGIiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiQXJjdGljXFxiIiwgImNzIjogdHJ1ZX0sIHsicmUiOiAiU3BpZGVyID93ZWIiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiU3BpZGVyIEdyYXBoIiwgImNzIjogZmFsc2V9LCB7InJlIjogIk1hdHJ5b3Noa2EiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiU01GVlxcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIk1pc3Npb24gW0FCQ1JdXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogInRoZSBzcGluZSIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJDKD86MTB8WzAtOV0pXFxiIiwgImNzIjogdHJ1ZX0sIHsicmUiOiAiV2lsbGlhbSBXYXkiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiTGl0ZVxcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIlxcYlByb1xcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIlxcYjRCXFxiIiwgImNzIjogdHJ1ZX0sIHsicmUiOiAiemVybyB0cnVzdCIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJoYWxsdWNpbmF0IiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYm9ubHlcXGIiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiQm9hdFxcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIlxcYktpdGNoZW5cXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJzY2FubmVkXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYmlQaG9uZSIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJ0YWJsZXQiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiemVybyBoYWxsdWNpbmF0aW9ucyIsICJjcyI6IGZhbHNlfV0=', 'base64').toString());
+// The hero's one device: allowed in the hero's Act I text (its no-JS line), forbidden below the hero and on the other pages.
+const PHONE = JSON.parse(Buffer.from('eyJyZSI6ICJcXGJwaG9uZXM/XFxiIiwgImFsbG93ZWRUZXh0IjogWyJ0aGUgcGhvbmUgaGFuZHMgaXQgdG8gdGhlIGxhcHRvcCJdfQ==', 'base64').toString());
+const SITE_FILES = ['index.html', 'styles.css', 'hero.js', 'pages.css', 'book-demo.html', 'nda.html',
+  'tools/playwright.config.js', 'tools/make-site-images.js', 'tools/record-gif.js'];
+const SECTIONS = ['how', 'dataflow', 'workflows', 'evidence', 'why', 'servers', 'founder', 'advisory', 'contact', 'site-footer'];
 
 // All-caps words allowed on screen: AI and PII, plus names, mask tokens and emphasis that are not acronyms.
 const CAPS_OK = new Set(['AI', 'PII', 'ZOE', 'LLC', 'EIN', 'ORG', 'PERSON', 'ADDRESS', 'ON', 'OFF', 'NO',
@@ -146,7 +151,7 @@ test.afterAll(async ({}, info) => {
 test('restricted words: none in the page, CSS, JS or comments', async ({}, info) => {
   test.skip(!isWide(info), 'checked once');
   const hits = [];
-  for (const f of ['index.html', 'styles.css', 'hero.js', 'tools/playwright.config.js']) {
+  for (const f of SITE_FILES) {
     const text = fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/data:image\/webp;base64,[^"]+/, '');
     RESTRICTED.forEach(({ re, cs }) => {
       const m = text.match(new RegExp(re, cs ? 'g' : 'gi'));
@@ -154,6 +159,22 @@ test('restricted words: none in the page, CSS, JS or comments', async ({}, info)
     });
   }
   expect(hits).toEqual([]);
+});
+
+test('phone: named in the hero\'s Act I text and nowhere else', async ({}, info) => {
+  test.skip(!isWide(info), 'checked once');
+  const re = new RegExp(PHONE.re, 'gi');
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const below = html.slice(html.indexOf('<section class="sec" id="how"'));
+  expect(below.match(re) || []).toEqual([]);
+  for (const f of ['book-demo.html', 'nda.html', 'pages.css']) {
+    expect(fs.readFileSync(path.join(ROOT, f), 'utf8').match(re) || []).toEqual([]);
+  }
+  // In the page's text and labels (class names and code aside), the allowed lines are the only mentions.
+  const text = html.replace(/<(script|style)[\s\S]*?<\/\1>/g, '').replace(/\sclass="[^"]*"/g, '').replace(/<[^>]*?>/g, (tag) => (tag.match(/(?:aria-label|alt|title)="[^"]*"/g) || []).join(' '));
+  let rest = text;
+  PHONE.allowedText.forEach((t) => { rest = rest.split(t).join(''); });
+  expect(rest.match(re) || []).toEqual([]);
 });
 
 test('Act I: chat types in under 4 s, pops land, term sheet and phone arrive', async ({ page }, info) => {
@@ -476,6 +497,61 @@ test('no JavaScript: open laptop and the five acts as text, matching hero.js', a
   await ctx.close();
 });
 
+test('below the hero: every section, both modals, numbers and image sizes', async ({ page }, info) => {
+  const images = [];
+  page.on('response', async (r) => {
+    if (r.request().resourceType() === 'image') images.push({ url: r.url(), kb: Math.round((await r.body().catch(() => Buffer.alloc(0))).length / 1024) });
+  });
+  await page.goto('/');
+  for (const id of SECTIONS) {
+    await page.locator('#' + id).scrollIntoViewIfNeeded();
+    await page.waitForTimeout(250);
+    await page.locator('#' + id).screenshot({ path: path.join(SHOTS, `${info.project.name}-sec-${id}.png`) });
+  }
+  await page.waitForTimeout(800);
+  // Every image the drawer loads is under 200 KB (the lid frames belong to the hero).
+  const big = images.filter((i) => !/\/frames\//.test(i.url) && i.kb > 200);
+  expect(big).toEqual([]);
+  // Numbers that are claims: these and no others below the hero.
+  const text = await page.evaluate((ids) => ids.map((id) => document.getElementById(id).textContent).join(' '), SECTIONS);
+  const nums = Array.from(new Set(text.replace(/\[[A-Z]+_\d+\]/g, '').match(/\$?\d[\d,.]*(\s?GB|%\+?)?/g) || []));
+  const allowed = ['99%+', '99%', '90%', '16 GB', '$0', '01', '02', '03', '2026'];
+  expect(nums.filter((n) => !allowed.includes(n))).toEqual([]);
+  for (const id of ['privacy', 'terms']) {
+    await page.locator(`.site-footer a[href="#${id}"]`).click();
+    await expect(page.locator('#' + id)).toBeVisible();
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: path.join(SHOTS, `${info.project.name}-modal-${id}.png`) });
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#' + id)).toBeHidden();
+  }
+  const privacy = await page.locator('#privacy').textContent();
+  ['no servers of its own', 'GitHub Pages', 'formsubmit.co', 'Google Sheets', 'Google Apps Script', 'No visitor analytics'].forEach((t) => expect(privacy).toContain(t));
+  expect(privacy).not.toMatch(/private servers/);
+});
+
+test('the booking and NDA pages, on the new styles (nothing submitted)', async ({ browser }, info) => {
+  const { viewport, deviceScaleFactor, isMobile, hasTouch } = info.project.use;
+  const ctx = await browser.newContext({ viewport, deviceScaleFactor, isMobile, hasTouch });
+  await ctx.route(/script\.google\.com|formsubmit\.co/, (r) => r.abort());
+  const page = await ctx.newPage();
+  await page.goto(BASE + 'book-demo.html');
+  await expect(page.locator('link[href="pages.css"]')).toHaveCount(1);
+  await page.screenshot({ path: path.join(SHOTS, `${info.project.name}-page-book-demo.png`), fullPage: true });
+  await page.locator('.calendar-day:not(:disabled):not(.day-other-month):not(.day-weekend)').first().click();
+  await expect(page.locator('#step-2')).toHaveClass(/active/);
+  await page.locator('.time-slot').first().click();
+  await expect(page.locator('#step-3')).toHaveClass(/active/);
+  await page.screenshot({ path: path.join(SHOTS, `${info.project.name}-page-book-demo-step3.png`), fullPage: true });
+  await ctx.addInitScript(() => sessionStorage.setItem('bookingData', JSON.stringify({ name: 'Test Visitor', email: 'test@example.test', date: '2026-10-28', time: '10:00 AM' })));
+  const nda = await ctx.newPage();
+  await nda.goto(BASE + 'nda.html');
+  await nda.waitForTimeout(500);
+  await expect(nda.locator('#nda-date')).toContainText('2026');
+  await nda.screenshot({ path: path.join(SHOTS, `${info.project.name}-page-nda.png`), fullPage: true });
+  await ctx.close();
+});
+
 test('first paint on throttled 4G, total transfer', async ({ page }) => {
   const cdp = await page.context().newCDPSession(page);
   await cdp.send('Network.enable');
@@ -502,7 +578,12 @@ test('first paint on throttled 4G, total transfer', async ({ page }) => {
   }));
   await page.waitForFunction(() => window.__zoeHero.framesReady, null, { timeout: 30000 });
   const framesReadyMs = await page.evaluate(() => Math.round(performance.now()));
-  await page.waitForTimeout(500);
+  // Then the whole page: scroll through the drawer so every lazy image and the badge load.
+  for (let y = 0; y < 30; y += 1) {
+    await page.mouse.wheel(0, 900);
+    await page.waitForTimeout(120);
+  }
+  await page.waitForTimeout(4000);
   metrics.throttled = {
     profile: '150 ms RTT, 1.6 Mbps (Lighthouse mobile)',
     first_contentful_paint_ms: paint['first-contentful-paint'],
