@@ -1,5 +1,5 @@
 // Records a full run of the hero as an animated GIF (and reports its running time).
-//   node tools/record-gif.js <narrow|wide> <untouched|touched|drawer|lid> [out.gif] [--throttle]
+//   node tools/record-gif.js <narrow|wide> <untouched|touched|drawer|lid|compare-cloud|compare-zoe> [out.gif] [--throttle]
 // Needs playwright, gifenc and pngjs on NODE_PATH; serve the site on :8000 first.
 // Frames come from the browser's own screencast, resampled to a steady 8 fps.
 const fs = require('fs');
@@ -101,6 +101,13 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     await page.waitForTimeout(300);
     await page.mouse.up();
     await page.waitForTimeout(2500);
+  } else if (mode === 'compare-cloud' || mode === 'compare-zoe') {
+    // The comparison: scroll to it, pick one, watch two loops.
+    await page.locator('#dataflow').scrollIntoViewIfNeeded();
+    await page.evaluate(() => document.getElementById('dataflow').scrollIntoView());
+    await page.waitForTimeout(1500);
+    await page.locator(`.flow-pick[data-pick="${mode.slice(8)}"]`).click();
+    await page.waitForTimeout(16500);
   } else if (mode === 'drawer') {
     // Below the hero: skip link, then a slow scroll to the footer, then the Privacy Policy.
     await page.waitForTimeout(1200);

@@ -22,7 +22,7 @@ const RESTRICTED = JSON.parse(Buffer.from('W3sicmUiOiAiXFxiR0xpTkVSXFxiIiwgImNzI
 const PHONE = JSON.parse(Buffer.from('eyJyZSI6ICJcXGJwaG9uZXM/XFxiIiwgImFsbG93ZWRUZXh0IjogWyJ0aGUgcGhvbmUgaGFuZHMgaXQgdG8gdGhlIGxhcHRvcCJdfQ==', 'base64').toString());
 // Product names: the four frontier products under the cloud, in hero.js's PROVIDERS block and nowhere else.
 const PRODUCTS = JSON.parse(Buffer.from('eyJhbGxvd2VkSW4iOiAiaGVyby5qcyIsICJmcm9tIjogIi8vIFRoZSBmcm9udGllciBtb2RlbHMgbmFtZWQgdW5kZXIgdGhlIGNsb3VkIiwgInRvIjogIl07IiwgImFsbG93ZWQiOiBbIkNoYXRHUFQiLCAiQ2xhdWRlIiwgIkdlbWluaSIsICJDb3BpbG90Il0sICJmb3JiaWRkZW4iOiBbIlxcYkdQVC0/XFxkIiwgIlxcYkxsYW1hXFxiIiwgIlxcYk1pc3RyYWxcXGIiLCAiXFxiR3Jva1xcYiIsICJcXGJCYXJkXFxiIiwgIlxcYlNvbm5ldFxcYiIsICJcXGJPcHVzXFxiIiwgIlxcYkhhaWt1XFxiIiwgIlxcYkZhYmxlXFxiIiwgIlxcYkRlZXBTZWVrXFxiIiwgIlxcYlF3ZW5cXGIiXX0=', 'base64').toString());
-const SITE_FILES = ['index.html', 'styles.css', 'hero.js', 'pages.css', 'book-demo.html', 'nda.html',
+const SITE_FILES = ['index.html', 'styles.css', 'hero.js', 'compare.js', 'drawer.css', 'pages.css', 'book-demo.html', 'nda.html',
   'tools/playwright.config.js', 'tools/make-site-images.js', 'tools/record-gif.js'];
 const SECTIONS = ['how', 'dataflow', 'workflows', 'evidence', 'why', 'servers', 'founder', 'advisory', 'contact', 'site-footer'];
 
@@ -570,6 +570,42 @@ test('below the hero: every section, both modals, numbers and image sizes', asyn
   const privacy = await page.locator('#privacy').textContent();
   ['no servers of its own', 'GitHub Pages', 'formsubmit.co', 'Google Sheets', 'Google Apps Script', 'No visitor analytics'].forEach((t) => expect(privacy).toContain(t));
   expect(privacy).not.toMatch(/private servers/);
+});
+
+test('comparison: nothing until a choice, each panel animates, switching works', async ({ page }, info) => {
+  await page.goto('/');
+  await page.locator('#dataflow').scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
+  await expect(page.locator('#flow-cloud')).toBeHidden();
+  await expect(page.locator('#flow-zoe')).toBeHidden();
+  await page.locator('#dataflow').screenshot({ path: path.join(SHOTS, `${info.project.name}-compare-choose.png`) });
+  for (const [which, t] of [['cloud', 6800], ['zoe', 6000]]) {
+    await page.locator(`.flow-pick[data-pick="${which}"]`).click();
+    await expect(page.locator(`#flow-${which}`)).toBeVisible();
+    await expect(page.locator(`#flow-${which === 'cloud' ? 'zoe' : 'cloud'}`)).toBeHidden();
+    await expect(page.locator(`.flow-pick[data-pick="${which}"]`)).toHaveAttribute('aria-selected', 'true');
+    await page.waitForFunction(() => window.__zoeCompare.running, null, { timeout: 3000 });
+    await page.evaluate((ms) => window.__zoeCompare.seek(ms), t);
+    await page.waitForTimeout(100);
+    await page.locator('#dataflow').screenshot({ path: path.join(SHOTS, `${info.project.name}-compare-${which}.png`) });
+  }
+  // Mid-animation states: the cloud's copies are red-flagged; ZOE's masked question is crossing.
+  await page.locator('.flow-pick[data-pick="cloud"]').click();
+  await page.evaluate(() => window.__zoeCompare.seek(6800));
+  expect(await page.locator('#flow-cloud .fl-tag').evaluateAll((els) => els.filter((e) => +getComputedStyle(e).opacity > 0.9).length)).toBe(4);
+  await page.locator('.flow-pick[data-pick="zoe"]').click();
+  await page.evaluate(() => window.__zoeCompare.seek(6000));
+  expect(+(await page.locator('#flow-zoe .mv-packet').evaluate((e) => getComputedStyle(e).opacity))).toBeGreaterThan(0.9);
+});
+
+test('comparison under reduced motion: a still picture', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  await page.locator('#dataflow').scrollIntoViewIfNeeded();
+  await page.locator('.flow-pick[data-pick="cloud"]').click();
+  await page.waitForTimeout(300);
+  expect(await page.evaluate(() => window.__zoeCompare.running)).toBe(false);
+  await expect(page.locator('#flow-cloud .fl-captions')).toHaveCSS('opacity', '1');
 });
 
 test('the booking and NDA pages, on the new styles (nothing submitted)', async ({ browser }, info) => {

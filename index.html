@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="drawer.css" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="drawer.css"></noscript>
   <script src="hero.js" defer></script>
+  <script src="compare.js" defer></script>
 </head>
 <body>
   <main>
@@ -144,89 +145,25 @@
 
     <section class="sec sec-flow" id="dataflow" aria-labelledby="flow-h">
       <div class="wrap">
-        <h2 class="sec-h" id="flow-h">Your document takes a trip. Or it doesn't.</h2>
-        <p class="lede">Cloud-first legal AI systems route client and firm legal documents to their servers and then redistribute them to multiple specialized cloud servers, where each server acts as an additional point of potential failure. ZOE AI keeps all documents local by default, on the laptop or on a local server, so uploading anything is your choice.</p>
-        <div class="flow-cols">
-          <figure class="flow-panel is-risk">
-            <figcaption><span class="flow-tag">Cloud legal AI</span>Your document takes a trip.</figcaption>
-            <div class="flow-scroll">
-              <svg class="flow-svg" viewBox="0 0 1160 510" role="img" aria-labelledby="flowCloudDesc">
-                <title id="flowCloudDesc">In a cloud legal AI, the document leaves your laptop, passes through your office router, your internet provider and the public internet to a vendor's cloud, which then hands it to a name reader, a search index, a drafting model and a page renderer, all running on hardware you do not control.</title>
-                <defs><marker id="arwRisk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#ff7a72"/></marker></defs>
-                <rect x="96" y="6" width="196" height="26" rx="13" class="fl-pill"/>
-                <text class="fl-badge" x="194" y="24">Your control ends here</text>
-                <line x1="194" y1="40" x2="194" y2="372" class="fl-edge" stroke-dasharray="5 6"/>
-                <rect class="fl-box" x="24" y="226" width="150" height="88" rx="14"/>
-                <text class="fl-t" x="99" y="264">Your laptop</text>
-                <text class="fl-s" x="99" y="286">your client's file</text>
-                <rect class="fl-box is-risk" x="214" y="226" width="130" height="88" rx="14"/>
-                <text class="fl-t" x="279" y="264">Router</text>
-                <text class="fl-s" x="279" y="286">your office</text>
-                <rect class="fl-box is-risk" x="384" y="226" width="130" height="88" rx="14"/>
-                <text class="fl-t" x="449" y="258">Internet</text>
-                <text class="fl-t" x="449" y="280">provider</text>
-                <text class="fl-s" x="449" y="300">public internet</text>
-                <rect class="fl-box is-risk" x="554" y="214" width="180" height="112" rx="16"/>
-                <text class="fl-t" x="644" y="258">Vendor cloud</text>
-                <text class="fl-s" x="644" y="280">their servers</text>
-                <text class="fl-s" x="644" y="298">their hardware</text>
-                <g class="fl-hop"><line x1="174" y1="270" x2="208" y2="270" marker-end="url(#arwRisk)"/><line x1="344" y1="270" x2="378" y2="270" marker-end="url(#arwRisk)"/><line x1="514" y1="270" x2="548" y2="270" marker-end="url(#arwRisk)"/></g>
-                <g class="fl-doc"><rect x="185" y="234" width="14" height="18" rx="2"/><rect x="355" y="234" width="14" height="18" rx="2"/><rect x="525" y="234" width="14" height="18" rx="2"/></g>
-                <g class="fl-fan"><path d="M734 270 C 776 270, 776 82, 812 82"/><path d="M734 270 C 776 270, 776 208, 812 208"/><path d="M734 270 C 776 270, 776 334, 812 334"/><path d="M734 270 C 776 270, 776 460, 812 460"/></g>
-                <rect class="fl-box is-risk" x="812" y="46" width="324" height="72" rx="14"/>
-                <text class="fl-mt" x="838" y="80">Name reader</text>
-                <text class="fl-ms" x="838" y="100">reads every name in your file</text>
-                <rect class="fl-box is-risk" x="812" y="172" width="324" height="72" rx="14"/>
-                <text class="fl-mt" x="838" y="206">Search index</text>
-                <text class="fl-ms" x="838" y="226">your clauses, stored on their disk</text>
-                <rect class="fl-box is-risk" x="812" y="298" width="324" height="72" rx="14"/>
-                <text class="fl-mt" x="838" y="332">Drafting model</text>
-                <text class="fl-ms" x="838" y="352">generates from your text</text>
-                <rect class="fl-box is-risk" x="812" y="424" width="324" height="72" rx="14"/>
-                <text class="fl-mt" x="838" y="458">Page renderer</text>
-                <text class="fl-ms" x="838" y="478">your pages turned into images</text>
-                <text class="fl-cap is-risk" x="24" y="410">Four hops. Three systems you don't control.</text>
-                <text class="fl-cap2" x="24" y="436">The file left the building at hop one — and every model downstream</text>
-                <text class="fl-cap2" x="24" y="458">reads it in the clear.</text>
-              </svg>
-            </div>
-          </figure>
-          <figure class="flow-panel is-zoe">
-            <figcaption><span class="flow-tag">ZOE</span>Your document doesn't move.</figcaption>
-            <div class="flow-scroll">
-              <svg class="flow-svg" viewBox="0 0 1160 530" role="img" aria-labelledby="flowZoeDesc">
-                <title id="flowZoeDesc">With ZOE, everything runs inside your laptop. The document never travels. An optional dashed link to a frontier model carries a masked question you have approved.</title>
-                <defs><marker id="arwZoe" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#5fa8ff"/></marker></defs>
-                <rect x="130" y="12" width="286" height="28" rx="14" class="fl-pill is-zoe"/>
-                <text class="fl-badge is-zoe" x="273" y="31">Everything below runs on this machine</text>
-                <rect x="130" y="56" width="770" height="372" rx="18" class="fl-laptop"/>
-                <rect x="96" y="434" width="838" height="16" rx="8" class="fl-base"/>
-                <g class="fl-web"><path d="M268 140 L430 232"/><path d="M268 346 L430 250"/><path d="M790 140 L630 232"/><path d="M790 346 L630 250"/><path d="M268 140 L268 346"/><path d="M790 140 L790 346"/><path d="M268 140 L790 140"/><path d="M268 346 L790 346"/></g>
-                <rect class="fl-box" x="170" y="108" width="196" height="64" rx="12"/>
-                <text class="fl-nt" x="268" y="135">Name finder</text>
-                <text class="fl-ns" x="268" y="155">finds every identifier</text>
-                <rect class="fl-box" x="170" y="314" width="196" height="64" rx="12"/>
-                <text class="fl-nt" x="268" y="341">Document reader</text>
-                <text class="fl-ns" x="268" y="361">reads your files locally</text>
-                <rect class="fl-box" x="692" y="108" width="196" height="64" rx="12"/>
-                <text class="fl-nt" x="790" y="135">Clause library</text>
-                <text class="fl-ns" x="790" y="155">your templates and clauses</text>
-                <rect class="fl-box" x="692" y="314" width="196" height="64" rx="12"/>
-                <text class="fl-nt" x="790" y="341">Signature reader</text>
-                <text class="fl-ns" x="790" y="361">reads signature pages</text>
-                <rect x="430" y="203" width="200" height="76" rx="15" class="fl-core"/>
-                <text class="fl-ot" x="530" y="236">ZOE</text>
-                <text class="fl-os" x="530" y="258">on your laptop</text>
-                <line x1="904" y1="241" x2="994" y2="241" class="fl-opt" stroke-dasharray="6 6" marker-end="url(#arwZoe)"/>
-                <path d="M1032 253 a26 26 0 0 1 4 -51 a34 34 0 0 1 63 8 a22 22 0 0 1 -3 43 z" class="fl-cloud"/>
-                <text class="fl-ns" x="1066" y="288">frontier model</text>
-                <text class="fl-ns" x="1066" y="306">(optional)</text>
-                <text class="fl-cap is-zoe" x="530" y="486">Zero hops. The document never leaves this box.</text>
-                <text class="fl-cap2 is-mid" x="530" y="512">What can travel: a masked question you approved.</text>
-              </svg>
-            </div>
-          </figure>
+        <h2 class="sec-h" id="flow-h">Compare the ZOE AI hybrid system to standard cloud AI.</h2>
+        <div class="flow-choose" role="tablist" aria-label="Choose a system to see">
+          <button class="pill-link flow-pick" type="button" role="tab" aria-selected="false" aria-controls="flow-cloud" data-pick="cloud">Standard cloud AI</button>
+          <button class="pill-link flow-pick" type="button" role="tab" aria-selected="false" aria-controls="flow-zoe" data-pick="zoe">ZOE AI</button>
         </div>
+        <figure class="flow-panel is-risk" id="flow-cloud" role="tabpanel" aria-label="Standard cloud AI" hidden>
+          <figcaption><span class="flow-tag">Standard cloud AI</span>Your document takes a trip.</figcaption>
+          <div class="flow-draw"></div>
+        </figure>
+        <figure class="flow-panel is-zoe" id="flow-zoe" role="tabpanel" aria-label="ZOE AI" hidden>
+          <figcaption><span class="flow-tag">ZOE AI</span>Your document doesn't move.</figcaption>
+          <div class="flow-draw"></div>
+        </figure>
+        <noscript>
+          <div class="flow-text">
+            <p><strong>Standard cloud AI.</strong> Your document leaves your laptop, passes your office router and your internet provider to a vendor's cloud, which hands it to four systems you don't control. Four hops. Three systems you don't control.</p>
+            <p><strong>ZOE AI.</strong> Everything runs inside your laptop and the document never moves. What can travel to an optional frontier model is a masked question you approved. Zero hops. The document never leaves this box.</p>
+          </div>
+        </noscript>
       </div>
     </section>
 
