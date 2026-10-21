@@ -216,7 +216,25 @@
 .ws-nav b { margin-bottom: 4px; font-size: 12px; }
 .ws-nav i { font-style: normal; padding: 3px 6px; border-radius: 6px; color: var(--ink-faint); }
 .ws-nav i.on { color: #cfe4ff; background: var(--blue-bg); }
-.ws-main { flex: 1; padding: 12px; }
+.ws-main {
+  flex: 1;
+  padding: 12px;
+  overflow: hidden;
+  /* Anything below the still's edge fades out instead of showing as cut-off text. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent);
+  mask-image: linear-gradient(to bottom, #000 82%, transparent);
+}
+
+/* Two complete rows whenever the third would not fit whole. */
+@container (max-width: 520px) {
+  .ws-row:nth-child(3) { display: none; }
+}
+
+/* Phone-width cards: the drawn workspace drops its side column and stacks each row. */
+@container (max-width: 420px) {
+  .ws-nav { display: none; }
+  .ws-row { flex-direction: column; gap: 2px; margin-bottom: 6px; padding: 5px 8px; }
+}
 .ws-row { display: flex; justify-content: space-between; gap: 8px; margin: 0 0 8px; padding: 7px 9px; border-radius: 8px; background: rgba(255, 255, 255, 0.04); line-height: 1.3 !important; }
 .ws-row span { font-family: var(--serif); color: var(--ink); }
 .ws-row em { font-style: normal; color: var(--green); white-space: nowrap; }
