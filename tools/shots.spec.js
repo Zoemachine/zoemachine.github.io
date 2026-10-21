@@ -20,12 +20,14 @@ const isWide = (info) => info.project.name === 'wide';
 const RESTRICTED = JSON.parse(Buffer.from('W3sicmUiOiAiXFxiR0xpTkVSXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYkdlbW1hXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYk9jdGVuXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYlRlc3NlcmFjdFxcYiIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJSQUdcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJNQ1BcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJORVJcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJPQ1JcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJ2ZWN0b3IiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiZW1iZWRkaW5nIiwgImNzIjogZmFsc2V9LCB7InJlIjogInRvb2wgY2FsbCIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJkZW5zZVxcYiIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJzcGFyc2VcXGIiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiQXJjdGljXFxiIiwgImNzIjogdHJ1ZX0sIHsicmUiOiAiU3BpZGVyID93ZWIiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiU3BpZGVyIEdyYXBoIiwgImNzIjogZmFsc2V9LCB7InJlIjogIk1hdHJ5b3Noa2EiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiU01GVlxcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIk1pc3Npb24gW0FCQ1JdXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogInRoZSBzcGluZSIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJDKD86MTB8WzAtOV0pXFxiIiwgImNzIjogdHJ1ZX0sIHsicmUiOiAiV2lsbGlhbSBXYXkiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiTGl0ZVxcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIlxcYlByb1xcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIlxcYjRCXFxiIiwgImNzIjogdHJ1ZX0sIHsicmUiOiAiemVybyB0cnVzdCIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJoYWxsdWNpbmF0IiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYm9ubHlcXGIiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiQm9hdFxcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIlxcYktpdGNoZW5cXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJzY2FubmVkXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYmlQaG9uZSIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJ0YWJsZXQiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiemVybyBoYWxsdWNpbmF0aW9ucyIsICJjcyI6IGZhbHNlfV0=', 'base64').toString());
 // The hero's one device: allowed in the hero's Act I text (its no-JS line), forbidden below the hero and on the other pages.
 const PHONE = JSON.parse(Buffer.from('eyJyZSI6ICJcXGJwaG9uZXM/XFxiIiwgImFsbG93ZWRUZXh0IjogWyJ0aGUgcGhvbmUgaGFuZHMgaXQgdG8gdGhlIGxhcHRvcCJdfQ==', 'base64').toString());
+// Product names: the four frontier products under the cloud, in hero.js's PROVIDERS block and nowhere else.
+const PRODUCTS = JSON.parse(Buffer.from('eyJhbGxvd2VkSW4iOiAiaGVyby5qcyIsICJmcm9tIjogIi8vIFRoZSBmcm9udGllciBtb2RlbHMgbmFtZWQgdW5kZXIgdGhlIGNsb3VkIiwgInRvIjogIl07IiwgImFsbG93ZWQiOiBbIkNoYXRHUFQiLCAiQ2xhdWRlIiwgIkdlbWluaSIsICJDb3BpbG90Il0sICJmb3JiaWRkZW4iOiBbIlxcYkdQVC0/XFxkIiwgIlxcYkxsYW1hXFxiIiwgIlxcYk1pc3RyYWxcXGIiLCAiXFxiR3Jva1xcYiIsICJcXGJCYXJkXFxiIiwgIlxcYlNvbm5ldFxcYiIsICJcXGJPcHVzXFxiIiwgIlxcYkhhaWt1XFxiIiwgIlxcYkZhYmxlXFxiIiwgIlxcYkRlZXBTZWVrXFxiIiwgIlxcYlF3ZW5cXGIiXX0=', 'base64').toString());
 const SITE_FILES = ['index.html', 'styles.css', 'hero.js', 'pages.css', 'book-demo.html', 'nda.html',
   'tools/playwright.config.js', 'tools/make-site-images.js', 'tools/record-gif.js'];
 const SECTIONS = ['how', 'dataflow', 'workflows', 'evidence', 'why', 'servers', 'founder', 'advisory', 'contact', 'site-footer'];
 
 // All-caps words allowed on screen: AI and PII, plus names, mask tokens and emphasis that are not acronyms.
-const CAPS_OK = new Set(['AI', 'PII', 'ZOE', 'LLC', 'EIN', 'ORG', 'PERSON', 'ADDRESS', 'ON', 'OFF', 'NO',
+const CAPS_OK = new Set(['AI', 'PII', 'ZOE', 'LLC', 'LP', 'EIN', 'ORG', 'PERSON', 'ADDRESS', 'ON', 'OFF', 'NO',
   'THEIR', 'OFFICE', 'MINUTES', 'TERM', 'SHEET', 'MASKED', 'INFORMATION', 'MATTER']);
 
 async function open(page) {
@@ -161,6 +163,26 @@ test('restricted words: none in the page, CSS, JS or comments', async ({}, info)
   expect(hits).toEqual([]);
 });
 
+test('product names: the four under the cloud, there and nowhere else', async ({}, info) => {
+  test.skip(!isWide(info), 'checked once');
+  const hits = [];
+  for (const f of SITE_FILES) {
+    let text = fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/data:image\/webp;base64,[^"]+/, '');
+    if (f === PRODUCTS.allowedIn) {
+      const a = text.indexOf(PRODUCTS.from);
+      const b = text.indexOf(PRODUCTS.to, a);
+      expect(a).toBeGreaterThan(-1);
+      text = text.slice(0, a) + text.slice(b);
+    }
+    PRODUCTS.allowed.concat(PRODUCTS.forbidden).forEach((w) => {
+      const re = new RegExp(w.startsWith('\\') ? w : `\\b${w}\\b`, 'g');
+      const m = text.match(re);
+      if (m) hits.push(`${f}: ${m[0]}`);
+    });
+  }
+  expect(hits).toEqual([]);
+});
+
 test('phone: named in the hero\'s Act I text and nowhere else', async ({}, info) => {
   test.skip(!isWide(info), 'checked once');
   const re = new RegExp(PHONE.re, 'gi');
@@ -264,8 +286,11 @@ test('Act II: the lid scrubs under the finger, mid-scrub and open', async ({ pag
   const d = await startDrag(page, info, p);
   const stop = await startFpsProbe(page);
   await dragPath(d, p, { x: p.x, y: p.y - 8 }, 2);
-  await dragPath(d, { x: p.x, y: p.y - 8 }, { x: p.x, y: p.y - 118 }, 30);
+  await dragPath(d, { x: p.x, y: p.y - 8 }, { x: p.x, y: p.y - 168 }, 40); // 160 px past the slop = 50% of 320
   metrics.lid_scrub = await stop();
+  const lag = await hero(page, 'progress');
+  await page.waitForTimeout(400); // the lid catches up with the finger
+  metrics.lid_trail = +lag.toFixed(3);
   const mid = await hero(page, 'progress');
   expect(mid).toBeGreaterThan(0.45);
   expect(mid).toBeLessThan(0.55);
@@ -281,9 +306,9 @@ test('Act II: release below 40% snaps shut; a quick flick opens', async ({ page 
   const p = await lidPoint(page);
   let d = await startDrag(page, info, p);
   await dragPath(d, p, { x: p.x, y: p.y - 68 }, 14);
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(400);
   await d.end();
-  await page.waitForTimeout(700);
+  await page.waitForTimeout(1400);
   expect(await hero(page, 'progress')).toBe(0);
   expect(await hero(page, 'gesture')).toBe('lid');
   d = await startDrag(page, info, p);
@@ -292,12 +317,12 @@ test('Act II: release below 40% snaps shut; a quick flick opens', async ({ page 
   await waitGesture(page, 'mark', 8000);
 });
 
-test('Act II: tap opens the lid in about 0.9 s', async ({ page }) => {
+test('Act II: tap opens the lid in about 1.8 s', async ({ page }) => {
   await toLid(page);
   const p = await lidPoint(page);
   const t0 = Date.now();
   await tapAt(page, p);
-  await page.waitForFunction(() => window.__zoeHero.progress === 1, null, { timeout: 3000 });
+  await page.waitForFunction(() => window.__zoeHero.progress === 1, null, { timeout: 4000 });
   metrics.lid_play_ms = Date.now() - t0;
 });
 
@@ -306,11 +331,11 @@ test('Act II, desktop: a wheel tick opens the lid without scrolling; so does Arr
   await toLid(page);
   await page.mouse.move(700, 400);
   await page.mouse.wheel(0, 100);
-  await page.waitForFunction(() => window.__zoeHero.progress === 1, null, { timeout: 3000 });
+  await page.waitForFunction(() => window.__zoeHero.progress === 1, null, { timeout: 4000 });
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   await toLid(page);
   await page.keyboard.press('ArrowUp');
-  await page.waitForFunction(() => window.__zoeHero.progress === 1, null, { timeout: 3000 });
+  await page.waitForFunction(() => window.__zoeHero.progress === 1, null, { timeout: 4000 });
 });
 
 test('Acts III-IV: Wi-Fi OFF before ZOE speaks, marking, scrub, ON after "Data cleaned"', async ({ page }, info) => {
@@ -321,12 +346,12 @@ test('Acts III-IV: Wi-Fi OFF before ZOE speaks, marking, scrub, ON after "Data c
   await shot(page, info, 'act3');
   const stop = await startFpsProbe(page);
   await page.locator('.btn-mark').click();
-  await page.waitForTimeout(1300);
+  await page.waitForTimeout(1000);
   await shot(page, info, 'act3-sweep');
-  await page.waitForTimeout(1600);
+  await page.waitForFunction(() => Array.from(document.querySelectorAll('.editor > .ed-page .pii')).every((e) => e.classList.contains('is-amber')), null, { timeout: 15000 });
   metrics.sweep = await stop();
-  const amber = await page.$$eval('.editor > .ed-page .pii', (els) => els.every((e) => e.classList.contains('is-amber')));
-  expect(amber).toBe(true);
+  metrics.pii_items = await page.$$eval('.editor > .ed-page .pii', (els) => els.length);
+  expect(metrics.pii_items).toBeGreaterThanOrEqual(19);
   // Contract text renders at 13 px or more (font size x camera scale).
   const px = await page.evaluate(() => {
     const p = document.querySelector('.editor > .ed-page');
@@ -339,11 +364,15 @@ test('Acts III-IV: Wi-Fi OFF before ZOE speaks, marking, scrub, ON after "Data c
   await page.waitForTimeout(1300);
   await shot(page, info, 'act3-ready');
   await page.locator('.btn-scrub').click();
-  await page.waitForTimeout(2900);
+  await page.waitForFunction(() => Array.from(document.querySelectorAll('.editor > .ed-page .pii')).every((e) => e.classList.contains('is-masked')), null, { timeout: 15000 });
+  await page.waitForTimeout(500);
   await shot(page, info, 'act4-scrub');
   const masked = await page.$$eval('.editor > .ed-page .pii', (els) => els.map((e) => e.textContent));
-  ['[ORG_1]', '[ORG_5]', '[PERSON_1]', '[ADDRESS_1]', '$18,200,000'].forEach((t) => expect(masked).toContain(t));
-  expect(masked.join(' ')).not.toMatch(/Kestrel|Meridian|Okonkwo|45,000,000/);
+  ['[ORG_1]', '[ORG_2]', '[ORG_3]', '[ORG_4]', '[ORG_5]', '[PERSON_1]', '[PERSON_2]', '[ADDRESS_1]', '[ADDRESS_2]', '$18,200,000'].forEach((t) => expect(masked).toContain(t));
+  expect(masked).not.toContain('[ORG_6]'); // the parent is not on the sheet: that is the catch
+  const pageText = await page.$eval('.editor > .ed-page', (el) => el.textContent);
+  expect(pageText).not.toMatch(/Kestrel|Meridian|Okonkwo|Harborline|Lakeshore|Vantage|Daniel Park|45,000,000|84-2219876|4417-0093/);
+  expect(pageText).toMatch(/limited liability company/); // generic deal language stays
   const stop2 = await startFpsProbe(page);
   await page.waitForFunction(() => document.querySelector('.stream-label').classList.contains('is-on'), null, { timeout: 8000 });
   await page.waitForTimeout(900);
@@ -388,7 +417,7 @@ test('Act IV: the catch is spoken by ZOE, the fix by the cloud, then the rehydra
 });
 
 test('Act V: pills, inspect view, how-it-works scroll, replay twice, analytics', async ({ page }, info) => {
-  test.setTimeout(400000);
+  test.setTimeout(500000);
   const events = [];
   page.on('console', (m) => { const t = m.text(); if (t.startsWith('[track]')) events.push(t.split(' ')[1]); });
   await open(page);
@@ -439,22 +468,22 @@ test('Act V: pills, inspect view, how-it-works scroll, replay twice, analytics',
   }
 });
 
-test('untouched: the story plays through by itself in about 106 s (recorded)', async ({ browser }, info) => {
-  test.setTimeout(240000);
+test('untouched: the story plays through by itself in about 127 s (recorded)', async ({ browser }, info) => {
+  test.setTimeout(280000);
   const { viewport, isMobile, hasTouch } = info.project.use;
   const dir = path.join(SHOTS, `video-${info.project.name}`);
   const ctx = await browser.newContext({ viewport, isMobile, hasTouch, deviceScaleFactor: 1, recordVideo: { dir, size: viewport } });
   const page = await ctx.newPage();
   await page.goto(BASE);
-  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 150000 });
+  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 170000 });
   metrics.untouched_ms = await hero(page, 'ended');
   await page.waitForTimeout(1500);
   const video = page.video();
   await ctx.close();
   fs.renameSync(await video.path(), path.join(SHOTS, `${info.project.name}-run-untouched.webm`));
   fs.rmSync(dir, { recursive: true, force: true });
-  expect(metrics.untouched_ms).toBeGreaterThan(95000);
-  expect(metrics.untouched_ms).toBeLessThan(115000);
+  expect(metrics.untouched_ms).toBeGreaterThan(115000);
+  expect(metrics.untouched_ms).toBeLessThan(140000);
 });
 
 test('keyboard: Tab reaches each gesture and Enter performs it', async ({ page }, info) => {

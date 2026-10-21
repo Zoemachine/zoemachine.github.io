@@ -446,7 +446,13 @@ body {
   color: #dfe5ee;
 }
 
-.ed-page p { margin: 0; }
+.ed-page p { margin: 0 0 0.3em; }
+
+/* The term sheet in the editor scrolls a screen at a time during the sweeps. */
+.editor > .ed-page {
+  position: relative;
+  transition: transform 0.45s var(--ease-io);
+}
 .ed-page .k { color: var(--ink-faint); font-family: var(--sans); font-size: 0.82em; letter-spacing: 0.02em; }
 
 .pii { border-radius: 0.2em; }
@@ -1070,13 +1076,47 @@ body {
   font-weight: 600;
 }
 
-.cloud-firms {
+.cloud-marks {
   position: relative;
-  margin: 4px 0 0;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: var(--ink-soft);
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: auto;
 }
+
+/* Monochrome light on black; the brand colour and the product name appear on hover. */
+.mark {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  color: #e6ebf2;
+  transition: color 0.2s ease;
+}
+
+.mark svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+.mark:hover { color: var(--brand); }
+
+.mark::after {
+  content: attr(data-name);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  color: #fff;
+  background: rgba(20, 26, 38, 0.95);
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.mark:hover::after { opacity: 1; }
 
 .cloud-say {
   position: relative;

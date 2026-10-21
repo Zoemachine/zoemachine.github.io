@@ -1,5 +1,5 @@
 // Records a full run of the hero as an animated GIF (and reports its running time).
-//   node tools/record-gif.js <narrow|wide> <untouched|touched|drawer> [out.gif] [--throttle]
+//   node tools/record-gif.js <narrow|wide> <untouched|touched|drawer|lid> [out.gif] [--throttle]
 // Needs playwright, gifenc and pngjs on NODE_PATH; serve the site on :8000 first.
 // Frames come from the browser's own screencast, resampled to a steady 8 fps.
 const fs = require('fs');
@@ -73,7 +73,7 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     await page.waitForTimeout(1300);
     const s2 = await box('.scene');
     const lp = { x: s2.x + s2.width * 0.5, y: s2.y + s2.height * 0.66 };
-    await drag(lp, { x: lp.x, y: lp.y - 120 }, 40, 400);
+    await drag(lp, { x: lp.x, y: lp.y - 200 }, 60, 500);
     await page.waitForFunction(() => window.__zoeHero.gesture === 'mark', null, { timeout: 10000 });
     await page.waitForTimeout(1600);
     await page.locator('.btn-mark').click();
@@ -82,7 +82,26 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     await page.locator('.btn-scrub').click();
   }
   let ended = 0;
-  if (mode === 'drawer') {
+  if (mode === 'lid') {
+    // The lid under a hand: tap the phone through Act I, then lift the lid slowly, pause, lift on, release.
+    await page.waitForFunction(() => window.__zoeHero.gesture === 'phone');
+    await page.evaluate(() => window.__zoeHero.perform('tap'));
+    await page.waitForFunction(() => window.__zoeHero.gesture === 'lid' && window.__zoeHero.framesReady, null, { timeout: 30000 });
+    await page.waitForTimeout(1500);
+    const sc = await page.locator('.scene').first().boundingBox();
+    const p = { x: sc.x + sc.width * 0.5, y: sc.y + sc.height * 0.66 };
+    await page.mouse.move(p.x, p.y);
+    await page.mouse.down();
+    const go = async (from, to, n) => { for (let i = 1; i <= n; i += 1) { await page.mouse.move(p.x, p.y - (from + ((to - from) * i) / n)); await page.waitForTimeout(16); } };
+    await go(0, 110, 50);
+    await page.waitForTimeout(700);
+    await go(110, 60, 25);
+    await page.waitForTimeout(400);
+    await go(60, 190, 50);
+    await page.waitForTimeout(300);
+    await page.mouse.up();
+    await page.waitForTimeout(2500);
+  } else if (mode === 'drawer') {
     // Below the hero: skip link, then a slow scroll to the footer, then the Privacy Policy.
     await page.waitForTimeout(1200);
     await page.locator('.skip').click();
