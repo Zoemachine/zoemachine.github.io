@@ -118,11 +118,15 @@ function track(event, data) {
   const DRAG_FULL_PX = 220;    // upward travel for a full open
   const SNAP_AT = 0.4;         // release past this opens, below shuts
   const PLAY_MS = 900;         // tap / click / wheel / key: frames 1 -> 45
-  const IDLE_FIRST_MS = 12000; // gesture 1 auto-performs after this long with no input
-  const IDLE_LATER_MS = 10000; // the hand-over to the laptop, and gestures 2-4
+  // Text pacing is half the speed of the live build (65f49a9): typing, holds and the pauses between
+  // lines and beats take TEXT_PACE times as long. Animation durations are unchanged. Every wait for a
+  // visitor's gesture is 3x the live value.
+  const TEXT_PACE = 2;
+  const IDLE_FIRST_MS = 18000; // gesture 1 auto-performs after this long with no input (live 6 s)
+  const IDLE_LATER_MS = 12000; // the hand-over to the laptop, and gestures 2-4 (live 4 s)
   const TAP_SLOP_PX = 8;
   const FLICK_PX_PER_MS = 0.6; // upward release speed that opens regardless of distance
-  const TYPE_MS = 20;          // per character
+  const TYPE_MS = 12 * TEXT_PACE; // per character
   const SWEEP_MS = 1600;
   const CAPTURE_HOLD_MS = 1100; // the captured page shows in the phone before the laptop comes in
   const LAPTOP_IN_MS = 1100;    // the laptop's slide in from the right (the .scene translate in styles.css)
@@ -216,6 +220,9 @@ function track(event, data) {
     });
   }
 
+  // A pause between lines or beats, written at the live value; text pacing stretches it.
+  const pause = (ms) => wait(ms * TEXT_PACE);
+
   function cancelRun() {
     run.cancelled = true;
     run.timers.forEach(clearTimeout);
@@ -280,7 +287,7 @@ function track(event, data) {
   }
 
   // Reading time after a line has typed.
-  const dwell = (line) => 450 + plain(line).length * 18;
+  const dwell = (line) => (220 + plain(line).length * 8) * TEXT_PACE;
 
   const maxMsgs = () => (portraitMQ.matches ? 3 : 4);
 
@@ -1484,14 +1491,15 @@ function track(event, data) {
 
   // ---------- The story ----------
 
+  // pause() is text pacing (the gaps between lines and beats); wait() lets an animation finish.
   async function story() {
     // Act I — the ambush and the snap. A bare stage: the chat types dead centre, then makes room for the paper.
     setAct(1);
-    await wait(400);
+    await pause(200);
     await say('jimmy', 'jimmy1');
     await say('bob', 'bob1');
     await say('jimmy', 'jimmy2', false);
-    await wait(600);
+    await pause(300);
     stripTo('top');
     stage.dataset.open = 'sheet';
     layout();                                      // on portrait the paper sits under the strip's new place
@@ -1523,14 +1531,14 @@ function track(event, data) {
     }
     await Promise.all([thoughts, g2]);
     mountScreen();
-    await wait(250);
+    await pause(250);
     wifi(false);                                   // OFF before any ZOE line
-    await wait(200);
+    await pause(200);
     camera('zoom');
     await think('wifiOff', false);
     zoe.classList.add('is-in');
     zoeWorking(true);
-    await wait(450);
+    await pause(450);
 
     // Act III — local work, offline
     setAct(3);
@@ -1547,7 +1555,7 @@ function track(event, data) {
     }, mark);
     await Promise.all([look, g3]);
     await zoeSay('marked', false);
-    await wait(450);
+    await pause(450);
     zoeWorking(true);
     const found = zoeSay('found', false);
     await vaultWeb();
@@ -1556,7 +1564,7 @@ function track(event, data) {
     ws('.card-t').classList.add('is-in');
     await wait(120);
     ws('.card-p').classList.add('is-in');
-    const thought = wait(500).then(() => think('conserv', false));
+    const thought = pause(500).then(() => think('conserv', false));
     await zoeSay('loaded');
     await thought;
     const scrub = ws('.btn-scrub');
@@ -1578,7 +1586,7 @@ function track(event, data) {
     zoeWorking(false);
     await zoeSay('cleaned', false);
     wifi(true);                                    // ON after the scrub, never before
-    await wait(350);
+    await pause(350);
     if (!geo.portrait) {
       zoe.classList.remove('is-in');
       await wait(250);
@@ -1592,7 +1600,7 @@ function track(event, data) {
     stream.classList.add('is-on', 'is-out');
     label.classList.add('is-on');
     await zoeSay('toCloud', false);
-    await wait(450);
+    await pause(450);
     track('reached_cloud');
     stream.classList.remove('is-out');
     cloud.classList.add('is-busy');
@@ -1600,7 +1608,7 @@ function track(event, data) {
     zoeWorking(true);
     ripple();
     await zoeSay('search', false);
-    await wait(350);
+    await pause(350);
     await zoeSay('shell');
     const redacting = zoeSay('redact', false);
     await sendFiles();
@@ -1613,9 +1621,9 @@ function track(event, data) {
     stream.classList.remove('is-back');
     cloud.classList.remove('is-busy');
     await rehydrate();
-    await wait(300);
+    await pause(300);
     await think('caught', false);
-    await wait(800);
+    await pause(800);
     if (RM) await gesture('act5', 0, async () => {});
 
     // Act V — ten minutes are up
@@ -1626,12 +1634,12 @@ function track(event, data) {
     zoe.classList.remove('is-in');
     clearStrip();
     camera(geo.portrait ? 'end' : 'home');
-    await wait(450);
+    await pause(450);
     await say('jimmy', 'jimmy3');
     await say('bob', 'bob3');
     await say('jimmy', 'jimmy4');
     await say('bob', 'bob4', false);
-    await wait(300);
+    await pause(300);
     endPills();
     storyEndedAt = performance.now();
   }

@@ -101,7 +101,7 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     ended = Math.round(await page.evaluate(() => performance.now()));
     await page.waitForTimeout(1500);
   } else {
-    await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 170000, polling: 200 });
+    await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 220000, polling: 200 });
     ended = await page.evaluate(() => window.__zoeHero.ended);
   }
   await page.waitForTimeout(2000);

@@ -421,7 +421,7 @@ test('Act IV: the catch is spoken by ZOE, the fix by the cloud, then the rehydra
 });
 
 test('Act V: pills, inspect view, how-it-works scroll, replay twice, analytics', async ({ page }, info) => {
-  test.setTimeout(330000);
+  test.setTimeout(420000);
   const events = [];
   page.on('console', (m) => { const t = m.text(); if (t.startsWith('[track]')) events.push(t.split(' ')[1]); });
   await open(page);
@@ -473,11 +473,12 @@ test('Act V: pills, inspect view, how-it-works scroll, replay twice, analytics',
   }
 });
 
-// With the slowed pacing (12 s for the phone, 10 s for each later gesture) the film runs longer than the live 50 s.
-const UNTOUCHED_LIMIT_MS = 110000;
+// Text at half the live speed and every gesture wait at 3x (18 s for the phone, 12 s for each later one),
+// so the film runs well past the live 50 s.
+const UNTOUCHED_LIMIT_MS = 140000;
 
 test('untouched: the story plays through by itself (recorded), with the opening timed', async ({ browser }, info) => {
-  test.setTimeout(200000);
+  test.setTimeout(240000);
   const { viewport, isMobile, hasTouch } = info.project.use;
   const dir = path.join(SHOTS, `video-${info.project.name}`);
   const ctx = await browser.newContext({ viewport, isMobile, hasTouch, deviceScaleFactor: 1, recordVideo: { dir, size: viewport } });
@@ -494,7 +495,7 @@ test('untouched: the story plays through by itself (recorded), with the opening 
     });
   });
   await page.goto(BASE);
-  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 170000 });
+  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 220000 });
   metrics.untouched_ms = await hero(page, 'ended');
   const beats = await page.evaluate(() => window.__beats);
   const fcp = await page.evaluate(() => Math.round((performance.getEntriesByName('first-contentful-paint')[0] || {}).startTime || 0));
