@@ -779,36 +779,49 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 2.2em 2.3em 2.4em;
+  padding: 2em 2.2em 2.2em;
   border-radius: 3px;
   background: linear-gradient(170deg, #f8f9fb, #e2e5ea);
   color: #262b33;
   font-family: var(--serif);
   font-size: var(--sheet-fs, 5px);
-  line-height: 1.4;
+  line-height: 1.32;
+  text-align: justify;
+  -webkit-hyphens: auto;
+  hyphens: auto;
 }
 
-.paper h4 { flex: none; margin: 0 0 1em; font-size: 2.1em; text-align: center; letter-spacing: 0.08em; }
-.paper p { flex: none; margin: 0 0 0.5em; }
+/* The title keeps a size set from the paper's width, however full the page is (hero.js fitPaper). */
+.paper h4 { flex: none; margin: 0 0 0.7em; font-size: var(--sheet-title, 2em); line-height: 1.2; text-align: center; letter-spacing: 0.08em; }
 
-/* The rest of the page: lines of small type, in paragraphs. Words are a slanted dash pattern, so the
-   gaps between them shift from line to line; the masks cut it into lines and paragraphs. */
+/* A full page is set tight, like a real agreement: section headings, paragraphs, lists. */
+.paper h5,
+.paper h6 { flex: none; margin: 0.55em 0 0.2em; font-size: 1em; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; text-align: left; }
+.paper p { flex: none; margin: 0 0 0.35em; }
+.paper ol,
+.paper ul { flex: none; margin: 0 0 0.35em; padding-left: 1.4em; }
+.paper li { margin: 0 0 0.15em; }
+
+/* Whatever room is left at the foot of the page: lines of small type, in paragraphs. Words are a slanted
+   dash pattern, so the gaps between them shift from line to line; the masks cut it into lines and
+   paragraphs. On a full page there is no room left and it takes none. */
 .paper .type {
   flex: 1;
-  margin-top: 0.7em;
+  min-height: 0;
+  margin-top: 0.5em;
   background: repeating-linear-gradient(84deg,
     rgba(44, 52, 66, 0.42) 0 2.6em, transparent 2.6em 3em,
     rgba(44, 52, 66, 0.42) 3em 4.1em, transparent 4.1em 4.5em,
     rgba(44, 52, 66, 0.42) 4.5em 7.2em, transparent 7.2em 7.6em,
     rgba(44, 52, 66, 0.42) 7.6em 8.6em, transparent 8.6em 9em);
   -webkit-mask-image:
-    repeating-linear-gradient(to bottom, #000 0 0.42em, transparent 0.42em 1.4em),
-    repeating-linear-gradient(to bottom, #000 0 7em, transparent 7em 8.4em),
+    repeating-linear-gradient(to bottom, #000 0 0.42em, transparent 0.42em 1.32em),
+    repeating-linear-gradient(to bottom, #000 0 6.6em, transparent 6.6em 7.92em),
     linear-gradient(to right, #000 94%, transparent);
   -webkit-mask-composite: source-in, source-in;
   mask-image:
-    repeating-linear-gradient(to bottom, #000 0 0.42em, transparent 0.42em 1.4em),
-    repeating-linear-gradient(to bottom, #000 0 7em, transparent 7em 8.4em),
+    repeating-linear-gradient(to bottom, #000 0 0.42em, transparent 0.42em 1.32em),
+    repeating-linear-gradient(to bottom, #000 0 6.6em, transparent 6.6em 7.92em),
     linear-gradient(to right, #000 94%, transparent);
   mask-composite: intersect;
 }

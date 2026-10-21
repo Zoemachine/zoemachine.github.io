@@ -458,6 +458,24 @@ function track(event, data) {
     }
   }
 
+  // The paper's type scales with it: large enough to read as a page, too small to read the terms.
+  // A fuller page shrinks it further until everything fits; the title keeps its size. The viewfinder's
+  // copy and the card that flies to the laptop use the same sizes, so all three stay the same page.
+  function fitPaper(w) {
+    const title = `${(w * 0.05).toFixed(2)}px`;
+    const floor = w * 0.012;
+    let fs = w * 0.026;
+    const set = () => [sheet, phone, fly].forEach((el) => {
+      el.style.setProperty('--sheet-fs', `${fs.toFixed(2)}px`);
+      el.style.setProperty('--sheet-title', title);
+    });
+    set();
+    for (let i = 0; i < 5 && fs > floor && sheet.scrollHeight > sheet.clientHeight + 1; i += 1) {
+      fs = Math.max(floor, fs * (sheet.clientHeight / sheet.scrollHeight) * 0.98);
+      set();
+    }
+  }
+
   function layout() {
     const S = sceneBox();
     const V = stage.clientWidth;
@@ -538,11 +556,8 @@ function track(event, data) {
       g.pills = { x: 0, y: S.y + 0.905 * S.h, w: V };
     }
 
-    // The paper's type scales with it: large enough to read as a page, too small to read the terms.
-    const fs = `${(g.sheet.w * 0.026).toFixed(2)}px`;
     place(sheet, g.sheet.x, g.sheet.y, g.sheet.w, g.sheet.h);
-    sheet.style.setProperty('--sheet-fs', fs);
-    fly.style.setProperty('--sheet-fs', fs);
+    fitPaper(g.sheet.w);
     place(phone, g.phone.x, g.phone.y, g.phone.w, g.phone.h);
     phone.style.setProperty('--enter-x', `${Math.round(g.enter.x)}px`);
     phone.style.setProperty('--enter-y', `${Math.round(g.enter.y)}px`);
@@ -551,7 +566,6 @@ function track(event, data) {
     phone.style.setProperty('--vy', `${(g.sheet.y - g.phone.y - 0.045 * g.phone.h).toFixed(1)}px`);
     phone.style.setProperty('--vw', `${g.sheet.w.toFixed(1)}px`);
     phone.style.setProperty('--vh', `${g.sheet.h.toFixed(1)}px`);
-    phone.style.setProperty('--sheet-fs', fs);
     place(zoe, g.zoe.x, g.zoe.y, g.zoe.w);
     place(cloud, g.cloud.x, g.cloud.y, g.cloud.w, g.cloud.h);
     place(stream, g.stream.x, g.stream.y, g.stream.len);
