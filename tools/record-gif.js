@@ -96,7 +96,7 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     await page.locator('.site-footer a[href="#privacy"]').click();
     await page.waitForTimeout(2500);
   } else {
-    await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 90000, polling: 200 });
+    await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 160000, polling: 200 });
     ended = await page.evaluate(() => window.__zoeHero.ended);
   }
   await page.waitForTimeout(2000);

@@ -8,7 +8,7 @@ module.exports = defineConfig({
   testDir: '.',
   testMatch: 'shots.spec.js',
   outputDir: 'test-results',
-  timeout: 60000,
+  timeout: 150000,
   workers: 1,
   reporter: [['list']],
   use: {

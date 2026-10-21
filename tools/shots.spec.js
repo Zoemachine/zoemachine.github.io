@@ -52,7 +52,7 @@ async function runTo(page, name) {
 
 async function runToEnd(page) {
   await runTo(page, null);
-  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 60000 });
+  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 120000 });
 }
 
 async function center(page, sel) {
@@ -177,7 +177,7 @@ test('phone: named in the hero\'s Act I text and nowhere else', async ({}, info)
   expect(rest.match(re) || []).toEqual([]);
 });
 
-test('Act I: chat types in under 4 s, pops land, term sheet and phone arrive', async ({ page }, info) => {
+test('Act I: chat types in under 7 s (measured 6.2 s), pops land, term sheet and phone arrive', async ({ page }, info) => {
   await page.goto('/');
   const t0 = await page.evaluate(() => performance.now());
   await page.waitForFunction(() => {
@@ -185,7 +185,7 @@ test('Act I: chat types in under 4 s, pops land, term sheet and phone arrive', a
     return m.length === 3 && m[2].textContent.endsWith('10 MINUTES.');
   }, null, { timeout: 8000 });
   metrics.act1_chat_ms = Math.round((await page.evaluate(() => performance.now())) - t0);
-  expect(metrics.act1_chat_ms).toBeLessThan(4000);
+  expect(metrics.act1_chat_ms).toBeLessThan(7000);
   const pops = await page.$$eval('.strip .em.is-pop', (els) => els.map((e) => e.textContent));
   expect(pops).toEqual(['THEIR OFFICE', '10 MINUTES']);
   await expect(page.locator('.sheet')).toHaveClass(/is-in/);
@@ -202,15 +202,20 @@ test('Act I: drag the phone onto the term sheet, then into the laptop', async ({
   const sheetC = await center(page, '.sheet');
   const sheetBox = await page.locator('.sheet').boundingBox();
   const d = await startDrag(page, info, from);
-  // Half over the page's edge: the viewfinder shows the paper beneath, aligned with the real one.
+  // Over the page's edge: the viewfinder shows the paper beneath as the camera sees it,
+  // scaled by --vk about the screen's centre and aligned with the real page.
   const edge = isWide(info)
-    ? { x: sheetBox.x + sheetBox.width - 6, y: sheetC.y + 10 }
-    : { x: sheetC.x + 8, y: sheetBox.y + sheetBox.height - 4 };
+    ? { x: sheetBox.x + sheetBox.width + 20, y: sheetC.y }
+    : { x: sheetC.x + 10, y: sheetBox.y + sheetBox.height + 20 };
   await dragPath(d, from, edge, 16);
   await expect(page.locator('.phone')).not.toHaveClass(/is-snapped/);
   const viewBox = await page.locator('.phone-view').boundingBox();
-  expect(Math.abs(viewBox.x - sheetBox.x)).toBeLessThan(3);
-  expect(Math.abs(viewBox.y - sheetBox.y)).toBeLessThan(3);
+  const scr = await page.locator('.phone-screen').boundingBox();
+  const k = await page.evaluate(() => parseFloat(document.querySelector('.phone').style.getPropertyValue('--vk')));
+  const c = { x: scr.x + scr.width / 2, y: scr.y + scr.height / 2 };
+  expect(Math.abs(viewBox.x - (c.x + k * (sheetBox.x - c.x)))).toBeLessThan(3);
+  expect(Math.abs(viewBox.y - (c.y + k * (sheetBox.y - c.y)))).toBeLessThan(3);
+  expect(Math.abs(viewBox.width - k * sheetBox.width)).toBeLessThan(3);
   await shot(page, info, 'act1-viewfinder');
   // Record whether the captured card flies on the bump.
   await page.evaluate(() => {
@@ -221,6 +226,13 @@ test('Act I: drag the phone onto the term sheet, then into the laptop', async ({
   });
   await dragPath(d, edge, sheetC, 8);
   await expect(page.locator('.phone')).toHaveClass(/is-snapped/);
+  // The photo settles inside the phone, fully within its screen.
+  await page.waitForTimeout(700);
+  const shotBox = await page.locator('.phone-view').boundingBox();
+  const scr2 = await page.locator('.phone-screen').boundingBox();
+  expect(shotBox.x).toBeGreaterThanOrEqual(scr2.x - 1);
+  expect(shotBox.x + shotBox.width).toBeLessThanOrEqual(scr2.x + scr2.width + 1);
+  expect(shotBox.y + shotBox.height).toBeLessThanOrEqual(scr2.y + scr2.height + 1);
   await page.waitForTimeout(150);
   await shot(page, info, 'act1-snap');
   const lap = await page.locator('.scene').boundingBox();
@@ -309,9 +321,9 @@ test('Acts III-IV: Wi-Fi OFF before ZOE speaks, marking, scrub, ON after "Data c
   await shot(page, info, 'act3');
   const stop = await startFpsProbe(page);
   await page.locator('.btn-mark').click();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(1300);
   await shot(page, info, 'act3-sweep');
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(1600);
   metrics.sweep = await stop();
   const amber = await page.$$eval('.editor > .ed-page .pii', (els) => els.every((e) => e.classList.contains('is-amber')));
   expect(amber).toBe(true);
@@ -327,7 +339,7 @@ test('Acts III-IV: Wi-Fi OFF before ZOE speaks, marking, scrub, ON after "Data c
   await page.waitForTimeout(1300);
   await shot(page, info, 'act3-ready');
   await page.locator('.btn-scrub').click();
-  await page.waitForTimeout(1900);
+  await page.waitForTimeout(2900);
   await shot(page, info, 'act4-scrub');
   const masked = await page.$$eval('.editor > .ed-page .pii', (els) => els.map((e) => e.textContent));
   ['[ORG_1]', '[ORG_5]', '[PERSON_1]', '[ADDRESS_1]', '$18,200,000'].forEach((t) => expect(masked).toContain(t));
@@ -376,7 +388,7 @@ test('Act IV: the catch is spoken by ZOE, the fix by the cloud, then the rehydra
 });
 
 test('Act V: pills, inspect view, how-it-works scroll, replay twice, analytics', async ({ page }, info) => {
-  test.setTimeout(180000);
+  test.setTimeout(400000);
   const events = [];
   page.on('console', (m) => { const t = m.text(); if (t.startsWith('[track]')) events.push(t.split(' ')[1]); });
   await open(page);
@@ -427,21 +439,22 @@ test('Act V: pills, inspect view, how-it-works scroll, replay twice, analytics',
   }
 });
 
-test('untouched: the story plays through by itself in under 50 s (recorded)', async ({ browser }, info) => {
-  test.setTimeout(120000);
+test('untouched: the story plays through by itself in about 106 s (recorded)', async ({ browser }, info) => {
+  test.setTimeout(240000);
   const { viewport, isMobile, hasTouch } = info.project.use;
   const dir = path.join(SHOTS, `video-${info.project.name}`);
   const ctx = await browser.newContext({ viewport, isMobile, hasTouch, deviceScaleFactor: 1, recordVideo: { dir, size: viewport } });
   const page = await ctx.newPage();
   await page.goto(BASE);
-  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 70000 });
+  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 150000 });
   metrics.untouched_ms = await hero(page, 'ended');
   await page.waitForTimeout(1500);
   const video = page.video();
   await ctx.close();
   fs.renameSync(await video.path(), path.join(SHOTS, `${info.project.name}-run-untouched.webm`));
   fs.rmSync(dir, { recursive: true, force: true });
-  expect(metrics.untouched_ms).toBeLessThan(50000);
+  expect(metrics.untouched_ms).toBeGreaterThan(95000);
+  expect(metrics.untouched_ms).toBeLessThan(115000);
 });
 
 test('keyboard: Tab reaches each gesture and Enter performs it', async ({ page }, info) => {
@@ -458,7 +471,7 @@ test('keyboard: Tab reaches each gesture and Enter performs it', async ({ page }
   await waitGesture(page, 'mark', 8000);
   await expect(page.locator('.btn-mark')).toBeFocused();
   await page.keyboard.press('Enter');
-  await waitGesture(page, 'scrub', 20000);
+  await waitGesture(page, 'scrub', 40000);
   await expect(page.locator('.btn-scrub')).toBeFocused();
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => window.__zoeHero.act === 4);

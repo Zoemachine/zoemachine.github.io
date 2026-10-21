@@ -118,12 +118,17 @@ function track(event, data) {
   const DRAG_FULL_PX = 220;    // upward travel for a full open
   const SNAP_AT = 0.4;         // release past this opens, below shuts
   const PLAY_MS = 900;         // tap / click / wheel / key: frames 1 -> 45
-  const IDLE_FIRST_MS = 6000;  // gesture 1 auto-performs after this long with no input
-  const IDLE_LATER_MS = 4000;  // gestures 2-4
+  const IDLE_FIRST_MS = 18000; // gesture 1 auto-performs after this long with no input
+  const IDLE_LATER_MS = 12000; // gestures 2-4
   const TAP_SLOP_PX = 8;
   const FLICK_PX_PER_MS = 0.6; // upward release speed that opens regardless of distance
-  const TYPE_MS = 12;          // per character
-  const SWEEP_MS = 1600;
+  // Pacing: the reading side (typing, holds, pauses) runs at half speed; the animations keep their durations.
+  const TYPE_MS = 24;          // per character
+  const SWEEP_MS = 1600;       // keep in step with .sweep.is-running in styles.css
+  const HOLD = 2;              // reading time: every spoken line and the pauses between beats
+  const MOTION = 1;            // the file web, the streams, the six-file packet, the card flight, the rehydration
+  const KEY_LINE_MS = 3000;    // the catch and the fix stay on screen at least this long
+  const VIEW_K = 0.62;         // viewfinder scale: the page as the phone's camera sees it
 
   // Height of the lid's bright top edge per frame, % of frame height from the top
   // (measured on the 1280 set; 100 = lid still flat). Mid-swing the edge rises
@@ -276,7 +281,9 @@ function track(event, data) {
   }
 
   // Reading time after a line has typed.
-  const dwell = (line) => 220 + plain(line).length * 8;
+  const dwell = (line) => HOLD * (220 + plain(line).length * 8);
+  const beat = (ms) => wait(ms * HOLD);
+  const motion = (ms) => wait(ms * MOTION);
 
   const maxMsgs = () => (portraitMQ.matches ? 3 : 4);
 
@@ -413,13 +420,14 @@ function track(event, data) {
 
     if (portrait) {
       // Act I: the term sheet above the laptop, the phone below it.
-      const sw = 0.15 * S.w;
-      g.sheet = { x: S.x + 0.335 * S.w, y: S.y + 0.33 * S.h, w: sw, h: sw * 1.29 };
-      const pw = 58;
+      const sw = 0.2 * S.w;
+      g.sheet = { x: S.x + 0.3 * S.w, y: S.y + 0.3 * S.h, w: sw, h: sw * 1.29 };
+      const pw = 76;
       const ph = pw * 2.05;
-      g.phone = { x: V / 2 + 22, y: Math.min(S.y + 0.86 * S.h, VH - 74 - ph), w: pw, h: ph };
+      g.phone = { x: V / 2 + 18, y: Math.min(S.y + 0.86 * S.h, VH - 74 - ph), w: pw, h: ph };
       g.laptop = { x0: S.x + 0.22 * S.w, x1: S.x + 0.78 * S.w, y0: S.y + 0.53 * S.h, y1: S.y + 0.8 * S.h };
-      g.bump = { x: V / 2, y: S.y + 0.55 * S.h - ph * 0.38 };
+      // Bump on the lid's right half, clear of the page above it.
+      g.bump = { x: Math.max(V / 2 + 0.1 * S.w, g.sheet.x + g.sheet.w + pw * 0.55), y: S.y + 0.6 * S.h };
       const below = scr.br.y + 12;
       g.zoe = { x: 12, y: below, w: V - 24 };
       g.labelFs = 17;
@@ -433,15 +441,17 @@ function track(event, data) {
       g.fan = { x: V / 2, y: scr.br.y };
       g.pills = { x: 12, y: camMode === 'end' ? stripR + cs * S.h * 0.93 : VH - 100, w: V - 24 };
     } else {
-      // On wide screens the paper and the phone are the subject of Act I: about 1.4x larger, lifted.
-      const big = V >= 900 ? 1.4 : 1;
-      const sw = 0.13 * big * S.w;
-      g.sheet = { x: S.x + (big > 1 ? 0.03 : 0.045) * S.w, y: S.y + (big > 1 ? 0.36 : 0.42) * S.h, w: sw, h: sw * 1.29 };
-      const pw = Math.min(110 * big, Math.max(70, 0.062 * big * S.w));
+      // On wide screens the paper and the phone are the subject of Act I: a page you could read,
+      // below the chat strip, and a phone big enough to frame a good part of it.
+      const big = V >= 900;
+      const sw = (big ? 0.22 : 0.13) * S.w;
+      g.sheet = { x: S.x + (big ? 0.025 : 0.045) * S.w, y: big ? Math.min(Math.max(S.y + 0.33 * S.h, 290), VH - 60 - sw * 1.29) : S.y + 0.42 * S.h, w: sw, h: sw * 1.29 };
+      const pw = big ? 0.1 * S.w : Math.max(70, 0.062 * S.w);
       const ph = pw * 2.05;
-      g.phone = { x: S.x + 0.86 * S.w - pw / 2, y: S.y + (big > 1 ? 0.37 : 0.38) * S.h, w: pw, h: ph };
+      g.phone = { x: S.x + 0.86 * S.w - pw / 2, y: S.y + (big ? 0.33 : 0.38) * S.h, w: pw, h: ph };
       g.laptop = { x0: S.x + 0.22 * S.w, x1: S.x + 0.78 * S.w, y0: S.y + 0.53 * S.h, y1: S.y + 0.8 * S.h };
-      g.bump = { x: S.x + 0.215 * S.w - pw * 0.32, y: S.y + 0.64 * S.h };
+      // Bump on the lid, just right of the page.
+      g.bump = { x: Math.max(S.x + 0.3 * S.w, g.sheet.x + g.sheet.w + pw * 0.6), y: S.y + 0.62 * S.h };
       const x0 = scr.br.x + 0.012 * S.w;
       const x1 = S.x + 0.79 * S.w;
       const y = at(0, 0.5).y;
@@ -463,6 +473,10 @@ function track(event, data) {
     phone.style.setProperty('--vy', `${(g.sheet.y - g.phone.y - 0.045 * g.phone.h).toFixed(1)}px`);
     phone.style.setProperty('--vw', `${g.sheet.w.toFixed(1)}px`);
     phone.style.setProperty('--vh', `${g.sheet.h.toFixed(1)}px`);
+    // The camera sees the page smaller than life, so a good part of it fits in the frame.
+    phone.style.setProperty('--vk', String(VIEW_K));
+    phone.style.setProperty('--cx', `${(g.phone.w * 0.88 / 2).toFixed(1)}px`);
+    phone.style.setProperty('--cy', `${(g.phone.h * 0.91 / 2).toFixed(1)}px`);
     phone.style.setProperty('--sheet-fs', `${(g.sheet.w * 0.034).toFixed(2)}px`);
     place(zoe, g.zoe.x, g.zoe.y, g.zoe.w);
     place(cloud, g.cloud.x, g.cloud.y, g.cloud.w, g.cloud.h);
@@ -686,14 +700,14 @@ function track(event, data) {
   function snap() {
     if (phoneStage !== 0) return;
     phoneStage = 1;
-    // The shutter shrinks the viewfinder's page into the phone, where the captured card appears.
+    // The shutter: a flash, then the framed page straightens and settles inside the phone as the photo.
     const view = $('.phone-view', phone);
     const scr = $('.phone-screen', phone);
-    const k = (scr.clientWidth * 0.56) / Math.max(1, view.offsetWidth);
+    const k = (scr.clientWidth * 0.8) / Math.max(1, view.offsetWidth);
     view.style.transform = getComputedStyle(view).transform;
     void view.offsetWidth;
     view.classList.add('is-captured');
-    view.style.transform = `translate(${((scr.clientWidth - view.offsetWidth) / 2).toFixed(1)}px, ${((scr.clientHeight * 0.94 - view.offsetHeight) / 2).toFixed(1)}px) scale(${k.toFixed(3)})`;
+    view.style.transform = `translate(${((scr.clientWidth - view.offsetWidth * k) / 2).toFixed(1)}px, ${((scr.clientHeight * 0.86 - view.offsetHeight * k) / 2).toFixed(1)}px) scale(${k.toFixed(3)})`;
     phone.classList.add('is-snapped');
     $('.phone-flash', phone).classList.add('is-on');
     sheet.classList.add('is-flash');
@@ -719,12 +733,12 @@ function track(event, data) {
       { transform: f0, opacity: 1 },
       { transform: f1, opacity: 1, offset: 0.8 },
       { transform: f1, opacity: 0 },
-    ], { duration: 820, easing: 'cubic-bezier(0.5, 0, 0.3, 1)' });
+    ], { duration: 820 * MOTION, easing: 'cubic-bezier(0.5, 0, 0.3, 1)' });
     const t = setTimeout(() => {
       rim.classList.remove('is-glowing');
       void rim.offsetWidth;
       rim.classList.add('is-glowing');
-    }, RM ? 0 : 600);
+    }, RM ? 0 : 600 * MOTION);
     run.timers.add(t);
     // The local hand-over label: phone → laptop centre.
     const tw = transfer.offsetWidth;
@@ -739,11 +753,11 @@ function track(event, data) {
       { transform: p1, opacity: 1, offset: 0.4 },
       { transform: p1, opacity: 1, offset: 0.85 },
       { transform: p1, opacity: 0 },
-    ], { duration: 1900, easing: 'ease-in-out' });
-    await wait(340);
+    ], { duration: 1900 * MOTION, easing: 'ease-in-out' });
+    await wait(340 * MOTION);
     phone.classList.add('is-dropping');
     sheet.classList.add('is-gone');
-    await wait(500);
+    await wait(500 * MOTION);
     pulse.then(() => { phone.hidden = true; });
   }
 
@@ -759,7 +773,7 @@ function track(event, data) {
       const s = geo.sheet;
       await glideTo({ x: s.x + s.w / 2, y: s.y + s.h / 2 }, 460);
       snap();
-      await wait(380);
+      await wait(380 * HOLD);
     }
     await glideTo(geo.bump, 420);
     await bump();
@@ -791,7 +805,8 @@ function track(event, data) {
     const c = phoneCenter();
     // The shutter fires once the phone is well over the page, so the viewfinder is seen first.
     if (phoneStage === 0 && inside(c, sheetBox(), -14)) snap();
-    else if (phoneStage === 1 && inside(c, geo.laptop, 10)) {
+    // The bump needs the phone on the laptop and clear of the page it just photographed.
+    else if (phoneStage === 1 && inside(c, geo.laptop, 10) && !inside(c, sheetBox(), 12)) {
       phoneDrag = null;
       phone.classList.remove('is-dragging');
       gestureNow && gestureNow.perform('drag');
@@ -1198,12 +1213,12 @@ function track(event, data) {
       cards[i].classList.add('is-in');
       counters.forEach((n) => { n.textContent = String(i + 1); });
       if (i === 6) svg.classList.add('is-on');
-      if (!RM && i % 4 === 3) await wait(40);
+      if (!RM && i % 4 === 3) await motion(40);
     }
-    await wait(400);
+    await motion(400);
     cards.forEach((c) => { c.style.transform = ''; });
     svg.classList.remove('is-on');
-    await wait(700);
+    await motion(700);
   }
 
   function flashFiles() {
@@ -1239,21 +1254,21 @@ function track(event, data) {
       c.classList.add('is-in');
       c.style.transform = spread;
     });
-    await wait(420);
+    await motion(420);
     cards.forEach((c) => c.classList.add('is-blue'));
-    await wait(300);
+    await motion(300);
     cards.forEach((c) => { c.style.transform = ''; c.classList.remove('is-in'); });
     packet.classList.add('is-in');
     await wait(60);
     packet.style.transform = `translate(${vec.x}px, ${vec.y}px)`;
-    await wait(900);
+    await motion(900);
     packet.classList.remove('is-in');
   }
 
   async function rehydrate() {
     const draft = ws('.draft');
     draft.classList.add('is-in');
-    await wait(800);
+    await motion(800);
     draft.querySelectorAll('.pii').forEach((el) => {
       el.classList.remove('is-masked');
       el.classList.add('is-real');
@@ -1352,13 +1367,13 @@ function track(event, data) {
   async function story() {
     // Act I — the ambush and the snap (lines type fast; each stays up until the next replaces it)
     setAct(1);
-    await wait(200);
+    await beat(200);
     await say('jimmy', 'jimmy1');
     await say('bob', 'bob1');
     const bubble3 = say('jimmy', 'jimmy2', false);
-    await wait(150);
+    await beat(150);
     sheet.classList.add('is-in');
-    await wait(250);
+    await beat(250);
     phone.classList.add('is-in');
     setCue();
     // Each gesture is armed as soon as its prompt appears; its idle clock starts then.
@@ -1370,7 +1385,7 @@ function track(event, data) {
     // Act II — open the laptop, pull the plug
     setAct(2);
     const thoughts = think('snapped').then(() => think('noTrust', false));
-    await wait(300);
+    await beat(300);
     camera('center');
     let g2 = Promise.resolve();
     if (!RM) {
@@ -1380,14 +1395,14 @@ function track(event, data) {
     }
     await Promise.all([thoughts, g2]);
     mountScreen();
-    await wait(250);
+    await beat(250);
     wifi(false);                                   // OFF before any ZOE line
-    await wait(200);
+    await beat(200);
     camera('zoom');
     await think('wifiOff', false);
     zoe.classList.add('is-in');
     zoeWorking(true);
-    await wait(450);
+    await beat(450);
 
     // Act III — local work, offline
     setAct(3);
@@ -1404,16 +1419,16 @@ function track(event, data) {
     }, mark);
     await Promise.all([look, g3]);
     await zoeSay('marked', false);
-    await wait(450);
+    await beat(250);
     zoeWorking(true);
     const found = zoeSay('found', false);
     await vaultWeb();
     await found;
     zoeWorking(false);
     ws('.card-t').classList.add('is-in');
-    await wait(120);
+    await beat(120);
     ws('.card-p').classList.add('is-in');
-    const thought = wait(500).then(() => think('conserv', false));
+    const thought = beat(500).then(() => think('conserv', false));
     await zoeSay('loaded');
     await thought;
     const scrub = ws('.btn-scrub');
@@ -1435,21 +1450,21 @@ function track(event, data) {
     zoeWorking(false);
     await zoeSay('cleaned', false);
     wifi(true);                                    // ON after the scrub, never before
-    await wait(350);
+    await beat(350);
     if (!geo.portrait) {
       zoe.classList.remove('is-in');
-      await wait(250);
+      await beat(250);
     }
     clearStrip();
     camera('slide');
     $('.zoe-say', zoe).textContent = '';
     zoe.classList.add('is-in');
     cloud.classList.add('is-in');
-    await wait(400);
+    await beat(400);
     stream.classList.add('is-on', 'is-out');
     label.classList.add('is-on');
     await zoeSay('toCloud', false);
-    await wait(450);
+    await beat(450);
     track('reached_cloud');
     stream.classList.remove('is-out');
     cloud.classList.add('is-busy');
@@ -1457,22 +1472,25 @@ function track(event, data) {
     zoeWorking(true);
     ripple();
     await zoeSay('search', false);
-    await wait(350);
-    await zoeSay('shell');
+    await beat(350);
+    // The catch: ZOE's line stays up at least 3 s.
+    await zoeSay('shell', false);
+    await wait(Math.max(KEY_LINE_MS, dwell(LINES.shell)));
     const redacting = zoeSay('redact', false);
     await sendFiles();
     await redacting;
     zoeWorking(false);
+    // The fix: the cloud's line stays up at least 3 s while the draft streams back.
     const fix = cloudSay('fix', false);
     stream.classList.add('is-back');
-    await wait(900);
     await fix;
+    await wait(Math.max(KEY_LINE_MS, 900 * MOTION));
     stream.classList.remove('is-back');
     cloud.classList.remove('is-busy');
     await rehydrate();
-    await wait(300);
+    await beat(300);
     await think('caught', false);
-    await wait(800);
+    await wait(dwell(LINES.caught));
     if (RM) await gesture('act5', 0, async () => {});
 
     // Act V — ten minutes are up
@@ -1483,12 +1501,12 @@ function track(event, data) {
     zoe.classList.remove('is-in');
     clearStrip();
     camera(geo.portrait ? 'end' : 'home');
-    await wait(450);
+    await beat(300);
     await say('jimmy', 'jimmy3');
     await say('bob', 'bob3');
     await say('jimmy', 'jimmy4');
     await say('bob', 'bob4', false);
-    await wait(300);
+    await beat(300);
     endPills();
     storyEndedAt = performance.now();
   }
