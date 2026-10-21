@@ -18,7 +18,7 @@
 </head>
 <body>
   <main>
-    <section class="stage" data-state="0" tabindex="-1" aria-label="ZOE AI demonstration">
+    <section class="stage" data-act="0" tabindex="-1" aria-label="ZOE AI demonstration">
       <h1 class="visually-hidden">ZOE AI</h1>
 
       <div class="scene">
@@ -32,41 +32,83 @@
         <p class="tagline">Safe. Sovereign. System-bound.</p>
 
         <div class="lip" aria-hidden="true"></div>
+        <div class="rim" aria-hidden="true"></div>
         <div class="cue" aria-hidden="true">
           <span class="chev"><svg viewBox="0 0 24 12"><path d="M2 11 12 2l10 9" fill="none" stroke="#bfe0ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           <span class="chev"><svg viewBox="0 0 24 12"><path d="M2 11 12 2l10 9" fill="none" stroke="#bfe0ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
           <span class="chev"><svg viewBox="0 0 24 12"><path d="M2 11 12 2l10 9" fill="none" stroke="#bfe0ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         </div>
 
+        <!-- The live screen: the workspace is built by hero.js when frame 45 lands. -->
         <div class="screen" hidden></div>
 
-        <div class="lid-hit" role="button" tabindex="0" aria-label="Open the laptop"></div>
+        <div class="lid-hit" role="button" tabindex="-1" aria-label="Open the laptop" aria-disabled="true"></div>
       </div>
 
-      <div class="docs" aria-hidden="true">
-        <div class="docs-pile">
-          <div class="doc-card"></div>
-          <div class="doc-card"></div>
-          <div class="doc-card"></div>
-        </div>
-        <p class="docs-label">Client Documents</p>
-      </div>
+      <!-- Act pieces, filled by hero.js from the constants at its top. -->
+      <div class="strip" aria-hidden="true"></div>
+      <div class="sheet" aria-hidden="true"></div>
+      <div class="phone" role="button" tabindex="-1" aria-label="Photograph the term sheet and hand it to the laptop" hidden></div>
+      <div class="transfer" aria-hidden="true">Local transfer · no cloud</div>
+      <div class="zoe" aria-hidden="true"></div>
+      <div class="cloud" aria-hidden="true"></div>
+      <div class="stream" aria-hidden="true"><span class="stream-flow"></span><span class="stream-back"></span></div>
+      <p class="stream-label" aria-hidden="true">MASKED INFORMATION · NO PII</p>
+      <div class="fan" aria-hidden="true"></div>
+      <div class="pills"></div>
+      <div class="inspect" hidden></div>
 
-      <p class="narration" aria-hidden="true"></p>
-      <p class="visually-hidden" id="narration-live" aria-live="polite"></p>
+      <ol class="progress" aria-label="Story progress">
+        <li>Act 1</li><li>Act 2</li><li>Act 3</li><li>Act 4</li><li>Act 5</li>
+      </ol>
+      <p class="footnote">Illustrative demonstration</p>
+      <a class="skip" href="#how">Skip to how it works <span aria-hidden="true">↓</span></a>
+      <p class="visually-hidden" id="live" aria-live="polite"></p>
 
       <noscript>
         <style>
-          .poster img, .lid, .cue, .lip, .lid-hit { display: none; }
-          .docs { opacity: 1; transform: none; }
-          .tagline, .docs { z-index: 1; }
+          .poster img, .lid, .cue, .lip, .lid-hit, .progress { display: none; }
+          .tagline { z-index: 1; }
         </style>
         <img class="noscript-open" src="assets/frames/1280/lid_45.webp" width="1280" height="720" alt="An open silver laptop under the ZOE AI wordmark">
-        <p class="narration">ZOE runs on the laptop you already own.</p>
       </noscript>
-
-      <a class="skip" href="#how">Skip to how it works <span aria-hidden="true">↓</span></a>
     </section>
+
+    <noscript>
+      <section class="story-text" aria-label="The story, as text">
+        <h2>Act I · The ambush</h2>
+        <p><b>Jimmy:</b> Bob. They're buying us out. Term sheet's in my hand.</p>
+        <p><b>Bob:</b> Right now? We're in THEIR OFFICE.</p>
+        <p><b>Jimmy:</b> Momentum, Bob. Draft the agreement. You have 10 MINUTES.</p>
+        <p><i>Bob photographs the term sheet; the phone hands it to the laptop. Local transfer · no cloud.</i></p>
+        <p><b>Bob (thinking):</b> Picture taken. Into the laptop.</p>
+        <h2>Act II · Open the laptop, pull the plug</h2>
+        <p><b>Bob (thinking):</b> I don't trust their Wi-Fi. Going local.</p>
+        <p><b>Bob (thinking):</b> Wi-Fi off. Let's go.</p>
+        <h2>Act III · Local work, offline</h2>
+        <p><b>ZOE:</b> Looks like a term sheet. Let's mark the confidential data first.</p>
+        <p><b>ZOE:</b> Marked. Nothing has left this laptop.</p>
+        <p><b>ZOE:</b> Found 28 files on this client in your vault.</p>
+        <p><b>ZOE:</b> Loaded your firm's buyout template and the conservative seller playbook.</p>
+        <p><b>Bob (thinking):</b> Conservative to start. We'll see what they come back with.</p>
+        <p><b>ZOE:</b> To draft, I need the frontier AI. I'll clean the data before the Wi-Fi comes back.</p>
+        <h2>Act IV · The scrub and the round trip</h2>
+        <p><b>ZOE:</b> Data cleaned. Wi-Fi on.</p>
+        <p><i>MASKED INFORMATION · NO PII</i></p>
+        <p><b>ZOE:</b> Masked term sheet, template, playbook. Draft the agreement.</p>
+        <p><b>Frontier AI:</b> Drafting. Who is [ORG_5]? Send what you have.</p>
+        <p><b>ZOE:</b> Searching the vault…</p>
+        <p><b>ZOE:</b> [ORG_5] is an empty shell. [ORG_6] is the parent. [ORG_6] is not in this deal.</p>
+        <p><b>ZOE:</b> Redacting 6 files. Sent.</p>
+        <p><b>Frontier AI:</b> Adding [ORG_6]: parent guaranty, indemnification. Draft returning.</p>
+        <p><b>Bob (thinking):</b> They left the parent off the hook. Caught it.</p>
+        <h2>Act V · Ten minutes are up</h2>
+        <p><b>Jimmy:</b> Ten minutes. Tell me you've got something.</p>
+        <p><b>Bob:</b> Draft's done. And their shell left the parent off the hook. It's in now.</p>
+        <p><b>Jimmy:</b> …How?</p>
+        <p><b>Bob:</b> ZOE.</p>
+      </section>
+    </noscript>
 
     <section class="how" id="how">
       <h2>How does it work</h2>
