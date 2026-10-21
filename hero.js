@@ -9,36 +9,45 @@ const ANALYTICS_ENDPOINT = '';
 // All parties, numbers, addresses and dates are invented. `mask` is what the frontier AI sees:
 // names and addresses become stable tokens, numbers and dates become format-preserving dummies.
 const PARTIES = {
-  seller:  { real: 'Kestrel Robotics Inc.',    mask: '[ORG_1]' },
-  address: { real: '1400 Kestrel Lane',        mask: '[ADDRESS_1]' },
-  buyer:   { real: 'Meridian Acquisition LLC', mask: '[ORG_5]' },
-  parent:  { real: 'Meridian Holdings LLC',    mask: '[ORG_6]' },
-  signer:  { real: 'Jane R. Okonkwo',          mask: '[PERSON_1]' },
-  price:   { real: '$45,000,000',              mask: '$18,200,000' },
-  signing: { real: 'November 6, 2026',         mask: 'August 21, 2026' },
-  outside: { real: 'January 15, 2027',         mask: 'March 2, 2027' },
-  ein:     { real: '84-2219876',               mask: '31-7748205' },
-  escrow:  { real: '4417-0093-2281',           mask: '7302-5518-0946' },
+  seller:    { real: 'Kestrel Robotics Inc.',          mask: '[ORG_1]' },
+  escrowCo:  { real: 'Harborline Trust Company',       mask: '[ORG_2]' },
+  lender:    { real: 'Lakeshore Capital Partners LP',  mask: '[ORG_3]' },
+  landlord:  { real: 'Vantage Row Properties LLC',     mask: '[ORG_4]' },
+  buyer:     { real: 'Meridian Acquisition LLC',       mask: '[ORG_5]' },
+  parent:    { real: 'Meridian Holdings LLC',          mask: '[ORG_6]' },   // never on the sheet: that absence is the catch
+  signer:    { real: 'Jane R. Okonkwo',                mask: '[PERSON_1]' },
+  cto:       { real: 'Daniel Park',                    mask: '[PERSON_2]' },
+  address:   { real: '1400 Kestrel Lane',              mask: '[ADDRESS_1]' },
+  premises:  { real: '88 Vantage Row, Suite 400',      mask: '[ADDRESS_2]' },
+  price:     { real: '$45,000,000',                    mask: '$18,200,000' },
+  escrowAmt: { real: '$4,500,000',                     mask: '$2,750,000' },
+  earnout:   { real: '$6,000,000',                     mask: '$3,400,000' },
+  debt:      { real: '$30,000,000',                    mask: '$11,500,000' },
+  retention: { real: '$750,000',                       mask: '$420,000' },
+  signing:   { real: 'November 6, 2026',               mask: 'August 21, 2026' },
+  outside:   { real: 'January 15, 2027',               mask: 'March 2, 2027' },
+  earnEnd:   { real: 'December 31, 2027',              mask: 'October 31, 2028' },
+  ein:       { real: '84-2219876',                     mask: '31-7748205' },
+  escrow:    { real: '4417-0093-2281',                 mask: '7302-5518-0946' },
 };
 
 // The term sheet as it appears on the paper, in the editor and in the inspect view.
-// {key} is a party from PARTIES; [label, text].
+// [section, text]; {key} is a party from PARTIES. Everything else is generic deal language and is
+// deliberately left as it is when the sheet is masked, so the viewer sees what is not removed.
 const TERM_SHEET = [
-  ['Seller', '{seller}, {address}'],
-  ['Buyer', '{buyer}, a newly formed Delaware LLC'],
-  ['Price', '{price} cash'],
-  ['Signing', '{signing}'],
-  ['Outside date', '{outside}'],
-  ['EIN', '{ein}'],
-  ['Escrow', '{escrow}'],
+  ['Parties', 'Seller: {seller}, {address} (EIN {ein}). Buyer: {buyer}, a newly formed Delaware limited liability company.'],
+  ['Structure', 'Purchase of all outstanding shares of the Seller; cash-free, debt-free, with a normalized level of working capital.'],
+  ['Purchase Price', '{price} in cash at closing, subject to customary working capital adjustments.'],
+  ['Escrow', '{escrowAmt} held by {escrowCo} for 18 months as security for indemnification, escrow account {escrow}.'],
+  ['Earn-out', 'Up to {earnout} payable on revenue milestones through {earnEnd}.'],
+  ['Financing', 'Buyer to deliver a debt commitment letter from {lender} for {debt} before signing.'],
+  ['Key Employees', '{cto}, Chief Technology Officer, to sign a new employment agreement with a {retention} retention bonus.'],
+  ['Conditions', 'Consent of {landlord} to assignment of the lease at {premises}; customary regulatory approvals.'],
+  ['Exclusivity', '45 days from signing of this term sheet.'],
+  ['Confidentiality', 'The parties\u2019 existing confidentiality agreement continues to apply.'],
+  ['Governing Law', 'Delaware.'],
+  ['Non-binding', 'Not binding except Exclusivity, Confidentiality and Governing Law. Target signing {signing}; outside date {outside}.'],
   ['For Buyer', '{signer}'],
-];
-
-// Boilerplate that fills out the paper; nothing confidential in it.
-const SHEET_FILLER = [
-  'Exclusivity: thirty days from signing.',
-  'Conditions: key employee agreements and customary approvals.',
-  'Governing law: Delaware. Non-binding except exclusivity and confidentiality.',
 ];
 
 // What comes back from the frontier AI. `ins` lines are tracked insertions.
@@ -57,6 +66,16 @@ const SENT_FILES = [
   'Earlier letter of intent · {parent}',
   'Board consent · {seller}',
   'Disclosure schedule · {seller}',
+];
+
+// The frontier models named under the cloud, as their product marks (24×24 paths).
+// Marks from simple-icons (CC0): Claude and Google Gemini from v16.34.0; OpenAI (ChatGPT's mark) from v13.21.0;
+// Microsoft from v11.15.0, standing in for Copilot because no free Copilot mark exists. Trademarks of their owners.
+const PROVIDERS = [
+  { name: 'ChatGPT', owner: 'OpenAI', hex: '#10A37F', d: 'M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z' },
+  { name: 'Claude', owner: 'Anthropic', hex: '#D97757', d: 'm4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z' },
+  { name: 'Gemini', owner: 'Google', hex: '#8E75B2', d: 'M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81' },
+  { name: 'Copilot', owner: 'Microsoft', hex: '#00A4EF', d: 'M0 0v11.408h11.408V0zm12.594 0v11.408H24V0zM0 12.594V24h11.408V12.594zm12.594 0V24H24V12.594z' },
 ];
 
 const VAULT_COUNT = 28;
@@ -96,7 +115,6 @@ const UI = {
   playbook: ['Playbook', 'Seller, conservative'],
   pills: { how: 'How does it work? ↓', inspect: 'Inspect what left the laptop', replay: 'Replay', back: 'Back', next: 'Next ›' },
   cloudName: 'any frontier model the firm chooses',
-  cloudFirms: 'OpenAI · Anthropic · Google · Microsoft',
 };
 
 function track(event, data) {
@@ -115,19 +133,23 @@ function track(event, data) {
 
   // ---------- Tuning ----------
   const FRAMES = 45;
-  const DRAG_FULL_PX = 220;    // upward travel for a full open
+  const DRAG_FULL_PX = 320;    // upward travel for a full open: a real lid's lift, not a switch
+  const DRAG_FOLLOW = 0.25;    // per frame, the lid closes this share of the gap to the finger
   const SNAP_AT = 0.4;         // release past this opens, below shuts
-  const PLAY_MS = 900;         // tap / click / wheel / key: frames 1 -> 45
-  // Text pacing is half the speed of the live build (65f49a9): typing, holds and the pauses between
-  // lines and beats take TEXT_PACE times as long. Animation durations are unchanged. Every wait for a
-  // visitor's gesture is 3x the live value.
-  const TEXT_PACE = 2;
-  const IDLE_FIRST_MS = 18000; // gesture 1 auto-performs after this long with no input (live 6 s)
-  const IDLE_LATER_MS = 12000; // the hand-over to the laptop, and gestures 2-4 (live 4 s)
+  const PLAY_MS = 1800;        // tap / click / wheel / key: frames 1 -> 45, ease-in-out
+  const RELEASE_MS = 1200;     // after a drag: finish opening, or settle shut, ease-out
+  const IDLE_FIRST_MS = 18000; // gesture 1 auto-performs after this long with no input
+  const IDLE_LATER_MS = 12000; // the hand-over to the laptop, and gestures 2-4
   const TAP_SLOP_PX = 8;
   const FLICK_PX_PER_MS = 0.6; // upward release speed that opens regardless of distance
-  const TYPE_MS = 12 * TEXT_PACE; // per character
-  const SWEEP_MS = 1600;
+  // Pacing: the reading side (typing, holds, pauses) runs at half speed; the animations keep their durations.
+  const TYPE_MS = 24;          // per character
+  const SWEEP_MS = 1600;       // keep in step with .sweep.is-running in styles.css
+  const SCROLL_MS = 450;       // the editor scrolling to the next screen of the sheet (styles.css .ed-page)
+  const HOLD = 2;              // reading time: every spoken line and the pauses between beats
+  const MOTION = 1;            // the file web, the streams, the six-file packet, the card flight, the rehydration
+  const KEY_LINE_MS = 3000;    // the catch and the fix stay on screen at least this long
+  const SHEET_TYPE = 0.025;    // the paper's type size, as a share of its width: a full page of small type
   const CAPTURE_HOLD_MS = 1100; // the captured page shows in the phone before the laptop comes in
   const LAPTOP_IN_MS = 1100;    // the laptop's slide in from the right (the .scene translate in styles.css)
 
@@ -220,9 +242,6 @@ function track(event, data) {
     });
   }
 
-  // A pause between lines or beats, written at the live value; text pacing stretches it.
-  const pause = (ms) => wait(ms * TEXT_PACE);
-
   function cancelRun() {
     run.cancelled = true;
     run.timers.forEach(clearTimeout);
@@ -287,7 +306,9 @@ function track(event, data) {
   }
 
   // Reading time after a line has typed.
-  const dwell = (line) => (220 + plain(line).length * 8) * TEXT_PACE;
+  const dwell = (line) => HOLD * (220 + plain(line).length * 8);
+  const beat = (ms) => wait(ms * HOLD);
+  const motion = (ms) => wait(ms * MOTION);
 
   const maxMsgs = () => (portraitMQ.matches ? 3 : 4);
 
@@ -464,7 +485,7 @@ function track(event, data) {
   function fitPaper(w) {
     const title = `${(w * 0.05).toFixed(2)}px`;
     const floor = w * 0.012;
-    let fs = w * 0.026;
+    let fs = w * SHEET_TYPE;
     const set = () => [sheet, phone, fly].forEach((el) => {
       el.style.setProperty('--sheet-fs', `${fs.toFixed(2)}px`);
       el.style.setProperty('--sheet-title', title);
@@ -583,8 +604,7 @@ function track(event, data) {
   function buildSheet() {
     sheet.className = 'sheet paper';
     sheet.innerHTML = `<h4>TERM SHEET</h4>` +
-      TERM_SHEET.map(([k, v]) => `<p><b>${esc(k)}:</b> ${esc(fill(v, 'real'))}</p>`).join('') +
-      SHEET_FILLER.map((t) => `<p>${esc(t)}</p>`).join('') +
+      TERM_SHEET.map(([k, v]) => `<p><b>${esc(k)}.</b> ${esc(fill(v, 'real'))}</p>`).join('') +
       '<div class="type"></div>';
   }
 
@@ -609,11 +629,13 @@ function track(event, data) {
 
   function buildCloud() {
     cloud.className = 'cloud';
-    cloud.innerHTML = `<div class="cloud-glow"></div><p class="cloud-name">${esc(UI.cloudName)}</p><p class="cloud-firms">${esc(UI.cloudFirms)}</p><p class="cloud-say"></p>`;
+    const marks = PROVIDERS.map((p) =>
+      `<li class="mark" style="--brand:${p.hex}" role="img" aria-label="${esc(p.name)}" data-name="${esc(p.name)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${p.d}"/></svg></li>`).join('');
+    cloud.innerHTML = `<div class="cloud-glow"></div><p class="cloud-name">${esc(UI.cloudName)}</p><ul class="cloud-marks">${marks}</ul><p class="cloud-say" aria-hidden="true"></p>`;
   }
 
   function buildWorkspace() {
-    const doc = TERM_SHEET.map(([k, v]) => `<p><span class="k">${esc(k)}</span> ${piiHtml(v)}</p>`).join('');
+    const doc = TERM_SHEET.map(([k, v]) => `<p><span class="k">${esc(k)}.</span> ${piiHtml(v)}</p>`).join('');
     const draft = DRAFT.map(([cls, v]) => `<p${cls ? ` class="${cls}"` : ''}>${piiHtml(v, 'mask')}</p>`).join('');
     screen.innerHTML = `
       <div class="ws">
@@ -861,12 +883,12 @@ function track(event, data) {
       { transform: f0, opacity: 1 },
       { transform: f1, opacity: 1, offset: 0.8 },
       { transform: f1, opacity: 0 },
-    ], { duration: 900, easing: 'cubic-bezier(0.5, 0, 0.3, 1)' });
+    ], { duration: 900 * MOTION, easing: 'cubic-bezier(0.5, 0, 0.3, 1)' });
     const t = setTimeout(() => {
       rim.classList.remove('is-glowing');
       void rim.offsetWidth;
       rim.classList.add('is-glowing');
-    }, RM ? 0 : 650);
+    }, RM ? 0 : 650 * MOTION);
     run.timers.add(t);
     // The local hand-over label: phone → laptop centre.
     const tw = transfer.offsetWidth;
@@ -881,14 +903,14 @@ function track(event, data) {
       { transform: p1, opacity: 1, offset: 0.4 },
       { transform: p1, opacity: 1, offset: 0.85 },
       { transform: p1, opacity: 0 },
-    ], { duration: 1900, easing: 'ease-in-out' });
+    ], { duration: 1900 * MOTION, easing: 'ease-in-out' });
     transferDone = pulse.then(() => { phone.hidden = true; });
-    await wait(340);
+    await wait(340 * MOTION);
     phone.classList.add('is-dropping');
     // The paper fades: it is in the laptop now.
-    const t2 = setTimeout(() => sheet.classList.add('is-gone'), 380);
+    const t2 = setTimeout(() => sheet.classList.add('is-gone'), 380 * MOTION);
     run.timers.add(t2);
-    await wait(500);
+    await wait(500 * MOTION);
   }
 
   async function phoneAuto(method) {
@@ -915,9 +937,10 @@ function track(event, data) {
 
   const insideXY = (p, b, px, py) => p.x > b.x0 - px && p.x < b.x1 + px && p.y > b.y0 - py && p.y < b.y1 + py;
   const sheetMid = () => ({ x: geo.sheet.x + geo.sheet.w / 2, y: geo.sheet.y + geo.sheet.h / 2 });
+  const pageBox = () => ({ x0: geo.sheet.x, x1: geo.sheet.x + geo.sheet.w, y0: geo.sheet.y, y1: geo.sheet.y + geo.sheet.h });
   // The shutter fires once the phone is well over the page, so the viewfinder is seen first.
-  const overPage = (c) => insideXY(c, { x0: geo.sheet.x, x1: geo.sheet.x + geo.sheet.w, y0: geo.sheet.y, y1: geo.sheet.y + geo.sheet.h },
-    -0.26 * geo.sheet.w, -0.22 * geo.sheet.h);
+  const overPage = (c) => insideXY(c, pageBox(), -0.26 * geo.sheet.w, -0.22 * geo.sheet.h);
+  const clearOfPage = (c) => !insideXY(c, pageBox(), 12, 12);
   // The phone reaches the laptop once its leading edge is well onto it.
   const overLaptop = (c) => (geo.portrait
     ? insideXY(c, geo.laptop, 0, 0.36 * geo.phone.h)
@@ -946,7 +969,8 @@ function track(event, data) {
     setPhoneOff(d.ox + dx, d.oy + dy);
     const c = phoneCenter();
     if (phoneStage === 0 && overPage(c)) snap();
-    else if (phoneStage === 1 && laptopReady && overLaptop(c)) {
+    // The bump needs the phone on the laptop and clear of the page it just photographed.
+    else if (phoneStage === 1 && laptopReady && overLaptop(c) && clearOfPage(c)) {
       phoneDrag = null;
       phone.classList.remove('is-dragging');
       gestureNow && gestureNow.perform('drag');
@@ -971,7 +995,7 @@ function track(event, data) {
       if (Math.hypot(c.x - s.x, c.y - s.y) < 0.75 * Math.max(geo.sheet.w, geo.sheet.h)) glideTo(s, 360).then(snap, () => {});
       else glideTo({ x: geo.phone.x + geo.phone.w / 2, y: geo.phone.y + geo.phone.h / 2 }, 450).catch(() => {});
     } else if (phoneStage === 1) {
-      if (laptopReady && overLaptop(c)) gestureNow.perform('drag');
+      if (laptopReady && overLaptop(c) && clearOfPage(c)) gestureNow.perform('drag');
       // Let go elsewhere and it holds the picture where it is, unless that is the laptop's place or off the stage.
       else if (overLaptop(c) || offStage(c)) glideTo(s, 450).catch(() => {});
     }
@@ -1090,19 +1114,40 @@ function track(event, data) {
   }
 
   const easeOutCubic = (k) => 1 - Math.pow(1 - k, 3);
+  const easeInOutCubic = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 
   function cancelTween() {
     if (tweenRaf) cancelAnimationFrame(tweenRaf);
     tweenRaf = 0;
+    if (followRaf) cancelAnimationFrame(followRaf);
+    followRaf = 0;
   }
 
-  function tweenTo(target, ms, done) {
+  // While dragging, the lid trails the finger: each frame it closes a quarter of the gap.
+  let dragTarget = 0;
+  let followRaf = 0;
+  function follow() {
+    followRaf = 0;
+    const gap = dragTarget - progress;
+    progress = Math.abs(gap) < 0.002 ? dragTarget : progress + gap * DRAG_FOLLOW;
+    render();
+    if (drag && progress >= 1 && frames[FRAMES - 1]) {
+      const method = drag.type === 'mouse' ? 'drag-mouse' : 'drag';
+      drag = null;
+      lidDone = 'opening';
+      if (gestureNow && gestureNow.name === 'lid') gestureNow.perform(method);
+      return;
+    }
+    if (progress !== dragTarget) followRaf = requestAnimationFrame(follow);
+  }
+
+  function tweenTo(target, ms, done, ease = easeOutCubic) {
     cancelTween();
     const from = progress;
     const t0 = performance.now();
     const step = (now) => {
       const k = Math.min(1, (now - t0) / ms);
-      progress = from + (target - from) * easeOutCubic(k);
+      progress = from + (target - from) * ease(k);
       render();
       if (k < 1) {
         tweenRaf = requestAnimationFrame(step);
@@ -1140,16 +1185,18 @@ function track(event, data) {
     }
     lidDone = 'opening';
     stage.classList.add('cue-off');
-    const ms = Math.max(200, PLAY_MS * (1 - progress));
     const r = run;
-    tweenTo(1, ms, () => { if (!r.cancelled) landed(method); });
+    const done = () => { if (!r.cancelled) landed(method); };
+    // After a drag the lid finishes the lift it was given; a tap, click, wheel or key plays it whole.
+    if (/drag/.test(method) && progress > 0.02) tweenTo(1, RELEASE_MS, done, easeOutCubic);
+    else tweenTo(1, Math.max(400, PLAY_MS * (1 - progress)), done, easeInOutCubic);
   }
 
   function snapShut() {
-    tweenTo(0, Math.max(180, 520 * progress), () => {
+    tweenTo(0, Math.max(400, RELEASE_MS * progress), () => {
       if (lidArmed) stage.classList.remove('cue-off');
       armIdle();
-    });
+    }, easeOutCubic);
   }
 
   // Frame 45 has landed.
@@ -1180,6 +1227,7 @@ function track(event, data) {
     e.preventDefault();
     noteInput(e);
     cancelTween();
+    dragTarget = progress;
     drag = {
       id: e.pointerId, y0: e.clientY, x0: e.clientX, p0: progress, moved: false, type: e.pointerType,
       lastY: e.clientY, lastT: performance.now(), vy: 0,
@@ -1197,24 +1245,20 @@ function track(event, data) {
     }
     // The slop is subtracted so the lid starts from rest, but a fast first move keeps its distance.
     const travel = dy > 0 ? Math.max(0, dy - TAP_SLOP_PX) : dy;
-    progress = Math.min(1, Math.max(0, drag.p0 + travel / DRAG_FULL_PX));
+    dragTarget = Math.min(1, Math.max(0, drag.p0 + travel / DRAG_FULL_PX));
     const now = performance.now();
     drag.vy = (drag.lastY - e.clientY) / Math.max(1, now - drag.lastT); // px/ms, + is upward
     drag.lastY = e.clientY;
     drag.lastT = now;
-    requestRender();
-    if (progress >= 1 && frames[FRAMES - 1]) {
-      const method = drag.type === 'mouse' ? 'drag-mouse' : 'drag';
-      drag = null;
-      lidDone = 'opening';
-      if (gestureNow && gestureNow.name === 'lid') gestureNow.perform(method);
-    }
+    if (!followRaf) followRaf = requestAnimationFrame(follow);
   });
 
   function endDrag(e, cancelled) {
     if (!drag || e.pointerId !== drag.id) return;
     const d = drag;
     drag = null;
+    if (followRaf) cancelAnimationFrame(followRaf);
+    followRaf = 0;
     noteInput(e);
     if (!d.moved) {
       if (!cancelled) gestureNow && gestureNow.name === 'lid' && gestureNow.perform(d.type === 'mouse' ? 'click' : 'tap');
@@ -1222,7 +1266,8 @@ function track(event, data) {
     }
     // A quick upward flick opens even if it ends short of 40%.
     const flick = performance.now() - d.lastT < 100 && d.vy > FLICK_PX_PER_MS;
-    if (progress >= SNAP_AT || flick) gestureNow && gestureNow.name === 'lid' && gestureNow.perform(d.type === 'mouse' ? 'drag-mouse' : 'drag');
+    // The finger's position decides (the lid trails it slightly).
+    if (dragTarget >= SNAP_AT || flick) gestureNow && gestureNow.name === 'lid' && gestureNow.perform(d.type === 'mouse' ? 'drag-mouse' : 'drag');
     else snapShut();
   }
 
@@ -1303,23 +1348,46 @@ function track(event, data) {
     return { x, y, w: el.offsetWidth, h: el.offsetHeight };
   }
 
-  // The magnifier sweep: each item changes as the bar passes it.
+  // The magnifier sweep: each item changes as the bar passes it. The sheet is longer than the
+  // editor, so the page scrolls a screen at a time and the bar sweeps each screen, then scrolls back.
   async function sweep(apply) {
     const editor = ws('.editor');
+    const page = ws('.editor > .ed-page');
     const bar = ws('.sweep');
     const items = allPii();
     if (RM) { items.forEach(apply); return; }
     const ew = editor.clientWidth;
-    bar.classList.remove('is-running');
-    void bar.offsetWidth;
-    bar.classList.add('is-running');
-    items.forEach((el) => {
-      const o = offsetIn(el, editor);
-      const t = setTimeout(() => apply(el), ((o.x + o.w * 0.5) / ew) * SWEEP_MS);
-      run.timers.add(t);
-    });
-    await wait(SWEEP_MS + 150);
-    bar.classList.remove('is-running');
+    const viewH = editor.clientHeight - page.offsetTop;
+    const total = page.offsetHeight;
+    const step = Math.max(40, viewH - 24);
+    const passes = Math.max(1, Math.ceil((total - 24) / step));
+    const done = new Set();
+    for (let i = 0; i < passes; i += 1) {
+      const off = Math.min(i * step, Math.max(0, total - viewH));
+      if (i > 0) {
+        page.style.transform = `translateY(${-off}px)`;
+        await wait(SCROLL_MS);
+      }
+      bar.classList.remove('is-running');
+      void bar.offsetWidth;
+      bar.classList.add('is-running');
+      items.forEach((el) => {
+        if (done.has(el)) return;
+        const o = offsetIn(el, page);
+        const mid = o.y + o.h / 2;
+        if (mid < off || mid > off + viewH) return; // not on this screen
+        done.add(el);
+        const t = setTimeout(() => apply(el), ((o.x + o.w * 0.5) / ew) * SWEEP_MS);
+        run.timers.add(t);
+      });
+      await wait(SWEEP_MS + 150);
+      bar.classList.remove('is-running');
+    }
+    items.forEach((el) => { if (!done.has(el)) apply(el); });
+    if (passes > 1) {
+      page.style.transform = '';
+      await wait(SCROLL_MS);
+    }
   }
 
   const markItem = (el) => el.classList.add('is-amber');
@@ -1354,12 +1422,12 @@ function track(event, data) {
       cards[i].classList.add('is-in');
       counters.forEach((n) => { n.textContent = String(i + 1); });
       if (i === 6) svg.classList.add('is-on');
-      if (!RM && i % 4 === 3) await wait(40);
+      if (!RM && i % 4 === 3) await motion(40);
     }
-    await wait(400);
+    await motion(400);
     cards.forEach((c) => { c.style.transform = ''; });
     svg.classList.remove('is-on');
-    await wait(700);
+    await motion(700);
   }
 
   function flashFiles() {
@@ -1395,21 +1463,21 @@ function track(event, data) {
       c.classList.add('is-in');
       c.style.transform = spread;
     });
-    await wait(420);
+    await motion(420);
     cards.forEach((c) => c.classList.add('is-blue'));
-    await wait(300);
+    await motion(300);
     cards.forEach((c) => { c.style.transform = ''; c.classList.remove('is-in'); });
     packet.classList.add('is-in');
     await wait(60);
     packet.style.transform = `translate(${vec.x}px, ${vec.y}px)`;
-    await wait(900);
+    await motion(900);
     packet.classList.remove('is-in');
   }
 
   async function rehydrate() {
     const draft = ws('.draft');
     draft.classList.add('is-in');
-    await wait(800);
+    await motion(800);
     draft.querySelectorAll('.pii').forEach((el) => {
       el.classList.remove('is-masked');
       el.classList.add('is-real');
@@ -1505,15 +1573,15 @@ function track(event, data) {
 
   // ---------- The story ----------
 
-  // pause() is text pacing (the gaps between lines and beats); wait() lets an animation finish.
+  // beat() is reading time (the gaps between lines and beats); wait() and motion() let an animation finish.
   async function story() {
     // Act I — the ambush and the snap. A bare stage: the chat types dead centre, then makes room for the paper.
     setAct(1);
-    await pause(200);
+    await beat(200);
     await say('jimmy', 'jimmy1');
     await say('bob', 'bob1');
     await say('jimmy', 'jimmy2', false);
-    await pause(300);
+    await beat(300);
     stripTo('top');
     stage.dataset.open = 'sheet';
     layout();                                      // on portrait the paper sits under the strip's new place
@@ -1545,14 +1613,14 @@ function track(event, data) {
     }
     await Promise.all([thoughts, g2]);
     mountScreen();
-    await pause(250);
+    await beat(250);
     wifi(false);                                   // OFF before any ZOE line
-    await pause(200);
+    await beat(200);
     camera('zoom');
     await think('wifiOff', false);
     zoe.classList.add('is-in');
     zoeWorking(true);
-    await pause(450);
+    await beat(450);
 
     // Act III — local work, offline
     setAct(3);
@@ -1569,16 +1637,16 @@ function track(event, data) {
     }, mark);
     await Promise.all([look, g3]);
     await zoeSay('marked', false);
-    await pause(450);
+    await beat(250);
     zoeWorking(true);
     const found = zoeSay('found', false);
     await vaultWeb();
     await found;
     zoeWorking(false);
     ws('.card-t').classList.add('is-in');
-    await wait(120);
+    await beat(120);
     ws('.card-p').classList.add('is-in');
-    const thought = pause(500).then(() => think('conserv', false));
+    const thought = beat(500).then(() => think('conserv', false));
     await zoeSay('loaded');
     await thought;
     const scrub = ws('.btn-scrub');
@@ -1600,21 +1668,21 @@ function track(event, data) {
     zoeWorking(false);
     await zoeSay('cleaned', false);
     wifi(true);                                    // ON after the scrub, never before
-    await pause(350);
+    await beat(350);
     if (!geo.portrait) {
       zoe.classList.remove('is-in');
-      await wait(250);
+      await beat(250);
     }
     clearStrip();
     camera('slide');
     $('.zoe-say', zoe).textContent = '';
     zoe.classList.add('is-in');
     cloud.classList.add('is-in');
-    await wait(400);
+    await beat(400);
     stream.classList.add('is-on', 'is-out');
     label.classList.add('is-on');
     await zoeSay('toCloud', false);
-    await pause(450);
+    await beat(450);
     track('reached_cloud');
     stream.classList.remove('is-out');
     cloud.classList.add('is-busy');
@@ -1622,22 +1690,25 @@ function track(event, data) {
     zoeWorking(true);
     ripple();
     await zoeSay('search', false);
-    await pause(350);
-    await zoeSay('shell');
+    await beat(350);
+    // The catch: ZOE's line stays up at least 3 s.
+    await zoeSay('shell', false);
+    await wait(Math.max(KEY_LINE_MS, dwell(LINES.shell)));
     const redacting = zoeSay('redact', false);
     await sendFiles();
     await redacting;
     zoeWorking(false);
+    // The fix: the cloud's line stays up at least 3 s while the draft streams back.
     const fix = cloudSay('fix', false);
     stream.classList.add('is-back');
-    await wait(900);
     await fix;
+    await wait(Math.max(KEY_LINE_MS, 900 * MOTION));
     stream.classList.remove('is-back');
     cloud.classList.remove('is-busy');
     await rehydrate();
-    await pause(300);
+    await beat(300);
     await think('caught', false);
-    await pause(800);
+    await wait(dwell(LINES.caught));
     if (RM) await gesture('act5', 0, async () => {});
 
     // Act V — ten minutes are up
@@ -1648,12 +1719,12 @@ function track(event, data) {
     zoe.classList.remove('is-in');
     clearStrip();
     camera(geo.portrait ? 'end' : 'home');
-    await pause(450);
+    await beat(300);
     await say('jimmy', 'jimmy3');
     await say('bob', 'bob3');
     await say('jimmy', 'jimmy4');
     await say('bob', 'bob4', false);
-    await pause(300);
+    await beat(300);
     endPills();
     storyEndedAt = performance.now();
   }

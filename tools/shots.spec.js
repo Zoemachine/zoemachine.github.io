@@ -20,12 +20,14 @@ const isWide = (info) => info.project.name === 'wide';
 const RESTRICTED = JSON.parse(Buffer.from('W3sicmUiOiAiXFxiR0xpTkVSXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYkdlbW1hXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYk9jdGVuXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYlRlc3NlcmFjdFxcYiIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJSQUdcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJNQ1BcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJORVJcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJPQ1JcXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJ2ZWN0b3IiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiZW1iZWRkaW5nIiwgImNzIjogZmFsc2V9LCB7InJlIjogInRvb2wgY2FsbCIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJkZW5zZVxcYiIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJzcGFyc2VcXGIiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiQXJjdGljXFxiIiwgImNzIjogdHJ1ZX0sIHsicmUiOiAiU3BpZGVyID93ZWIiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiU3BpZGVyIEdyYXBoIiwgImNzIjogZmFsc2V9LCB7InJlIjogIk1hdHJ5b3Noa2EiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiU01GVlxcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIk1pc3Npb24gW0FCQ1JdXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogInRoZSBzcGluZSIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJDKD86MTB8WzAtOV0pXFxiIiwgImNzIjogdHJ1ZX0sIHsicmUiOiAiV2lsbGlhbSBXYXkiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiTGl0ZVxcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIlxcYlByb1xcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIlxcYjRCXFxiIiwgImNzIjogdHJ1ZX0sIHsicmUiOiAiemVybyB0cnVzdCIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJoYWxsdWNpbmF0IiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYm9ubHlcXGIiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiXFxiQm9hdFxcYiIsICJjcyI6IHRydWV9LCB7InJlIjogIlxcYktpdGNoZW5cXGIiLCAiY3MiOiB0cnVlfSwgeyJyZSI6ICJcXGJzY2FubmVkXFxiIiwgImNzIjogZmFsc2V9LCB7InJlIjogIlxcYmlQaG9uZSIsICJjcyI6IGZhbHNlfSwgeyJyZSI6ICJcXGJ0YWJsZXQiLCAiY3MiOiBmYWxzZX0sIHsicmUiOiAiemVybyBoYWxsdWNpbmF0aW9ucyIsICJjcyI6IGZhbHNlfV0=', 'base64').toString());
 // The hero's one device: allowed in the hero's Act I text (its no-JS line), forbidden below the hero and on the other pages.
 const PHONE = JSON.parse(Buffer.from('eyJyZSI6ICJcXGJwaG9uZXM/XFxiIiwgImFsbG93ZWRUZXh0IjogWyJ0aGUgcGhvbmUgaGFuZHMgaXQgdG8gdGhlIGxhcHRvcCJdfQ==', 'base64').toString());
+// Product names: the four frontier products under the cloud, in hero.js's PROVIDERS block and nowhere else.
+const PRODUCTS = JSON.parse(Buffer.from('eyJhbGxvd2VkSW4iOiAiaGVyby5qcyIsICJmcm9tIjogIi8vIFRoZSBmcm9udGllciBtb2RlbHMgbmFtZWQgdW5kZXIgdGhlIGNsb3VkIiwgInRvIjogIl07IiwgImFsbG93ZWQiOiBbIkNoYXRHUFQiLCAiQ2xhdWRlIiwgIkdlbWluaSIsICJDb3BpbG90Il0sICJmb3JiaWRkZW4iOiBbIlxcYkdQVC0/XFxkIiwgIlxcYkxsYW1hXFxiIiwgIlxcYk1pc3RyYWxcXGIiLCAiXFxiR3Jva1xcYiIsICJcXGJCYXJkXFxiIiwgIlxcYlNvbm5ldFxcYiIsICJcXGJPcHVzXFxiIiwgIlxcYkhhaWt1XFxiIiwgIlxcYkZhYmxlXFxiIiwgIlxcYkRlZXBTZWVrXFxiIiwgIlxcYlF3ZW5cXGIiXX0=', 'base64').toString());
 const SITE_FILES = ['index.html', 'styles.css', 'hero.js', 'pages.css', 'book-demo.html', 'nda.html',
   'tools/playwright.config.js', 'tools/make-site-images.js', 'tools/record-gif.js'];
 const SECTIONS = ['how', 'dataflow', 'workflows', 'evidence', 'why', 'servers', 'founder', 'advisory', 'contact', 'site-footer'];
 
 // All-caps words allowed on screen: AI and PII, plus names, mask tokens and emphasis that are not acronyms.
-const CAPS_OK = new Set(['AI', 'PII', 'ZOE', 'LLC', 'EIN', 'ORG', 'PERSON', 'ADDRESS', 'ON', 'OFF', 'NO',
+const CAPS_OK = new Set(['AI', 'PII', 'ZOE', 'LLC', 'LP', 'EIN', 'ORG', 'PERSON', 'ADDRESS', 'ON', 'OFF', 'NO',
   'THEIR', 'OFFICE', 'MINUTES', 'TERM', 'SHEET', 'MASKED', 'INFORMATION', 'MATTER']);
 
 async function open(page) {
@@ -52,7 +54,7 @@ async function runTo(page, name) {
 
 async function runToEnd(page) {
   await runTo(page, null);
-  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 60000 });
+  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 120000 });
 }
 
 async function center(page, sel) {
@@ -161,6 +163,26 @@ test('restricted words: none in the page, CSS, JS or comments', async ({}, info)
   expect(hits).toEqual([]);
 });
 
+test('product names: the four under the cloud, there and nowhere else', async ({}, info) => {
+  test.skip(!isWide(info), 'checked once');
+  const hits = [];
+  for (const f of SITE_FILES) {
+    let text = fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/data:image\/webp;base64,[^"]+/, '');
+    if (f === PRODUCTS.allowedIn) {
+      const a = text.indexOf(PRODUCTS.from);
+      const b = text.indexOf(PRODUCTS.to, a);
+      expect(a).toBeGreaterThan(-1);
+      text = text.slice(0, a) + text.slice(b);
+    }
+    PRODUCTS.allowed.concat(PRODUCTS.forbidden).forEach((w) => {
+      const re = new RegExp(w.startsWith('\\') ? w : `\\b${w}\\b`, 'g');
+      const m = text.match(re);
+      if (m) hits.push(`${f}: ${m[0]}`);
+    });
+  }
+  expect(hits).toEqual([]);
+});
+
 test('phone: named in the hero\'s Act I text and nowhere else', async ({}, info) => {
   test.skip(!isWide(info), 'checked once');
   const re = new RegExp(PHONE.re, 'gi');
@@ -192,7 +214,7 @@ test('Act I: a bare stage, the chat dead centre, then the strip moves and the pa
     return m.length === 3 && m[2].textContent.endsWith('10 MINUTES.');
   }, null, { timeout: 12000 });
   metrics.act1_chat_ms = Math.round((await page.evaluate(() => performance.now())) - t0);
-  expect(metrics.act1_chat_ms).toBeLessThan(8000);
+  expect(metrics.act1_chat_ms).toBeLessThan(7000);
   const pops = await page.$$eval('.strip .em.is-pop', (els) => els.map((e) => e.textContent));
   expect(pops).toEqual(['THEIR OFFICE', '10 MINUTES']);
   // Dead centre, and larger than the strip's own size.
@@ -235,7 +257,7 @@ test('Act I: drag the phone onto the term sheet, then into the laptop', async ({
   const sheetC = await center(page, '.sheet');
   const sheetBox = await page.locator('.sheet').boundingBox();
   const d = await startDrag(page, info, from);
-  // Half over the page's edge: the viewfinder shows the paper beneath, aligned with the real one.
+  // Half over the page's edge: the viewfinder shows the paper beneath, 1:1 and aligned with the real one.
   const edge = isWide(info)
     ? { x: sheetBox.x + sheetBox.width - 6, y: sheetC.y + 10 }
     : { x: sheetC.x + 8, y: sheetBox.y + sheetBox.height - 4 };
@@ -244,6 +266,7 @@ test('Act I: drag the phone onto the term sheet, then into the laptop', async ({
   const viewBox = await page.locator('.phone-view').boundingBox();
   expect(Math.abs(viewBox.x - sheetBox.x)).toBeLessThan(3);
   expect(Math.abs(viewBox.y - sheetBox.y)).toBeLessThan(3);
+  expect(Math.abs(viewBox.width - sheetBox.width)).toBeLessThan(3);
   await shot(page, info, 'act1-viewfinder');
   // Record whether the captured card flies on the bump.
   await page.evaluate(() => {
@@ -254,6 +277,13 @@ test('Act I: drag the phone onto the term sheet, then into the laptop', async ({
   });
   await dragPath(d, edge, sheetC, 8);
   await expect(page.locator('.phone')).toHaveClass(/is-snapped/);
+  // The photo settles inside the phone, fully within its screen.
+  await page.waitForTimeout(700);
+  const shotBox = await page.locator('.phone-view').boundingBox();
+  const scr2 = await page.locator('.phone-screen').boundingBox();
+  expect(shotBox.x).toBeGreaterThanOrEqual(scr2.x - 1);
+  expect(shotBox.x + shotBox.width).toBeLessThanOrEqual(scr2.x + scr2.width + 1);
+  expect(shotBox.y + shotBox.height).toBeLessThanOrEqual(scr2.y + scr2.height + 1);
   await page.waitForTimeout(150);
   await shot(page, info, 'act1-snap');
   // Still holding the phone: the captured page shows in it, then the laptop slides in and the small wordmark goes.
@@ -297,8 +327,11 @@ test('Act II: the lid scrubs under the finger, mid-scrub and open', async ({ pag
   const d = await startDrag(page, info, p);
   const stop = await startFpsProbe(page);
   await dragPath(d, p, { x: p.x, y: p.y - 8 }, 2);
-  await dragPath(d, { x: p.x, y: p.y - 8 }, { x: p.x, y: p.y - 118 }, 30);
+  await dragPath(d, { x: p.x, y: p.y - 8 }, { x: p.x, y: p.y - 168 }, 40); // 160 px past the slop = 50% of 320
   metrics.lid_scrub = await stop();
+  const lag = await hero(page, 'progress');
+  await page.waitForTimeout(400); // the lid catches up with the finger
+  metrics.lid_trail = +lag.toFixed(3);
   const mid = await hero(page, 'progress');
   expect(mid).toBeGreaterThan(0.45);
   expect(mid).toBeLessThan(0.55);
@@ -314,9 +347,9 @@ test('Act II: release below 40% snaps shut; a quick flick opens', async ({ page 
   const p = await lidPoint(page);
   let d = await startDrag(page, info, p);
   await dragPath(d, p, { x: p.x, y: p.y - 68 }, 14);
-  await page.waitForTimeout(250);
+  await page.waitForTimeout(400);
   await d.end();
-  await page.waitForTimeout(700);
+  await page.waitForTimeout(1400);
   expect(await hero(page, 'progress')).toBe(0);
   expect(await hero(page, 'gesture')).toBe('lid');
   d = await startDrag(page, info, p);
@@ -325,12 +358,12 @@ test('Act II: release below 40% snaps shut; a quick flick opens', async ({ page 
   await waitGesture(page, 'mark', 8000);
 });
 
-test('Act II: tap opens the lid in about 0.9 s', async ({ page }) => {
+test('Act II: tap opens the lid in about 1.8 s', async ({ page }) => {
   await toLid(page);
   const p = await lidPoint(page);
   const t0 = Date.now();
   await tapAt(page, p);
-  await page.waitForFunction(() => window.__zoeHero.progress === 1, null, { timeout: 3000 });
+  await page.waitForFunction(() => window.__zoeHero.progress === 1, null, { timeout: 4000 });
   metrics.lid_play_ms = Date.now() - t0;
 });
 
@@ -339,11 +372,11 @@ test('Act II, desktop: a wheel tick opens the lid without scrolling; so does Arr
   await toLid(page);
   await page.mouse.move(700, 400);
   await page.mouse.wheel(0, 100);
-  await page.waitForFunction(() => window.__zoeHero.progress === 1, null, { timeout: 3000 });
+  await page.waitForFunction(() => window.__zoeHero.progress === 1, null, { timeout: 4000 });
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   await toLid(page);
   await page.keyboard.press('ArrowUp');
-  await page.waitForFunction(() => window.__zoeHero.progress === 1, null, { timeout: 3000 });
+  await page.waitForFunction(() => window.__zoeHero.progress === 1, null, { timeout: 4000 });
 });
 
 test('Acts III-IV: Wi-Fi OFF before ZOE speaks, marking, scrub, ON after "Data cleaned"', async ({ page }, info) => {
@@ -356,10 +389,10 @@ test('Acts III-IV: Wi-Fi OFF before ZOE speaks, marking, scrub, ON after "Data c
   await page.locator('.btn-mark').click();
   await page.waitForTimeout(1000);
   await shot(page, info, 'act3-sweep');
-  await page.waitForTimeout(800);
+  await page.waitForFunction(() => Array.from(document.querySelectorAll('.editor > .ed-page .pii')).every((e) => e.classList.contains('is-amber')), null, { timeout: 15000 });
   metrics.sweep = await stop();
-  const amber = await page.$$eval('.editor > .ed-page .pii', (els) => els.every((e) => e.classList.contains('is-amber')));
-  expect(amber).toBe(true);
+  metrics.pii_items = await page.$$eval('.editor > .ed-page .pii', (els) => els.length);
+  expect(metrics.pii_items).toBeGreaterThanOrEqual(19);
   // Contract text renders at 13 px or more (font size x camera scale).
   const px = await page.evaluate(() => {
     const p = document.querySelector('.editor > .ed-page');
@@ -372,11 +405,15 @@ test('Acts III-IV: Wi-Fi OFF before ZOE speaks, marking, scrub, ON after "Data c
   await page.waitForTimeout(1300);
   await shot(page, info, 'act3-ready');
   await page.locator('.btn-scrub').click();
-  await page.waitForTimeout(1900);
+  await page.waitForFunction(() => Array.from(document.querySelectorAll('.editor > .ed-page .pii')).every((e) => e.classList.contains('is-masked')), null, { timeout: 15000 });
+  await page.waitForTimeout(500);
   await shot(page, info, 'act4-scrub');
   const masked = await page.$$eval('.editor > .ed-page .pii', (els) => els.map((e) => e.textContent));
-  ['[ORG_1]', '[ORG_5]', '[PERSON_1]', '[ADDRESS_1]', '$18,200,000'].forEach((t) => expect(masked).toContain(t));
-  expect(masked.join(' ')).not.toMatch(/Kestrel|Meridian|Okonkwo|45,000,000/);
+  ['[ORG_1]', '[ORG_2]', '[ORG_3]', '[ORG_4]', '[ORG_5]', '[PERSON_1]', '[PERSON_2]', '[ADDRESS_1]', '[ADDRESS_2]', '$18,200,000'].forEach((t) => expect(masked).toContain(t));
+  expect(masked).not.toContain('[ORG_6]'); // the parent is not on the sheet: that is the catch
+  const pageText = await page.$eval('.editor > .ed-page', (el) => el.textContent);
+  expect(pageText).not.toMatch(/Kestrel|Meridian|Okonkwo|Harborline|Lakeshore|Vantage|Daniel Park|45,000,000|84-2219876|4417-0093/);
+  expect(pageText).toMatch(/limited liability company/); // generic deal language stays
   const stop2 = await startFpsProbe(page);
   await page.waitForFunction(() => document.querySelector('.stream-label').classList.contains('is-on'), null, { timeout: 8000 });
   await page.waitForTimeout(900);
@@ -421,7 +458,7 @@ test('Act IV: the catch is spoken by ZOE, the fix by the cloud, then the rehydra
 });
 
 test('Act V: pills, inspect view, how-it-works scroll, replay twice, analytics', async ({ page }, info) => {
-  test.setTimeout(420000);
+  test.setTimeout(500000);
   const events = [];
   page.on('console', (m) => { const t = m.text(); if (t.startsWith('[track]')) events.push(t.split(' ')[1]); });
   await open(page);
@@ -473,12 +510,12 @@ test('Act V: pills, inspect view, how-it-works scroll, replay twice, analytics',
   }
 });
 
-// Text at half the live speed and every gesture wait at 3x (18 s for the phone, 12 s for each later one),
-// so the film runs well past the live 50 s.
-const UNTOUCHED_LIMIT_MS = 140000;
+// Text at half speed and every gesture wait at 3x (18 s for the phone, 12 s for each later one); the
+// chat-first opening adds a few seconds of staging to main's measured 127 s.
+const UNTOUCHED_LIMIT_MS = 150000;
 
 test('untouched: the story plays through by itself (recorded), with the opening timed', async ({ browser }, info) => {
-  test.setTimeout(240000);
+  test.setTimeout(280000);
   const { viewport, isMobile, hasTouch } = info.project.use;
   const dir = path.join(SHOTS, `video-${info.project.name}`);
   const ctx = await browser.newContext({ viewport, isMobile, hasTouch, deviceScaleFactor: 1, recordVideo: { dir, size: viewport } });
@@ -517,6 +554,7 @@ test('untouched: the story plays through by itself (recorded), with the opening 
   await ctx.close();
   fs.renameSync(await video.path(), path.join(SHOTS, `${info.project.name}-run-untouched.webm`));
   fs.rmSync(dir, { recursive: true, force: true });
+  expect(metrics.untouched_ms).toBeGreaterThan(115000);
   expect(metrics.untouched_ms).toBeLessThan(UNTOUCHED_LIMIT_MS);
 });
 
@@ -534,7 +572,7 @@ test('keyboard: Tab reaches each gesture and Enter performs it', async ({ page }
   await waitGesture(page, 'mark', 8000);
   await expect(page.locator('.btn-mark')).toBeFocused();
   await page.keyboard.press('Enter');
-  await waitGesture(page, 'scrub', 20000);
+  await waitGesture(page, 'scrub', 40000);
   await expect(page.locator('.btn-scrub')).toBeFocused();
   await page.keyboard.press('Enter');
   await page.waitForFunction(() => window.__zoeHero.act === 4);

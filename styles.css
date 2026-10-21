@@ -172,29 +172,47 @@ body {
   pointer-events: none;
 }
 
-/* Glowing front lip and the three upward chevrons: the lid's invitation (Act II).
-   The breathing runs on the inner glow, so the lip itself can fade out with the cue. */
+/* The lid's invitation (Act II): the front-centre lip, where a hand flips a laptop open, breathes
+   over the baked blue bar (x 44-56 %, y 70-74 % of the frame), and the three chevrons rise from it. */
 .lip {
   position: absolute;
-  top: 73%;
+  top: 71.9%;
   left: 50%;
-  width: 26%;
-  height: 11%;
-  margin-left: -13%;
-  margin-top: -5.5%;
+  width: 22%;
+  height: 12%;
+  transform: translate(-50%, -50%);
   mix-blend-mode: screen;
   pointer-events: none;
   transition: opacity 0.4s ease;
 }
 
-.lip::before {
+.lip::before,
+.lip::after {
   content: "";
   position: absolute;
+  border-radius: 50%;
+  animation: breathe 1.4s ease-in-out infinite;
+}
+
+/* The halo around the notch. */
+.lip::before {
   inset: 0;
-  background:
-    radial-gradient(closest-side, rgba(200, 230, 255, 0.95), rgba(200, 230, 255, 0) 45%),
-    radial-gradient(closest-side, rgba(120, 185, 255, 0.75), rgba(120, 185, 255, 0));
-  animation: breathe 2.4s ease-in-out infinite;
+  background: radial-gradient(closest-side, rgba(120, 190, 255, 0.6), rgba(120, 190, 255, 0));
+}
+
+/* The bright core on the bar itself. */
+.lip::after {
+  left: 22%;
+  right: 22%;
+  top: 37%;
+  bottom: 37%;
+  background: radial-gradient(closest-side, rgba(235, 246, 255, 1), rgba(160, 210, 255, 0.9) 50%, rgba(160, 210, 255, 0));
+}
+
+/* The one breathing rhythm for everything the visitor is meant to touch. */
+@keyframes breathe {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 1; }
 }
 
 .cue {
@@ -203,7 +221,7 @@ body {
   top: 55%;
   left: 50%;
   width: var(--chev);
-  height: 15%;
+  height: 14.5%;
   margin-left: calc(var(--chev) / -2);
   pointer-events: none;
   transition: opacity 0.35s ease;
@@ -239,18 +257,7 @@ body {
   100% { transform: translateY(-260%); opacity: 0; }
 }
 
-@keyframes lip-pulse {
-  from { opacity: 0.35; }
-  to   { opacity: 0.95; }
-}
-
-/* The slow breathing glow on the lip and on the waiting phone. */
-@keyframes breathe {
-  0%, 100% { opacity: 0.3; transform: scale(0.92); }
-  50%      { opacity: 1;   transform: scale(1.06); }
-}
-
-/* The laptop's rim glows once when the phone bumps it. */
+/* The laptop's rim: a faint halo when the captured card lands. */
 .rim {
   position: absolute;
   left: 20%;
@@ -258,13 +265,14 @@ body {
   top: 66%;
   height: 14%;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(150, 205, 255, 0.75), rgba(150, 205, 255, 0));
+  background: radial-gradient(closest-side, rgba(150, 205, 255, 0.3), rgba(150, 205, 255, 0));
   mix-blend-mode: screen;
   opacity: 0;
   pointer-events: none;
 }
 
-.rim.is-glowing { animation: rim-glow 0.9s ease-out; }
+/* A faint halo, once, as the captured card lands. */
+.rim.is-glowing { animation: rim-glow 0.5s ease-out; }
 
 @keyframes rim-glow {
   0% { opacity: 0; }
@@ -474,7 +482,13 @@ body {
   color: #dfe5ee;
 }
 
-.ed-page p { margin: 0; }
+.ed-page p { margin: 0 0 0.3em; }
+
+/* The term sheet in the editor scrolls a screen at a time during the sweeps. */
+.editor > .ed-page {
+  position: relative;
+  transition: transform 0.45s var(--ease-io);
+}
 .ed-page .k { color: var(--ink-faint); font-family: var(--sans); font-size: 0.82em; letter-spacing: 0.02em; }
 
 .pii { border-radius: 0.2em; }
@@ -592,13 +606,14 @@ body {
   position: absolute;
   inset: -4px;
   border-radius: inherit;
-  box-shadow: 0 0 0 3px rgba(95, 168, 255, 0.55), 0 0 16px rgba(95, 168, 255, 0.6);
+  box-shadow: 0 0 0 3px rgba(140, 200, 255, 0.95), 0 0 24px 4px rgba(95, 168, 255, 0.9);
   opacity: 0;
   pointer-events: none;
 }
 
-.btn.is-armed::after { animation: ring 1.4s ease-in-out infinite; }
-.pill.is-main.is-in::after { animation: ring 2.4s ease-in-out infinite; }
+/* Touch me: the armed buttons and the two main end pills breathe until used. */
+.btn.is-armed::after,
+.pill.is-main.is-in::after { animation: ring 1.4s ease-in-out infinite; }
 
 .btn.is-done {
   opacity: 0.6;
@@ -609,8 +624,8 @@ body {
 .btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
 @keyframes ring {
-  0%, 100% { opacity: 0; transform: scale(0.98); }
-  50%      { opacity: 1; transform: scale(1.03); }
+  0%, 100% { opacity: 0.3; transform: scale(0.99); }
+  50%      { opacity: 1; transform: scale(1.04); }
 }
 
 .card {
@@ -887,12 +902,8 @@ body {
   pointer-events: none;
 }
 
-.phone.is-in .phone-halo { animation: halo 2.2s ease-in-out infinite; }
-
-@keyframes halo {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50%      { opacity: 1;   transform: scale(1.025); }
-}
+/* On the one 1.4 s rhythm of everything the visitor is meant to touch (ring, below). */
+.phone.is-in .phone-halo { animation: ring 1.4s ease-in-out infinite; }
 .phone.is-bumped .phone-halo { animation: none; opacity: 0; transition: opacity 0.3s ease; }
 
 .phone-body {
@@ -994,13 +1005,14 @@ body {
   margin-left: -13%;
 }
 
+/* The shutter ring's glow: brighter than the body's, on the same breathing rhythm. */
 .phone-shutter::before {
   content: "";
   position: absolute;
   inset: -70%;
   border-radius: 50%;
   background: radial-gradient(closest-side, rgba(200, 230, 255, 0.95), rgba(120, 185, 255, 0.5) 45%, rgba(120, 185, 255, 0));
-  animation: breathe 1.3s ease-in-out infinite;
+  animation: breathe 1.4s ease-in-out infinite;
 }
 
 .phone-shutter::after {
@@ -1008,9 +1020,9 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 2px solid #fff;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 0 12px rgba(170, 215, 255, 1), inset 0 0 0 3px rgba(0, 0, 0, 0.55);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 18px 6px rgba(150, 210, 255, 1), 0 0 4px 1px #fff, inset 0 0 0 3px rgba(0, 0, 0, 0.6);
 }
 
 .phone.is-snapped .phone-shutter::before { animation: none; opacity: 0.2; }
@@ -1166,10 +1178,12 @@ body {
     radial-gradient(closest-side at 35% 55%, rgba(120, 170, 255, 0.45), transparent),
     radial-gradient(closest-side at 62% 40%, rgba(150, 120, 255, 0.35), transparent),
     radial-gradient(closest-side at 55% 70%, rgba(90, 200, 255, 0.3), transparent);
-  animation: lip-pulse 2.2s ease-in-out infinite alternate;
+  opacity: 0.6;
+  transition: opacity 0.6s ease;
 }
 
-.cloud.is-busy .cloud-glow { animation-duration: 0.6s; }
+/* The cloud is not something to touch, so it brightens while it works instead of pulsing. */
+.cloud.is-busy .cloud-glow { opacity: 1; }
 
 .cloud-name {
   position: relative;
@@ -1178,13 +1192,47 @@ body {
   font-weight: 600;
 }
 
-.cloud-firms {
+.cloud-marks {
   position: relative;
-  margin: 4px 0 0;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: var(--ink-soft);
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: auto;
 }
+
+/* Monochrome light on black; the brand colour and the product name appear on hover. */
+.mark {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  color: #e6ebf2;
+  transition: color 0.2s ease;
+}
+
+.mark svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+.mark:hover { color: var(--brand); }
+
+.mark::after {
+  content: attr(data-name);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  color: #fff;
+  background: rgba(20, 26, 38, 0.95);
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.mark:hover::after { opacity: 1; }
 
 .cloud-say {
   position: relative;
@@ -1603,6 +1651,10 @@ body {
     animation-duration: 0s !important;
     animation-iteration-count: 1 !important;
   }
+  /* Touch targets keep a steady glow when nothing may move. */
+  .stage .btn.is-armed::after,
+  .stage .pill.is-main.is-in::after,
+  .stage .phone.is-in .phone-halo { animation: none !important; opacity: 0.85; }
 }
 
 /* Replay: snap everything back without animating. */
