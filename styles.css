@@ -732,8 +732,10 @@ body {
 }
 
 .sheet.is-flash::after { animation: shutter 0.4s ease-out; }
-.sheet h4 { margin: 0 0 0.6em; font-size: 1.35em; text-align: center; letter-spacing: 0.06em; }
-.sheet p { margin: 0 0 0.45em; }
+.sheet h4,
+.phone-view h4 { margin: 0 0 0.6em; font-size: 1.35em; text-align: center; letter-spacing: 0.06em; }
+.sheet p,
+.phone-view p { margin: 0 0 0.45em; }
 
 .phone {
   position: absolute;
@@ -790,6 +792,30 @@ body {
   border-radius: 999px;
   background: #000;
 }
+
+/* Viewfinder pass-through: the paper under the phone, framed by a blue detection box.
+   It counter-moves with the phone (--px/--py) so it stays aligned with the real page. */
+.phone-view {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--vw);
+  height: var(--vh);
+  overflow: hidden;
+  padding: 1.6em 1.7em;
+  border-radius: 3px;
+  background: linear-gradient(170deg, #f6f7f9, #e3e6eb);
+  color: #2a2f38;
+  font-family: var(--serif);
+  font-size: var(--sheet-fs, 5px);
+  line-height: 1.35;
+  outline: 1.5px solid #5fa8ff;
+  box-shadow: 0 0 10px rgba(95, 168, 255, 0.8);
+  transform: translate(calc(var(--vx, 0px) - var(--px, 0px)), calc(var(--vy, 0px) - var(--py, 0px))) rotate(-4deg);
+}
+
+.phone.is-gliding .phone-view { transition: transform 0.42s var(--ease-io); }
+.phone-view.is-captured { opacity: 0; transition: transform 0.35s var(--ease-out), opacity 0.3s ease 0.15s; }
 
 .phone-grid {
   position: absolute;
@@ -860,11 +886,26 @@ body {
 }
 
 .phone.is-dragging .phone-cue,
-.phone.is-gliding .phone-cue { opacity: 0; }
+.phone.is-gliding .phone-cue,
+.phone.is-bumped .phone-cue { opacity: 0; }
 
 @keyframes nudge {
   0%, 100% { transform: translateX(0); }
   50% { transform: translateX(-5px); }
+}
+
+.fly {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 11%, rgba(40, 50, 70, 0.28) 11% 14%) 14% 18% / 72% 70% no-repeat,
+    #eef1f5;
+  box-shadow: 0 0 16px rgba(95, 168, 255, 0.8);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 6;
 }
 
 .transfer {

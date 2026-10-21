@@ -179,8 +179,26 @@ test('Act I: drag the phone onto the term sheet, then into the laptop', async ({
   await page.waitForTimeout(700);
   const from = await center(page, '.phone');
   const sheetC = await center(page, '.sheet');
+  const sheetBox = await page.locator('.sheet').boundingBox();
   const d = await startDrag(page, info, from);
-  await dragPath(d, from, sheetC, 20);
+  // Half over the page's edge: the viewfinder shows the paper beneath, aligned with the real one.
+  const edge = isWide(info)
+    ? { x: sheetBox.x + sheetBox.width - 6, y: sheetC.y + 10 }
+    : { x: sheetC.x + 8, y: sheetBox.y + sheetBox.height - 4 };
+  await dragPath(d, from, edge, 16);
+  await expect(page.locator('.phone')).not.toHaveClass(/is-snapped/);
+  const viewBox = await page.locator('.phone-view').boundingBox();
+  expect(Math.abs(viewBox.x - sheetBox.x)).toBeLessThan(3);
+  expect(Math.abs(viewBox.y - sheetBox.y)).toBeLessThan(3);
+  await shot(page, info, 'act1-viewfinder');
+  // Record whether the captured card flies on the bump.
+  await page.evaluate(() => {
+    const f = document.querySelector('.fly');
+    window.__flew = false;
+    const tick = () => { if (f.getAnimations().length) window.__flew = true; else requestAnimationFrame(tick); };
+    tick();
+  });
+  await dragPath(d, edge, sheetC, 8);
   await expect(page.locator('.phone')).toHaveClass(/is-snapped/);
   await page.waitForTimeout(150);
   await shot(page, info, 'act1-snap');
@@ -195,6 +213,7 @@ test('Act I: drag the phone onto the term sheet, then into the laptop', async ({
   await shot(page, info, 'act1-transfer');
   await waitGesture(page, 'lid', 8000);
   await expect(page.locator('.phone')).toBeHidden({ timeout: 3000 });
+  expect(await page.evaluate(() => window.__flew)).toBe(true);
 });
 
 test('Act I: a tap on the phone performs both moves', async ({ page }) => {

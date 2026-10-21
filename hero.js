@@ -151,6 +151,7 @@ function track(event, data) {
   const sheet = $('.sheet', stage);
   const phone = $('.phone', stage);
   const transfer = $('.transfer', stage);
+  const fly = $('.fly', stage);
   const zoe = $('.zoe', stage);
   const cloud = $('.cloud', stage);
   const stream = $('.stream', stage);
@@ -455,6 +456,12 @@ function track(event, data) {
     place(sheet, g.sheet.x, g.sheet.y, g.sheet.w, g.sheet.h);
     sheet.style.setProperty('--sheet-fs', `${(g.sheet.w * 0.034).toFixed(2)}px`);
     place(phone, g.phone.x, g.phone.y, g.phone.w, g.phone.h);
+    // Viewfinder offset: the paper's position relative to the phone's screen at the dock (see .phone-view).
+    phone.style.setProperty('--vx', `${(g.sheet.x - g.phone.x - 0.06 * g.phone.w).toFixed(1)}px`);
+    phone.style.setProperty('--vy', `${(g.sheet.y - g.phone.y - 0.045 * g.phone.h).toFixed(1)}px`);
+    phone.style.setProperty('--vw', `${g.sheet.w.toFixed(1)}px`);
+    phone.style.setProperty('--vh', `${g.sheet.h.toFixed(1)}px`);
+    phone.style.setProperty('--sheet-fs', `${(g.sheet.w * 0.034).toFixed(2)}px`);
     place(zoe, g.zoe.x, g.zoe.y, g.zoe.w);
     place(cloud, g.cloud.x, g.cloud.y, g.cloud.w, g.cloud.h);
     place(stream, g.stream.x, g.stream.y, g.stream.len);
@@ -481,8 +488,10 @@ function track(event, data) {
     phone.hidden = false;
     phone.style.removeProperty('--px');
     phone.style.removeProperty('--py');
-    phone.innerHTML = '<div class="phone-body"><div class="phone-screen"><div class="phone-grid"></div><div class="phone-shot"></div><div class="phone-shutter"></div><div class="phone-flash"></div></div><div class="phone-island"></div></div><span class="phone-cue"></span>';
+    phone.innerHTML = '<div class="phone-body"><div class="phone-screen"><div class="phone-view"></div><div class="phone-grid"></div><div class="phone-shot"></div><div class="phone-shutter"></div><div class="phone-flash"></div></div><div class="phone-island"></div></div><span class="phone-cue"></span>';
     phone.setAttribute('tabindex', '-1');
+    // The viewfinder: a copy of the paper that stays aligned with the real one as the phone moves over it.
+    $('.phone-view', phone).innerHTML = sheet.innerHTML;
   }
 
   function buildZoe() {
@@ -675,6 +684,14 @@ function track(event, data) {
   function snap() {
     if (phoneStage !== 0) return;
     phoneStage = 1;
+    // The shutter shrinks the viewfinder's page into the phone, where the captured card appears.
+    const view = $('.phone-view', phone);
+    const scr = $('.phone-screen', phone);
+    const k = (scr.clientWidth * 0.56) / Math.max(1, view.offsetWidth);
+    view.style.transform = getComputedStyle(view).transform;
+    void view.offsetWidth;
+    view.classList.add('is-captured');
+    view.style.transform = `translate(${((scr.clientWidth - view.offsetWidth) / 2).toFixed(1)}px, ${((scr.clientHeight * 0.94 - view.offsetHeight) / 2).toFixed(1)}px) scale(${k.toFixed(3)})`;
     phone.classList.add('is-snapped');
     $('.phone-flash', phone).classList.add('is-on');
     sheet.classList.add('is-flash');
@@ -684,14 +701,30 @@ function track(event, data) {
 
   async function bump() {
     phoneStage = 2;
+    phone.classList.add('is-bumped');
     const body = $('.phone-body', phone);
     body.classList.add('is-shake');
-    rim.classList.remove('is-glowing');
-    void rim.offsetWidth;
-    rim.classList.add('is-glowing');
-    // The local hand-over pulse: phone → laptop centre.
     const from = phoneCenter();
     const to = { x: (geo.laptop.x0 + geo.laptop.x1) / 2, y: (geo.laptop.y0 + geo.laptop.y1) / 2 };
+    // The captured page card flies out of the phone into the laptop, under the label; the rim flashes as it lands.
+    const cw = geo.phone.w * 0.49;
+    const ch = geo.phone.h * 0.38;
+    fly.style.width = `${cw}px`;
+    fly.style.height = `${ch}px`;
+    const f0 = `translate(${from.x - cw / 2}px, ${from.y - ch / 2}px) scale(1)`;
+    const f1 = `translate(${to.x - cw / 2}px, ${to.y - ch / 2 + 6}px) scale(0.45) rotate(-6deg)`;
+    animate(fly, [
+      { transform: f0, opacity: 1 },
+      { transform: f1, opacity: 1, offset: 0.8 },
+      { transform: f1, opacity: 0 },
+    ], { duration: 820, easing: 'cubic-bezier(0.5, 0, 0.3, 1)' });
+    const t = setTimeout(() => {
+      rim.classList.remove('is-glowing');
+      void rim.offsetWidth;
+      rim.classList.add('is-glowing');
+    }, RM ? 0 : 600);
+    run.timers.add(t);
+    // The local hand-over label: phone → laptop centre.
     const tw = transfer.offsetWidth;
     const th = transfer.offsetHeight;
     const p0 = `translate(${from.x - tw / 2}px, ${from.y - th / 2 - 30}px)`;
@@ -754,7 +787,8 @@ function track(event, data) {
     }
     setPhoneOff(d.ox + dx, d.oy + dy);
     const c = phoneCenter();
-    if (phoneStage === 0 && inside(c, sheetBox(), 24)) snap();
+    // The shutter fires once the phone is well over the page, so the viewfinder is seen first.
+    if (phoneStage === 0 && inside(c, sheetBox(), -14)) snap();
     else if (phoneStage === 1 && inside(c, geo.laptop, 10)) {
       phoneDrag = null;
       phone.classList.remove('is-dragging');
