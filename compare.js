@@ -307,7 +307,10 @@
     render();
   }
 
-  pills.forEach((p) => p.addEventListener('click', () => pick(p.dataset.pick)));
+  pills.forEach((p) => p.addEventListener('click', () => {
+    section.classList.add('user-picked');
+    pick(p.dataset.pick);
+  }));
   tallMQ.addEventListener('change', render);
 
   if ('IntersectionObserver' in window) {
@@ -320,8 +323,12 @@
     onScreen = true;
   }
 
-  // For tools/shots.spec.js.
+  // Standard cloud AI is chosen to begin with; ZOE AI breathes until the visitor picks for themselves.
+  pick('cloud');
+
+  // For hero.js (the end button lands here) and tools/shots.spec.js.
   window.__zoeCompare = {
+    pick,
     get picked() { return picked; },
     get running() { return anims.length > 0 && anims.every((a) => a.playState === 'running'); },
     seek(ms) { anims.forEach((a) => { a.pause(); a.currentTime = ms; }); },

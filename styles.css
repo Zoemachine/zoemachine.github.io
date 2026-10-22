@@ -1067,6 +1067,34 @@ body {
 
 .phone.is-snapped .phone-shutter::before { animation: none; opacity: 0.2; }
 
+/* Locked on the page: the detection box brightens, then the shutter lights up and asks to be pressed. */
+.phone.is-locked .phone-view:not(.is-captured) {
+  outline: 3px solid #a9d4ff;
+  box-shadow: 0 0 22px 4px rgba(120, 190, 255, 1);
+}
+
+.phone.shutter-armed .phone-shutter::before {
+  inset: -120%;
+  background: radial-gradient(closest-side, rgba(235, 246, 255, 1), rgba(140, 200, 255, 0.75) 40%, rgba(120, 185, 255, 0));
+  animation: shutter-call 1.4s ease-in-out infinite;
+}
+
+.phone.shutter-armed .phone-shutter::after {
+  animation: shutter-ring 1.4s ease-in-out infinite;
+}
+
+.phone.shutter-armed .phone-shutter { cursor: pointer; }
+
+@keyframes shutter-call {
+  0%, 100% { opacity: 0.55; transform: scale(0.85); }
+  50%      { opacity: 1; transform: scale(1.15); }
+}
+
+@keyframes shutter-ring {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.12); }
+}
+
 .phone-cue {
   position: absolute;
   top: 46%;
@@ -1092,6 +1120,7 @@ body {
 .phone.is-dragging .phone-cue,
 .phone.is-gliding .phone-cue,
 .phone.cue-wait .phone-cue,
+.phone.is-locked .phone-cue,
 .phone.is-bumped .phone-cue { opacity: 0; }
 
 @keyframes nudge-left {
@@ -1507,8 +1536,35 @@ body {
 .progress li.is-on { background: #cfe5ff; box-shadow: 0 0 8px rgba(156, 201, 255, 0.9); }
 
 /* The footnote and the skip link read at 4.5:1 or better on black. */
-.footnote,
-.skip { --ink-faint: rgba(230, 235, 242, 0.64); }
+.footnote { --ink-faint: rgba(230, 235, 242, 0.64); }
+
+/* The top-right corner: the NVIDIA Inception badge, small, through every act. The space to its left
+   is kept clear for a language selector. */
+.corner {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  z-index: 21;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.corner-badge {
+  display: block;
+  width: 92px;
+  height: auto;
+  border-radius: 4px;
+  opacity: 0.9;
+}
+
+/* The hero is its own screen: nothing scrolls until the story ends and the visitor asks why. */
+html.hero-lock,
+html.hero-lock body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
 
 .footnote {
   position: absolute;
@@ -1647,24 +1703,6 @@ body {
 .story-text h2 { margin: 28px 0 8px; font-size: 18px; color: var(--glow); }
 .story-text p { margin: 0 0 6px; }
 
-/* ---------- Skip link ---------- */
-
-.skip {
-  position: absolute;
-  right: max(12px, env(safe-area-inset-right));
-  bottom: max(4px, env(safe-area-inset-bottom));
-  padding: 12px;
-  font-size: 13px;
-  letter-spacing: 0.04em;
-  color: var(--ink-faint);
-  text-decoration: none;
-  z-index: 21;
-}
-
-.skip:hover,
-.skip:focus-visible { color: var(--ink); }
-.skip:focus-visible { outline: 1px solid rgba(156, 201, 255, 0.6); outline-offset: 2px; border-radius: 4px; }
-
 /* ---------- Portrait screens ----------
    The frame is cropped at the sides (the laptop spans ~24–76% of its width);
    the strip sits on top and the act pieces stack above and below the laptop. */
@@ -1690,6 +1728,12 @@ body {
     width: auto;
     gap: 8px;
   }
+
+  /* Phones: the badge is smaller, and from Act II on the strip keeps clear of its corner. */
+  .corner { top: max(12px, env(safe-area-inset-top)); right: 12px; }
+  .corner-badge { width: 64px; }
+  .strip:not(.is-act1) { right: 86px; }
+  .stage.is-up .strip:not(.is-act1) { right: 12px; }
 
   .bubble { font-size: 14px; line-height: 1.3; padding: 7px 11px; }
   .avatar { width: 26px; height: 26px; }
@@ -1725,7 +1769,7 @@ body {
   }
   .stage.is-zoomed::before { opacity: 1; }
   /* The round trip goes up: the cloud takes the top, so the veil lifts and the strip moves to the bottom. */
-  .stage.is-up::before { height: 318px; background: linear-gradient(#000 78%, rgba(0, 0, 0, 0)); }
+  .stage.is-up::before { height: var(--veil, 270px); background: linear-gradient(#000 78%, rgba(0, 0, 0, 0)); }
   .stage.is-up .cloud,
   .stage.is-up .stream,
   .stage.is-up .stream-label,

@@ -113,7 +113,7 @@ const UI = {
   scrub: 'Scrub data & draft',
   template: ['Template', 'Buyout Agreement (Delaware)'],
   playbook: ['Playbook', 'Seller, conservative'],
-  pills: { how: 'How does it work? ↓', inspect: 'Inspect what left the laptop', replay: 'Replay', back: 'Back', next: 'Next ›' },
+  pills: { why: 'Why is ZOE AI different?', replay: 'Replay', back: 'Back', next: 'Next ›' },
   cloudName: 'any frontier model the firm chooses',
 };
 
@@ -151,10 +151,14 @@ function track(event, data) {
   const HOLD = 2;              // reading time: every spoken line and the pauses between beats
   const MOTION = 1;            // the file web, the streams, the card flight, the rehydration
   const KEY_LINE_MS = 3000;    // the catch and the fix stay on screen at least this long
+  const TEMPLATE_HOLD = 1.6;   // the template-and-playbook beat: its two lines held 1.6x the usual reading time
   // Portrait round trip: where the screen's top edge sits, the cloud's height, and the gap for the stream.
-  const PORTRAIT_SCREEN_UP = 318;
+  const PORTRAIT_CLOUD_Y = 28;     // the cloud's top edge during the round trip
   const PORTRAIT_CLOUD_H = 150;
-  const PORTRAIT_GAP = 140;
+  const PORTRAIT_OUT = 0.62;       // the upload: the camera pulls back to this share of the reading zoom
+  const PORTRAIT_OUT_GAP = 72;     // the upload: room for the rising stream and its label
+  const PORTRAIT_SCREEN_UP = 282;  // the returning draft: the screen's top edge, back at reading zoom
+  const LAPTOP_BASE = 0.86;    // the open laptop's base, as a share of the frame height (lid_45)
   const SHEET_TYPE = 0.025;    // the paper's type size, as a share of its width: a full page of small type
   const CAPTURE_HOLD_MS = 1100; // the captured page shows in the phone before the laptop comes in
   const LAPTOP_IN_MS = 1100;    // the laptop's slide in from the right (the .scene translate in styles.css)
@@ -204,6 +208,43 @@ function track(event, data) {
   const live = $('#live');
 
   const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- The hero is its own screen ----------
+  // While the story runs the page does not scroll: not by wheel, trackpad, touch, keys or scrollbar.
+  // It unlocks when the visitor presses `Why is ZOE AI different?`. Reduced motion and no-JS never lock,
+  // nor does a visit that arrives at a section below the hero (a link from the other pages).
+  const LAND_GAP = 24;           // the comparison's heading lands this far below the top of the viewport
+  const root = document.documentElement;
+  const deepLink = /^#(?!$)/.test(location.hash) && !/^#(privacy|terms)$/.test(location.hash);
+  let heroLocked = false;
+  function lockHero() {
+    if (RM || deepLink) return;
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
+    heroLocked = true;
+    root.classList.add('hero-lock');
+  }
+  function unlockHero() {
+    heroLocked = false;
+    root.classList.remove('hero-lock');
+  }
+  lockHero();
+  // Belt and braces for engines that still scroll an overflow-hidden page: one-finger swipes,
+  // wheels and scrolling keys do nothing while locked (the phone and the lid handle their own drags).
+  document.addEventListener('touchmove', (e) => {
+    if (heroLocked && e.touches.length === 1) e.preventDefault();
+  }, { passive: false });
+  window.addEventListener('wheel', (e) => { if (heroLocked) e.preventDefault(); }, { passive: false, capture: true });
+  document.addEventListener('keydown', (e) => {
+    if (!heroLocked) return;
+    const t = e.target;
+    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(t.tagName))) return;
+    if ([' ', 'PageDown', 'PageUp', 'End', 'Home', 'ArrowDown', 'ArrowUp'].includes(e.key) && !e.defaultPrevented) {
+      // Arrow keys still open the lid (handled below); they just never scroll.
+      e.preventDefault();
+    }
+  }, { capture: true });
+  window.addEventListener('scroll', () => { if (heroLocked && window.scrollY !== 0) window.scrollTo(0, 0); }, { passive: true });
   const portraitMQ = window.matchMedia('(orientation: portrait)');
   const frameSet = window.matchMedia('(min-width: 900px)').matches ? 1920 : 1280;
   const frameUrl = (i) => `assets/frames/${frameSet}/lid_${String(i + 1).padStart(2, '0')}.webp`;
@@ -461,8 +502,9 @@ function track(event, data) {
     if (h != null) el.style.height = `${Math.round(h)}px`;
   }
 
+  // 'return' is the round trip's last beat: on phones it zooms back in for the draft; elsewhere it is 'slide'.
   function camera(mode) {
-    camMode = mode;
+    camMode = mode === 'return' && !portraitMQ.matches ? 'slide' : mode;
     layout();
   }
 
@@ -539,11 +581,14 @@ function track(event, data) {
       const screenTop = 112;
       if (camMode === 'center') {
         cy = Math.max(110, (VH - S.h) / 2) - S.y;
-      } else if (camMode === 'zoom' || camMode === 'slide') {
-        cs = zoomS;
-        cx = 8 - S.x - cs * SCR.x * S.w;
-        // The round trip (slide): the screen moves down so the cloud fits above it.
-        cy = (camMode === 'slide' ? PORTRAIT_SCREEN_UP : screenTop) - S.y - cs * SCR.y * S.h;
+      } else if (camMode === 'zoom' || camMode === 'slide' || camMode === 'return') {
+        // Act III reads the screen at full zoom. The upload (slide) pulls back so the laptop is smaller
+        // and ZOE speaks in the room under it; the returning draft (return) zooms back in to be read.
+        cs = camMode === 'slide' ? zoomS * PORTRAIT_OUT : zoomS;
+        const top = camMode === 'zoom' ? screenTop
+          : (camMode === 'slide' ? PORTRAIT_CLOUD_Y + PORTRAIT_CLOUD_H + PORTRAIT_OUT_GAP : PORTRAIT_SCREEN_UP);
+        cx = V / 2 - S.x - cs * (SCR.x + SCR.w / 2) * S.w;
+        cy = top - S.y - cs * SCR.y * S.h;
       } else if (camMode === 'end') {
         const top = stripR;
         cs = Math.min(1, (VH - top - 150) / S.h);
@@ -556,8 +601,10 @@ function track(event, data) {
       cx = -0.19 * S.w;
       cy = 0.05 * S.h;
     }
-    stage.classList.toggle('is-zoomed', portrait && (camMode === 'zoom' || camMode === 'slide'));
-    stage.classList.toggle('is-up', portrait && camMode === 'slide');
+    stage.classList.toggle('is-zoomed', portrait && (camMode === 'zoom' || camMode === 'slide' || camMode === 'return'));
+    stage.classList.toggle('is-up', portrait && (camMode === 'slide' || camMode === 'return'));
+    // The veil over the cropped wordmark stops just above the screen.
+    stage.style.setProperty('--veil', `${Math.max(0, Math.round(S.y + cy + cs * SCR.y * S.h - 10))}px`);
 
     scene.style.setProperty('--cam-x', `${cx}px`);
     scene.style.setProperty('--cam-y', `${cy}px`);
@@ -576,12 +623,14 @@ function track(event, data) {
       : { x: g.laptop.x0 - g.phone.w * 0.3, y: (g.laptop.y0 + g.laptop.y1) / 2 };
 
     if (portrait) {
+      // ZOE speaks below the laptop, never over it; on short screens it keeps clear of the dots.
+      const base = at(0, LAPTOP_BASE).y;
       const below = scr.br.y + 12;
-      g.zoe = { x: 12, y: below, w: V - 24 };
+      g.zoe = { x: 12, y: (camMode === 'zoom' || camMode === 'slide' || camMode === 'return') ? Math.min(base + 6, VH - 120) : below, w: V - 24 };
       g.labelFs = 17;
       // The round trip goes up: the cloud above the laptop, the stream rising from the screen's top
       // edge to the cloud, the label across the middle of the stream.
-      const cloudY = Math.max(12, PORTRAIT_SCREEN_UP - PORTRAIT_GAP - PORTRAIT_CLOUD_H);
+      const cloudY = PORTRAIT_CLOUD_Y;
       g.cloud = { x: 12, y: cloudY, w: V - 24, h: PORTRAIT_CLOUD_H };
       const s0 = scr.tl.y - 6;
       const s1 = cloudY + PORTRAIT_CLOUD_H + 6;
@@ -814,6 +863,7 @@ function track(event, data) {
   // ---------- Act I: the phone, and the laptop that arrives for it ----------
 
   let phoneStage = 0;      // 0 needs the snap, 1 needs the bump, 2 done
+  let locked = false;      // on the page, waiting for the shutter to be pressed
   let phoneDrag = null;
   let phoneOff = { x: 0, y: 0 };
   let laptopReady = false; // the laptop has slid in and can take the phone
@@ -848,9 +898,37 @@ function track(event, data) {
     phone.classList.remove('is-gliding');
   }
 
+  // The phone settles onto the page: it lines up, the detection box brightens, then the shutter lights up
+  // and waits to be pressed (a click or tap on the phone, Enter, or the idle clock).
+  async function lockOn() {
+    if (phoneStage !== 0 || locked) return;
+    locked = true;
+    phoneDrag = null;
+    phone.classList.remove('is-dragging');
+    stage.dataset.open = 'locked';
+    await glideTo(sheetMid(), 380);
+    phone.classList.add('is-locked');
+    $('.phone-body', phone).classList.add('is-settle');
+    const t = setTimeout(() => phone.classList.add('shutter-armed'), RM ? 0 : 300);
+    run.timers.add(t);
+    const g = gestureNow;
+    if (g && g.name === 'phone' && !g.busy) {
+      g.idleMs = IDLE_LATER_MS;
+      armIdle();
+    }
+  }
+
+  function pressShutter() {
+    if (!locked || phoneStage !== 0) return;
+    noteInput();
+    snap();
+  }
+
   function snap() {
     if (phoneStage !== 0) return;
     phoneStage = 1;
+    locked = false;
+    phone.classList.remove('shutter-armed');
     // The shutter: a flash, then the page in the viewfinder straightens and settles in the middle of the screen.
     const view = $('.phone-view', phone);
     const scr = $('.phone-screen', phone);
@@ -953,8 +1031,12 @@ function track(event, data) {
       return;
     }
     if (phoneStage === 0) {
-      const s = geo.sheet;
-      await glideTo({ x: s.x + s.w / 2, y: s.y + s.h / 2 }, 650);
+      if (!locked) {
+        const s = geo.sheet;
+        await glideTo({ x: s.x + s.w / 2, y: s.y + s.h / 2 }, 650);
+        await lockOn();
+        await wait(700);  // the shutter lights up, then the picture
+      }
       snap();
     }
     await arrival;
@@ -997,7 +1079,7 @@ function track(event, data) {
     }
     setPhoneOff(d.ox + dx, d.oy + dy);
     const c = phoneCenter();
-    if (phoneStage === 0 && overPage(c)) snap();
+    if (phoneStage === 0 && !locked && overPage(c)) lockOn();
     // The bump needs the phone on the laptop and clear of the page it just photographed.
     else if (phoneStage === 1 && laptopReady && overLaptop(c) && clearOfPage(c)) {
       phoneDrag = null;
@@ -1014,14 +1096,20 @@ function track(event, data) {
     noteInput(e);
     if (!gestureNow || gestureNow.name !== 'phone') return;
     if (!d.moved) {
-      if (!cancelled) gestureNow.perform('tap');
+      // On the page, a tap anywhere on the phone presses the shutter; before that, a tap does all of Act I.
+      if (!cancelled) {
+        if (locked) pressShutter();
+        else gestureNow.perform('tap');
+      }
       return;
     }
     const c = phoneCenter();
     const s = sheetMid();
-    if (phoneStage === 0) {
-      // Forgiving: let go near the page and the phone lines up and takes the picture itself.
-      if (Math.hypot(c.x - s.x, c.y - s.y) < 0.75 * Math.max(geo.sheet.w, geo.sheet.h)) glideTo(s, 360).then(snap, () => {});
+    if (phoneStage === 0 && locked) {
+      glideTo(s, 300).catch(() => {});  // dragged off while waiting for the shutter: it settles back
+    } else if (phoneStage === 0) {
+      // Forgiving: let go near the page and the phone lines up and locks on.
+      if (Math.hypot(c.x - s.x, c.y - s.y) < 0.75 * Math.max(geo.sheet.w, geo.sheet.h)) lockOn().catch(() => {});
       else glideTo({ x: geo.phone.x + geo.phone.w / 2, y: geo.phone.y + geo.phone.h / 2 }, 450).catch(() => {});
     } else if (phoneStage === 1) {
       if (laptopReady && overLaptop(c) && clearOfPage(c)) gestureNow.perform('drag');
@@ -1338,7 +1426,8 @@ function track(event, data) {
     const activate = e.key === 'Enter' || e.key === ' ';
     if (gestureNow.name === 'phone' && t === phone && activate) {
       e.preventDefault();
-      gestureNow.perform('key');
+      if (locked) pressShutter();
+      else gestureNow.perform('key');
     } else if (gestureNow.name === 'lid' && ((t === lidHit && activate) ||
       ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && window.scrollY <= 4))) {
       e.preventDefault();
@@ -1553,11 +1642,12 @@ function track(event, data) {
     if (keyboardMode) el.focus({ preventScroll: true });
   }
 
+  // The end: one way on (to the comparison, which unlocks the page) and Replay.
+  // (The inspect view below is no longer offered from the page; window.__zoeHero.inspect still opens it.)
   function endPills() {
     pills.innerHTML = '';
-    pill(UI.pills.how, 'is-main', () => track('pill_how'), '#how');
-    pill(UI.pills.inspect, 'is-main', openInspect);
-    pill(UI.pills.replay, '', () => { track('pill_replay'); start(); });
+    pill(UI.pills.why, 'is-main', () => { track('pill_why'); toComparison(); });
+    pill(UI.pills.replay, '', () => { track('pill_replay'); lockHero(); start(); });
   }
 
   function openInspect() {
@@ -1690,9 +1780,13 @@ function track(event, data) {
     ws('.card-t').classList.add('is-in');
     await beat(120);
     ws('.card-p').classList.add('is-in');
-    const thought = beat(500).then(() => think('conserv', false));
-    await zoeSay('loaded');
-    await thought;
+    // The template-and-playbook beat is read in full: ZOE's line, then Bob's thought, each held longer,
+    // then a pause before ZOE goes on.
+    await zoeSay('loaded', false);
+    await wait(TEMPLATE_HOLD * dwell(LINES.loaded));
+    await think('conserv', false);
+    await wait(TEMPLATE_HOLD * dwell(LINES.conserv));
+    await beat(900);
     const scrub = ws('.btn-scrub');
     scrub.classList.add('is-armed');
     const toDraft = zoeSay('toDraft', false);
@@ -1745,6 +1839,9 @@ function track(event, data) {
     // The fix: the cloud's line stays up at least 3 s while the draft streams back.
     const fix = cloudSay('fix', false);
     stream.classList.add('is-back');
+    camera('return');
+    // On phones the draft takes the screen at reading zoom; ZOE's earlier line steps aside so nothing covers the laptop.
+    if (geo.portrait) zoe.classList.remove('is-in');
     await fix;
     await wait(Math.max(KEY_LINE_MS, 900 * MOTION));
     stream.classList.remove('is-back');
@@ -1780,6 +1877,7 @@ function track(event, data) {
     cancelRun();
     run = { id: run.id + 1, cancelled: false, timers: new Set() };
     phoneStage = 0;
+    locked = false;
     phoneDrag = null;
     phoneOff = { x: 0, y: 0 };
     inspectOpen = false;
@@ -1800,14 +1898,14 @@ function track(event, data) {
 
   // Deep-dive reached: the drawer below the hero scrolls into view.
   if ('IntersectionObserver' in window) {
-    const how = document.getElementById('how');
+    const below = document.getElementById('dataflow');
     const io = new IntersectionObserver((entries) => {
-      if (entries.some((en) => en.isIntersecting)) {
+      if (!heroLocked && entries.some((en) => en.isIntersecting)) {
         track('deep_dive_reached');
         io.disconnect();
       }
     }, { threshold: 0.3 });
-    if (how) io.observe(how);
+    if (below) io.observe(below);
   }
 
   // Below the hero: the certification badge's script loads when the founder section comes near,
@@ -1825,15 +1923,23 @@ function track(event, data) {
     badgeIo.observe(founder);
   }
 
-  // The comparison's script loads when its section comes near, so it never competes with first paint.
+  // The comparison's script loads when the visitor heads there (or, when the page is not locked,
+  // when its section comes near), so it never competes with first paint.
   const flow = document.getElementById('dataflow');
-  if (flow) {
-    const loadCompare = () => {
-      if (document.querySelector('script[src="compare.js"]')) return;
-      const s = document.createElement('script');
-      s.src = 'compare.js';
-      document.body.appendChild(s);
-    };
+  let compareLoad = null;
+  function loadCompare() {
+    if (!compareLoad) {
+      compareLoad = new Promise((resolve) => {
+        const s = document.createElement('script');
+        s.src = 'compare.js';
+        s.onload = resolve;
+        s.onerror = resolve;
+        document.body.appendChild(s);
+      });
+    }
+    return compareLoad;
+  }
+  if (flow && !heroLocked) {
     if ('IntersectionObserver' in window) {
       const cmpIo = new IntersectionObserver((entries) => {
         if (!entries.some((en) => en.isIntersecting)) return;
@@ -1844,6 +1950,19 @@ function track(event, data) {
     } else {
       loadCompare();
     }
+  }
+
+  // `Why is ZOE AI different?`: unlock the page and land on the comparison, heading at the top,
+  // with Standard cloud AI chosen and playing.
+  async function toComparison() {
+    unlockHero();
+    const heading = document.getElementById('flow-h');
+    if (heading) {
+      const top = heading.getBoundingClientRect().top + window.scrollY - LAND_GAP;
+      window.scrollTo({ top, behavior: RM ? 'auto' : 'smooth' });
+    }
+    await loadCompare();
+    if (window.__zoeCompare) window.__zoeCompare.pick('cloud');
   }
 
   // Privacy and Terms are :target modals; Escape closes them.
@@ -1864,6 +1983,10 @@ function track(event, data) {
     get camera() { return camMode; },
     get opening() { return stage.dataset.open || ''; },
     perform: (method = 'debug') => gestureNow && gestureNow.perform(method),
+    inspect: () => openInspect(),
+    toComparison: () => toComparison(),
+    get locked() { return heroLocked; },
+    get shutterArmed() { return locked; },
     replay: start,
   };
 })();

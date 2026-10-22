@@ -120,8 +120,10 @@
   margin: 8px 0 24px;
 }
 
-/* The two choices breathe until one is picked. */
-#dataflow:not(.is-picked) .flow-pick::after {
+/* Before the script runs both choices breathe; once Standard cloud AI is shown, ZOE AI breathes
+   until the visitor picks one. */
+#dataflow:not(.is-picked) .flow-pick::after,
+#dataflow.is-picked:not(.user-picked) .flow-pick[aria-selected="false"]::after {
   content: "";
   position: absolute;
   inset: -4px;
@@ -133,7 +135,7 @@
 
 .flow-pick { position: relative; }
 .flow-pick[aria-selected="false"] { color: #eaf2ff; background: #1b2638; box-shadow: inset 0 0 0 1px rgba(156, 201, 255, 0.35); }
-#dataflow.is-picked .flow-pick[aria-selected="false"] { opacity: 0.8; }
+#dataflow.user-picked .flow-pick[aria-selected="false"] { opacity: 0.8; }
 
 @keyframes pick-ring {
   0%, 100% { opacity: 0.3; transform: scale(0.99); }
@@ -353,34 +355,6 @@
 .ev-label { margin: 10px 0 0; font-size: 17px; color: var(--ink); }
 .ev-note { margin: 12px 0 0; font-size: 13px; color: var(--ink-faint); }
 
-/* ZOE Servers. */
-.srv-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: 40px;
-  align-items: center;
-}
-
-.srv-img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 18px;
-  background: radial-gradient(ellipse at 50% 45%, #e9edf3, #b9c1cc);
-}
-
-.roadmap {
-  margin-top: 28px;
-  padding: 20px 22px;
-  border-radius: 14px;
-  background: #0c1018;
-  box-shadow: inset 0 0 0 1px var(--panel-line);
-}
-
-.roadmap h3 { margin: 0 0 8px; font-size: 19px; }
-.roadmap p { margin: 0 0 10px; font-size: 15px; color: var(--ink-soft); }
-.roadmap p:last-child { margin-bottom: 0; }
-
 /* People. */
 .person {
   display: grid;
@@ -560,13 +534,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #dataflow:not(.is-picked) .flow-pick::after { animation: none; opacity: 0.85; }
+  #dataflow:not(.is-picked) .flow-pick::after,
+  #dataflow.is-picked:not(.user-picked) .flow-pick[aria-selected="false"]::after { animation: none; opacity: 0.85; }
 }
 
 @media (max-width: 899px) {
   .how-grid,
   .why-grid,
-  .srv-grid,
   .person { grid-template-columns: minmax(0, 1fr); }
   .wf-grid { grid-template-columns: minmax(0, 1fr); }
   .wf-card,
@@ -575,7 +549,6 @@
   .person-img { max-width: 260px; }
   .person-side { display: contents; }
   .person .credly-badge { order: 2; }
-  .srv-img { max-width: 360px; }
   .form-2 { grid-template-columns: 1fr; }
   .sec { padding-left: 16px; padding-right: 16px; }
 }

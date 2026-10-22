@@ -1,5 +1,5 @@
 // Records a full run of the hero as an animated GIF (and reports its running time).
-//   node tools/record-gif.js <narrow|wide|wideHi> <untouched|touched|drawer|lid|compare-cloud|compare-zoe|logo|act4|opening> [out.gif] [--throttle]
+//   node tools/record-gif.js <narrow|wide|wideHi> <untouched|touched|drawer|lid|compare-cloud|compare-zoe|logo|act4|opening|shutter|landing> [out.gif] [--throttle]
 // `opening` is untouched from first paint until the lid has opened and the workspace has come up.
 // Needs playwright, gifenc and pngjs on NODE_PATH; serve the site on :8000 first.
 // Frames come from the browser's own screencast, resampled to a steady 8 fps.
@@ -87,7 +87,37 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
   let ended = 0;
   let crop = null; // [x, y, w, h] in screencast pixels
   let trimBefore = 0; // drop frames captured before this (epoch seconds)
-  if (mode === 'act4') {
+  if (mode === 'shutter') {
+    // Act I's three actions: drag onto the page (it locks on), press the shutter, then the laptop arrives.
+    await page.waitForFunction(() => window.__zoeHero.gesture === 'phone', null, { timeout: 30000 });
+    await page.waitForTimeout(1200);
+    trimBefore = Date.now() / 1000;
+    const ph = await page.locator('.phone').boundingBox();
+    const sh = await page.locator('.sheet').boundingBox();
+    const a = { x: ph.x + ph.width / 2, y: ph.y + ph.height / 2 };
+    const b = { x: sh.x + sh.width / 2, y: sh.y + sh.height / 2 };
+    await page.mouse.move(a.x, a.y);
+    await page.mouse.down();
+    for (let i = 1; i <= 45; i += 1) { await page.mouse.move(a.x + (b.x - a.x) * i / 45, a.y + (b.y - a.y) * i / 45); await page.waitForTimeout(18); }
+    await page.mouse.up();
+    await page.waitForTimeout(2200);
+    const sb = await page.locator('.phone-shutter').boundingBox();
+    await page.mouse.click(sb.x + sb.width / 2, sb.y + sb.height / 2);
+    await page.waitForTimeout(4200);
+  } else if (mode === 'landing') {
+    // The end of the story, then `Why is ZOE AI different?` and the landing on the comparison.
+    for (;;) {
+      const st = await page.evaluate(() => ({ g: window.__zoeHero.gesture, f: window.__zoeHero.framesReady, e: window.__zoeHero.ended }));
+      if (st.e) break;
+      if (st.g && (st.g !== 'lid' || st.f)) await page.evaluate(() => window.__zoeHero.perform('tap'));
+      await page.waitForTimeout(150);
+    }
+    await page.waitForTimeout(1000);
+    trimBefore = Date.now() / 1000;
+    await page.waitForTimeout(1500);
+    await page.locator('.pill', { hasText: 'Why is ZOE AI different?' }).click();
+    await page.waitForTimeout(9000);
+  } else if (mode === 'act4') {
     // Act IV from the Scrub click to Act V: the earlier gestures are tapped through, unrecorded.
     for (;;) {
       const st = await page.evaluate(() => ({ g: window.__zoeHero.gesture, f: window.__zoeHero.framesReady }));

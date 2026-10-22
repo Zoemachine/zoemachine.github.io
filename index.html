@@ -79,7 +79,10 @@
         <li>Act 1</li><li>Act 2</li><li>Act 3</li><li>Act 4</li><li>Act 5</li>
       </ol>
       <p class="footnote">Illustrative demonstration</p>
-      <a class="skip" href="#how">Skip to how it works <span aria-hidden="true">↓</span></a>
+      <!-- Top-right corner: the NVIDIA Inception badge; the space beside it is kept for a language selector. -->
+      <div class="corner">
+        <img class="corner-badge" src="assets/site/nvidia-inception.webp" width="386" height="168" alt="NVIDIA Inception Program member" fetchpriority="low" decoding="async">
+      </div>
       <p class="visually-hidden" id="live" aria-live="polite"></p>
 
       <noscript>
@@ -129,28 +132,6 @@
     </noscript>
 
     <!-- ============ Below the hero ============ -->
-
-    <section class="sec" id="how" aria-labelledby="how-h">
-      <div class="wrap">
-        <h2 class="sec-h" id="how-h">How does it work</h2>
-        <div class="how-grid">
-          <article class="how-card">
-            <h3>What stays on the laptop</h3>
-            <p>Everything that matters. Your clients' documents and the whole data room. Your firm's clause library, precedents and templates — the work product the firm has built over decades, and the competitive moat that sets it apart. Every matter's working files, and every confidential name, number and address ZOE marks in them.</p>
-            <p>Point ZOE at your precedents — ten of them, or fifty thousand. Ask for a strong environmental rep and you get <em>your firm's</em> best one, from the deal it actually closed in.</p>
-            <p><strong>None of it leaves the laptop.</strong></p>
-          </article>
-          <article class="how-card">
-            <h3>What happens with no internet</h3>
-            <p>Air-gapped by default. Due diligence, who signed and in what capacity, clause and template search, and drafting in Word all keep running with the connection off, effectively creating an air-gap between your client's documents and the outside world. It works on a plane. In a data room with guest wifi you would never put client documents on. In a courthouse basement with no signal at all.</p>
-            <dl class="specs">
-              <div><dt>16 GB</dt><dd>MacBook or Windows laptop</dd></div>
-              <div><dt>$0</dt><dd>Per document processed locally</dd></div>
-            </dl>
-          </article>
-        </div>
-      </div>
-    </section>
 
     <section class="sec sec-flow" id="dataflow" aria-labelledby="flow-h">
       <div class="wrap">
@@ -257,19 +238,24 @@
       </div>
     </section>
 
-    <section class="sec" id="servers" aria-labelledby="srv-h">
-      <div class="wrap srv-grid">
-        <img class="srv-img" src="assets/site/server.webp" width="720" height="720" alt="ZOE AI on-premises server" loading="lazy" decoding="async">
-        <div>
-          <h2 class="sec-h" id="srv-h">And when a firm wants it shared.</h2>
-          <p class="lede">ZOE Servers put the same system on-premises for an entire practice group — one shared library behind your own firewall. Same architecture, same guarantees. Nothing leaves the building here either.</p>
-          <a class="pill-link" href="#contact">Express Interest</a>
-          <div class="roadmap">
-            <p class="eyebrow">On the roadmap</p>
-            <h3>Claims screening for e-discovery.</h3>
-            <p>The engine that finds a client's private data inside a contract can read a mailbox just as well. ZOE is being trained to recognize the communications that matter in a dispute — the language that signals an emerging claim, the message someone will wish had been found in week one rather than month six.</p>
-            <p>Two jobs, one pass: surface the exposure, and scrub the client's identifiers at the same time. Review sets are the single most expensive place a firm leaks confidential data. Screening them locally means the exposure and the privacy problem get solved by the same sweep.</p>
-          </div>
+    <section class="sec" id="how" aria-labelledby="how-h">
+      <div class="wrap">
+        <h2 class="sec-h" id="how-h">How does it work</h2>
+        <div class="how-grid">
+          <article class="how-card">
+            <h3>What stays on the laptop</h3>
+            <p>Everything that matters. Your clients' documents and the whole data room. Your firm's clause library, precedents and templates — the work product the firm has built over decades, and the competitive moat that sets it apart. Every matter's working files, and every confidential name, number and address ZOE marks in them.</p>
+            <p>Point ZOE at your precedents — ten of them, or fifty thousand. Ask for a strong environmental rep and you get <em>your firm's</em> best one, from the deal it actually closed in.</p>
+            <p><strong>None of it leaves the laptop.</strong></p>
+          </article>
+          <article class="how-card">
+            <h3>What happens with no internet</h3>
+            <p>Air-gapped by default. Due diligence, who signed and in what capacity, clause and template search, and drafting in Word all keep running with the connection off, effectively creating an air-gap between your client's documents and the outside world. It works on a plane. In a data room with guest wifi you would never put client documents on. In a courthouse basement with no signal at all.</p>
+            <dl class="specs">
+              <div><dt>16 GB</dt><dd>MacBook or Windows laptop</dd></div>
+              <div><dt>$0</dt><dd>Per document processed locally</dd></div>
+            </dl>
+          </article>
         </div>
       </div>
     </section>
@@ -335,6 +321,7 @@
         <p class="form-note">Your message is relayed by formsubmit.co to info@zoemachine.com and used solely to contact you about ZOE AI&trade;. See the <a href="#privacy">Privacy Policy</a>.</p>
       </div>
     </section>
+
   </main>
 
   <footer class="site-footer" id="site-footer">

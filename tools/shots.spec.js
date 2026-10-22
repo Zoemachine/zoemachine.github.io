@@ -24,7 +24,8 @@ const PHONE = JSON.parse(Buffer.from('eyJyZSI6ICJcXGJwaG9uZXM/XFxiIiwgImFsbG93ZW
 const PRODUCTS = JSON.parse(Buffer.from('eyJhbGxvd2VkSW4iOiAiaGVyby5qcyIsICJmcm9tIjogIi8vIFRoZSBmcm9udGllciBtb2RlbHMgbmFtZWQgdW5kZXIgdGhlIGNsb3VkIiwgInRvIjogIl07IiwgImFsbG93ZWQiOiBbIkNoYXRHUFQiLCAiQ2xhdWRlIiwgIkdlbWluaSIsICJDb3BpbG90Il0sICJmb3JiaWRkZW4iOiBbIlxcYkdQVC0/XFxkIiwgIlxcYkxsYW1hXFxiIiwgIlxcYk1pc3RyYWxcXGIiLCAiXFxiR3Jva1xcYiIsICJcXGJCYXJkXFxiIiwgIlxcYlNvbm5ldFxcYiIsICJcXGJPcHVzXFxiIiwgIlxcYkhhaWt1XFxiIiwgIlxcYkZhYmxlXFxiIiwgIlxcYkRlZXBTZWVrXFxiIiwgIlxcYlF3ZW5cXGIiXX0=', 'base64').toString());
 const SITE_FILES = ['index.html', 'styles.css', 'hero.js', 'compare.js', 'drawer.css', 'pages.css', 'book-demo.html', 'nda.html',
   'tools/playwright.config.js', 'tools/make-site-images.js', 'tools/record-gif.js'];
-const SECTIONS = ['how', 'dataflow', 'workflows', 'evidence', 'why', 'servers', 'founder', 'advisory', 'contact', 'site-footer'];
+// Below the hero, in order (William, 2026-10-21): the comparison first, ZOE Servers removed.
+const SECTIONS = ['dataflow', 'workflows', 'evidence', 'why', 'how', 'founder', 'advisory', 'contact', 'site-footer'];
 
 // All-caps words allowed on screen: AI and PII, plus names, mask tokens and emphasis that are not acronyms.
 const CAPS_OK = new Set(['AI', 'PII', 'ZOE', 'LLC', 'LP', 'EIN', 'ORG', 'PERSON', 'ADDRESS', 'ON', 'OFF', 'NO',
@@ -249,7 +250,7 @@ test('Act I: a bare stage, the chat dead centre, then the strip moves and the pa
   await shot(page, info, 'act1');
 });
 
-test('Act I: drag the phone onto the term sheet, then into the laptop', async ({ page }, info) => {
+test('Act I: drag the phone onto the term sheet, press the shutter, then into the laptop', async ({ page }, info) => {
   await open(page);
   await waitGesture(page, 'phone');
   await page.waitForTimeout(700);
@@ -276,6 +277,15 @@ test('Act I: drag the phone onto the term sheet, then into the laptop', async ({
     tick();
   });
   await dragPath(d, edge, sheetC, 8);
+  // Locked on: no picture yet; the phone settles, the box brightens, the shutter lights up.
+  await page.waitForFunction(() => window.__zoeHero.shutterArmed && document.querySelector('.phone').classList.contains('shutter-armed'), null, { timeout: 3000 });
+  await expect(page.locator('.phone')).not.toHaveClass(/is-snapped/);
+  await d.end();
+  await page.waitForTimeout(300);
+  await shot(page, info, 'act1-locked');
+  // Press the shutter.
+  const shutter = await center(page, '.phone-shutter');
+  await tapAt(page, shutter);
   await expect(page.locator('.phone')).toHaveClass(/is-snapped/);
   // The photo settles inside the phone, fully within its screen.
   await page.waitForTimeout(700);
@@ -300,8 +310,10 @@ test('Act I: drag the phone onto the term sheet, then into the laptop', async ({
   await shot(page, info, 'act1-laptop-in');
   const lap = await page.locator('.scene').boundingBox();
   const target = { x: lap.x + lap.width * 0.5, y: lap.y + lap.height * 0.65 };
-  await dragPath(d, sheetC, target, 20);
-  await d.end();
+  const ph2 = await center(page, '.phone');
+  const d2 = await startDrag(page, info, ph2);
+  await dragPath(d2, ph2, target, 20);
+  await d2.end();
   await page.waitForFunction(() => parseFloat(getComputedStyle(document.querySelector('.transfer')).opacity) > 0.95, null, { timeout: 4000 });
   await page.waitForTimeout(300);
   const px = await page.$eval('.transfer', (el) => parseFloat(getComputedStyle(el).fontSize));
@@ -310,6 +322,32 @@ test('Act I: drag the phone onto the term sheet, then into the laptop', async ({
   await waitGesture(page, 'lid', 8000);
   await expect(page.locator('.phone')).toBeHidden({ timeout: 3000 });
   expect(await page.evaluate(() => window.__flew)).toBe(true);
+});
+
+test('Act I: locked on the page, Enter presses the shutter; left alone, the idle clock does', async ({ page }, info) => {
+  test.setTimeout(240000);
+  test.skip(!isWide(info), 'keyboard and idle checked once');
+  for (const how of ['key', 'idle']) {
+    await open(page);
+    await waitGesture(page, 'phone');
+    await page.waitForTimeout(700);
+    const from = await center(page, '.phone');
+    const to = await center(page, '.sheet');
+    const d = await startDrag(page, info, from);
+    await dragPath(d, from, to, 16);
+    await d.end();
+    await page.waitForFunction(() => window.__zoeHero.shutterArmed, null, { timeout: 3000 });
+    const t0 = Date.now();
+    if (how === 'key') {
+      await page.locator('.phone').focus();
+      await page.keyboard.press('Enter');
+    }
+    await page.waitForFunction(() => document.querySelector('.phone').classList.contains('is-snapped'), null, { timeout: 20000 });
+    if (how === 'idle') {
+      metrics.shutter_idle_ms = Date.now() - t0;
+      expect(metrics.shutter_idle_ms).toBeGreaterThan(11000);
+    }
+  }
 });
 
 test('Act I: a tap on the phone performs both moves', async ({ page }) => {
@@ -466,7 +504,7 @@ test('Act IV: the catch is spoken by ZOE, the fix by the cloud, then the rehydra
   expect(lines.find((l) => l.includes('parent guaranty'))).toMatch(/^Frontier AI:/);
 });
 
-test('Act V: pills, inspect view, how-it-works scroll, replay twice, analytics', async ({ page }, info) => {
+test('Act V: one button and Replay; the button unlocks and lands on the comparison; replay twice; analytics', async ({ page }, info) => {
   test.setTimeout(500000);
   const events = [];
   page.on('console', (m) => { const t = m.text(); if (t.startsWith('[track]')) events.push(t.split(' ')[1]); });
@@ -474,28 +512,18 @@ test('Act V: pills, inspect view, how-it-works scroll, replay twice, analytics',
   await runToEnd(page);
   await page.waitForTimeout(700);
   await shot(page, info, 'act5');
-  // Text across the stage (as written, before CSS capitals): no acronyms but AI and PII (names and tokens excepted).
+  expect(await page.$$eval('.pills .pill', (els) => els.map((e) => e.textContent))).toEqual(['Why is ZOE AI different?', 'Replay']);
+  // The inspect view is no longer offered, but its code still works (through the test hook).
   const stageText = await page.evaluate(() => document.querySelector('.stage').textContent);
-  await page.locator('.pill', { hasText: 'Inspect' }).click();
+  await page.evaluate(() => window.__zoeHero.inspect());
   await page.waitForTimeout(600);
-  await expect(page.locator('.insp-col').first()).toContainText('Kestrel Robotics Inc.');
   await expect(page.locator('.insp-col.is-out')).toContainText('[ORG_1]');
-  await expect(page.locator('.insp-col.is-out')).not.toContainText('Kestrel Robotics');
-  await expect(page.locator('.timeline')).toContainText('Wi-Fi OFF');
-  await shot(page, info, 'inspect');
   const inspectText = await page.evaluate(() => document.querySelector('.inspect').textContent);
   const caps = Array.from(new Set(`${stageText} ${inspectText}`.match(/\b[A-Z]{2,}\b/g) || [])).filter((w) => !CAPS_OK.has(w));
   expect(caps).toEqual([]);
   await page.locator('.insp-back .pill').click();
   await page.waitForTimeout(500);
-  await expect(page.locator('.inspect')).toBeHidden();
-  await page.locator('.pill', { hasText: 'How does it work' }).click();
-  await page.waitForTimeout(1300);
-  const top = await page.locator('#how').evaluate((el) => el.getBoundingClientRect().top);
-  expect(Math.abs(top)).toBeLessThan(4);
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await page.waitForTimeout(800);
-  await expect(page.locator('.pill', { hasText: 'Replay' })).toBeInViewport();
+  // Replay twice: a clean Act I each time, still locked.
   for (let i = 0; i < 2; i += 1) {
     await page.locator('.pill', { hasText: 'Replay' }).click();
     await page.waitForTimeout(400);
@@ -508,20 +536,62 @@ test('Act V: pills, inspect view, how-it-works scroll, replay twice, analytics',
       cloud: document.querySelector('.cloud').classList.contains('is-in'),
       phoneHidden: document.querySelector('.phone').hidden,
       laptopIn: document.querySelector('.stage').classList.contains('laptop-in'),
+      locked: window.__zoeHero.locked,
+      scrollY: window.scrollY,
     }));
-    expect(clean).toEqual({ act: 1, screenHidden: true, pills: 0, progress: 0, camera: 'arrive', cloud: false, phoneHidden: false, laptopIn: false });
+    expect(clean).toEqual({ act: 1, screenHidden: true, pills: 0, progress: 0, camera: 'arrive', cloud: false, phoneHidden: false, laptopIn: false, locked: true, scrollY: 0 });
     await runToEnd(page);
     await page.waitForTimeout(700);
   }
   await shot(page, info, 'act5-after-two-replays');
-  for (const ev of ['phone_snapped', 'lid_opened', 'marked', 'scrubbed', 'reached_cloud', 'pill_inspect', 'pill_how', 'pill_replay', 'deep_dive_reached']) {
+  // The button: unlock, land on the comparison with its heading at the top, Standard cloud AI playing.
+  await page.locator('.pill', { hasText: 'Why is ZOE AI different?' }).click();
+  await page.waitForFunction(() => window.__zoeCompare && window.__zoeCompare.running, null, { timeout: 8000 });
+  await page.waitForTimeout(1500);
+  const land = await page.evaluate(() => ({ top: Math.round(document.getElementById('flow-h').getBoundingClientRect().top), picked: window.__zoeCompare.picked, locked: window.__zoeHero.locked }));
+  expect(Math.abs(land.top - 24)).toBeLessThan(3);
+  expect(land.picked).toBe('cloud');
+  expect(land.locked).toBe(false);
+  await expect(page.locator('.flow-pick[data-pick="cloud"]')).toHaveAttribute('aria-selected', 'true');
+  await shot(page, info, 'landing');
+  const before = await page.evaluate(() => window.scrollY);
+  await page.mouse.wheel(0, 600);
+  await page.waitForTimeout(600);
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(before + 100);
+  for (const ev of ['phone_snapped', 'lid_opened', 'marked', 'scrubbed', 'reached_cloud', 'pill_why', 'pill_replay', 'deep_dive_reached']) {
     expect(events).toContain(ev);
   }
 });
 
+test('the hero is its own screen: wheel, touch and keys do not scroll it', async ({ page }, info) => {
+  await open(page);
+  await page.waitForTimeout(600);
+  expect(await page.evaluate(() => document.documentElement.classList.contains('hero-lock'))).toBe(true);
+  await page.mouse.move(info.project.use.viewport.width / 2, info.project.use.viewport.height - 60);
+  await page.mouse.wheel(0, 800);
+  await page.waitForTimeout(300);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  if (info.project.use.hasTouch) {
+    const cdp = await page.context().newCDPSession(page);
+    const x = 40;
+    const y = info.project.use.viewport.height - 80;
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    for (let i = 1; i <= 10; i += 1) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - i * 40 }] });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  } else {
+    await page.keyboard.press('PageDown');
+    await page.keyboard.press('End');
+    await page.keyboard.press('Space');
+  }
+  await page.waitForTimeout(400);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await expect(page.locator('.skip')).toHaveCount(0);
+  await shot(page, info, 'hero-locked');
+});
+
 // Text at half speed and every gesture wait at 3x (18 s for the phone, 12 s for each later one); the
 // chat-first opening adds a few seconds of staging to main's measured 127 s.
-const UNTOUCHED_LIMIT_MS = 150000;
+const UNTOUCHED_LIMIT_MS = 170000;
 
 test('untouched: the story plays through by itself (recorded), with the opening timed', async ({ browser }, info) => {
   test.setTimeout(280000);
@@ -600,7 +670,13 @@ test('reduced motion: five stills, advanced by the Next pill', async ({ page }, 
     await next.click();
   }
   expect(await hero(page, 'act')).toBe(5);
-  await expect(page.locator('.pill', { hasText: 'Inspect' })).toBeVisible();
+  // The Next path ends at the same button; reduced motion never locks the page.
+  await expect(page.locator('.pill', { hasText: 'Why is ZOE AI different?' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.classList.contains('hero-lock'))).toBe(false);
+  await page.locator('.pill', { hasText: 'Why is ZOE AI different?' }).click();
+  await page.waitForFunction(() => window.__zoeCompare && window.__zoeCompare.picked === 'cloud', null, { timeout: 8000 });
+  await page.waitForTimeout(300);
+  expect(Math.abs(await page.locator('#flow-h').evaluate((e) => e.getBoundingClientRect().top) - 24)).toBeLessThan(3);
 });
 
 test('no JavaScript: open laptop and the five acts as text, matching hero.js', async ({ browser }, info) => {
@@ -625,7 +701,11 @@ test('below the hero: every section, both modals, numbers and image sizes', asyn
   page.on('response', async (r) => {
     if (r.request().resourceType() === 'image') images.push({ url: r.url(), kb: Math.round((await r.body().catch(() => Buffer.alloc(0))).length / 1024) });
   });
-  await page.goto('/');
+  // A link to a section below the hero arrives unlocked (as from the other pages).
+  await page.goto('/#dataflow');
+  const order = await page.evaluate(() => Array.from(document.querySelectorAll('main > section.sec, footer.site-footer')).map((e) => e.id));
+  expect(order).toEqual(SECTIONS);
+  await expect(page.locator('#servers')).toHaveCount(0);
   for (const id of SECTIONS) {
     await page.locator('#' + id).scrollIntoViewIfNeeded();
     await page.waitForTimeout(250);
@@ -677,7 +757,6 @@ test('the living O: the wordmark overlay rides the drift, the bubble O grows, th
   await page.waitForFunction(() => document.querySelector('.zoe').classList.contains('is-talking') || document.querySelector('.zoe').classList.contains('is-working'), null, { timeout: 30000 });
   const grown = await page.locator('.zoe-mark .o-wrap').evaluate((e) => new DOMMatrix(getComputedStyle(e).transform).a);
   expect(grown).toBeGreaterThan(1.5);
-  await page.locator('#site-footer').scrollIntoViewIfNeeded();
   expect(await page.locator('.foot-logo .wordmark-o').evaluate((e) => e.getAnimations()[0].playState)).toBe('running');
   await page.locator('.logo-o').screenshot({ path: path.join(SHOTS, `${info.project.name}-logo-o.png`) }).catch(() => {});
 });
@@ -705,24 +784,22 @@ test('portrait round trip: the cloud above the laptop, the stream rising to it',
   expect(await page.locator('.stream-label').evaluate((e) => parseFloat(getComputedStyle(e).fontSize))).toBeGreaterThanOrEqual(16);
 });
 
-test('comparison: nothing until a choice, each panel animates, switching works', async ({ page }, info) => {
-  await page.goto('/');
+test('comparison: Standard cloud AI chosen to begin with, each panel animates, switching works', async ({ page }, info) => {
+  await page.goto('/#dataflow');
   await page.locator('#dataflow').scrollIntoViewIfNeeded();
-  await page.waitForTimeout(400);
-  await expect(page.locator('#flow-cloud')).toBeHidden();
+  await page.waitForFunction(() => window.__zoeCompare && window.__zoeCompare.running, null, { timeout: 8000 });
+  await expect(page.locator('#flow-cloud')).toBeVisible();
   await expect(page.locator('#flow-zoe')).toBeHidden();
-  await page.locator('#dataflow').screenshot({ path: path.join(SHOTS, `${info.project.name}-compare-choose.png`) });
+  await expect(page.locator('.flow-pick[data-pick="cloud"]')).toHaveAttribute('aria-selected', 'true');
   for (const [which, t] of [['cloud', 6800], ['zoe', 6000]]) {
     await page.locator(`.flow-pick[data-pick="${which}"]`).click();
     await expect(page.locator(`#flow-${which}`)).toBeVisible();
     await expect(page.locator(`#flow-${which === 'cloud' ? 'zoe' : 'cloud'}`)).toBeHidden();
-    await expect(page.locator(`.flow-pick[data-pick="${which}"]`)).toHaveAttribute('aria-selected', 'true');
     await page.waitForFunction(() => window.__zoeCompare.running, null, { timeout: 3000 });
     await page.evaluate((ms) => window.__zoeCompare.seek(ms), t);
     await page.waitForTimeout(100);
     await page.locator('#dataflow').screenshot({ path: path.join(SHOTS, `${info.project.name}-compare-${which}.png`) });
   }
-  // Mid-animation states: the cloud's copies are red-flagged; ZOE's masked question is crossing.
   await page.locator('.flow-pick[data-pick="cloud"]').click();
   await page.evaluate(() => window.__zoeCompare.seek(6800));
   expect(await page.locator('#flow-cloud .fl-tag').evaluateAll((els) => els.filter((e) => +getComputedStyle(e).opacity > 0.9).length)).toBe(4);
@@ -735,6 +812,7 @@ test('comparison under reduced motion: a still picture', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   await page.locator('#dataflow').scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => window.__zoeCompare, null, { timeout: 8000 });
   await page.locator('.flow-pick[data-pick="cloud"]').click();
   await page.waitForTimeout(300);
   expect(await page.evaluate(() => window.__zoeCompare.running)).toBe(false);
@@ -790,6 +868,7 @@ test('first paint on throttled 4G, total transfer', async ({ page }) => {
   await page.waitForFunction(() => window.__zoeHero.framesReady, null, { timeout: 30000 });
   const framesReadyMs = await page.evaluate(() => Math.round(performance.now()));
   // Then the whole page: scroll through the drawer so every lazy image and the badge load.
+  await page.evaluate(() => window.__zoeHero.toComparison());
   for (let y = 0; y < 30; y += 1) {
     await page.mouse.wheel(0, 900);
     await page.waitForTimeout(120);
