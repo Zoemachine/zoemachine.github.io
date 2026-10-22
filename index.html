@@ -78,6 +78,7 @@
       <ol class="progress" aria-label="Story progress">
         <li>Act 1</li><li>Act 2</li><li>Act 3</li><li>Act 4</li><li>Act 5</li>
       </ol>
+      <button class="skip-step" type="button" aria-label="Skip to the next step">skip</button>
       <p class="footnote">Illustrative demonstration</p>
       <!-- Top-right corner: the NVIDIA Inception badge; the space beside it is kept for a language selector. -->
       <div class="corner">
@@ -98,9 +99,9 @@
     <noscript>
       <section class="story-text" aria-label="The story, as text">
         <h2>Act I · The ambush</h2>
-        <p><b>Jimmy:</b> Bob. They're buying us out. Term sheet's in my hand.</p>
+        <p><b>Jimmy:</b> Bob. They're buying us out, here's the term sheet, can you throw a first draft together?</p>
         <p><b>Bob:</b> Right now? We're in THEIR OFFICE.</p>
-        <p><b>Jimmy:</b> Momentum, Bob. Draft the agreement. You have 10 MINUTES.</p>
+        <p><b>Jimmy:</b> Perfect opportunity with everyone in the same room. You have 10 MINUTES, I know I can count on you.</p>
         <p><i>Bob photographs the term sheet; the phone hands it to the laptop. Local transfer · no cloud.</i></p>
         <p><b>Bob (thinking):</b> Picture taken. Into the laptop.</p>
         <h2>Act II · Open the laptop, pull the plug</h2>
@@ -112,7 +113,7 @@
         <p><b>ZOE:</b> Found 28 files on this client in your vault.</p>
         <p><b>ZOE:</b> Loaded your firm's buyout template and the conservative seller playbook.</p>
         <p><b>Bob (thinking):</b> Conservative to start. We'll see what they come back with.</p>
-        <p><b>ZOE:</b> To draft, I need the frontier AI. I'll clean the data before the Wi-Fi comes back.</p>
+        <p><b>ZOE:</b> Bringing in the frontier AI for assistance on this one. I'll clean the data before the Wi-Fi comes back.</p>
         <h2>Act IV · The scrub and the round trip</h2>
         <p><b>ZOE:</b> Data cleaned. Wi-Fi on.</p>
         <p><i>MASKED INFORMATION · NO PII</i></p>
@@ -124,6 +125,7 @@
         <p><b>Frontier AI:</b> [ORG_5] is an empty shell. [ORG_6] is the parent, and it is not in this deal.</p>
         <p><b>Frontier AI:</b> Adding [ORG_6]: parent guaranty, indemnification. Drafting.</p>
         <p><b>Frontier AI:</b> Draft returning.</p>
+        <p><b>ZOE:</b> Applying draft edits.</p>
         <p><b>Bob (thinking):</b> They left the parent off the hook. Caught it.</p>
         <h2>Act V · Ten minutes are up</h2>
         <p><b>Jimmy:</b> Ten minutes. Tell me you've got something.</p>
@@ -140,7 +142,7 @@
         <h2 class="sec-h" id="flow-h">Why is ZOE different?</h2>
         <div class="flow-choose" role="tablist" aria-label="Choose a system to see">
           <button class="pill-link flow-pick" type="button" role="tab" aria-selected="false" aria-controls="flow-cloud" data-pick="cloud">Standard cloud AI</button>
-          <button class="pill-link flow-pick" type="button" role="tab" aria-selected="false" aria-controls="flow-zoe" data-pick="zoe">ZOE AI</button>
+          <button class="pill-link flow-pick" type="button" role="tab" aria-selected="false" aria-controls="flow-zoe" data-pick="zoe" aria-label="ZOE AI System, patent pending">ZOE AI System<span class="patent" aria-hidden="true">Patent pending</span></button>
         </div>
         <figure class="flow-panel is-risk" id="flow-cloud" role="tabpanel" aria-label="Standard cloud AI" hidden>
           <figcaption><span class="flow-tag">Standard cloud AI</span>Your document takes a trip.</figcaption>

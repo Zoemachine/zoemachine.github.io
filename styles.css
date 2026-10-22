@@ -814,6 +814,8 @@ body {
 .zoe-say,
 .cloud-say { white-space: pre-wrap; }
 
+.nowrap { white-space: nowrap; }
+
 .em {
   display: inline-block;
   font-weight: 700;
@@ -1521,6 +1523,31 @@ body {
 
 .pill:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
+/* `skip`: for a visitor who has seen the demo before. Quiet on purpose: small grey type beside the
+   progress dots, no glow; it fades in ten seconds after load. */
+.skip-step {
+  position: absolute;
+  left: calc(50% + 56px);
+  bottom: max(9px, calc(env(safe-area-inset-bottom) - 7px));
+  z-index: 21;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: rgba(230, 235, 242, 0.64);   /* the footnote's grey: as quiet as text can be and still pass contrast */
+  background: none;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.8s ease, color 0.2s ease;
+}
+
+.skip-step.is-in { opacity: 1; pointer-events: auto; }
+.skip-step:hover { color: rgba(230, 235, 242, 0.82); }
+.skip-step:focus-visible { outline: 1px solid rgba(156, 201, 255, 0.6); outline-offset: 1px; color: rgba(230, 235, 242, 0.85); }
+
 .progress {
   position: absolute;
   left: 50%;
@@ -1788,6 +1815,7 @@ html.hero-lock body {
   .stage.is-up .strip { top: auto; bottom: 64px; }
   .strip { z-index: 4; }
   .progress { bottom: calc(max(16px, env(safe-area-inset-bottom)) + 30px); }
+  .skip-step { bottom: calc(max(16px, env(safe-area-inset-bottom)) + 23px); }
 
   .phone-cue { font-size: 16px; top: 40%; }
   .phone.cue-on .phone-cue {
@@ -1832,4 +1860,15 @@ html.hero-lock body {
 .stage.is-resetting .scene {
   transition: none !important;
   animation: none !important;
+}
+
+/* Skipping: everything lands in its final place at once. */
+.stage.is-skipping *,
+.stage.is-skipping *::before,
+.stage.is-skipping *::after,
+.stage.is-skipping .scene {
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
 }

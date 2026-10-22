@@ -117,11 +117,11 @@
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin: 8px 0 24px;
+  margin: 22px 0 24px;
 }
 
-/* Before the script runs both choices breathe; once Standard cloud AI is shown, ZOE AI breathes
-   until the visitor picks one. */
+/* Before the script runs both choices breathe. On arrival Standard cloud AI is selected (no glow) and
+   ZOE AI breathes; once either has been chosen, by a click or by the flip, neither glows again. */
 #dataflow:not(.is-picked) .flow-pick::after,
 #dataflow.is-picked:not(.user-picked) .flow-pick[aria-selected="false"]::after {
   content: "";
@@ -134,6 +134,20 @@
 }
 
 .flow-pick { position: relative; }
+
+/* `Patent pending`: a quiet small-caps tag hugging the ZOE pill's top-right corner, outside the pill. */
+.flow-pick .patent {
+  position: absolute;
+  right: 10px;
+  bottom: calc(100% + 3px);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(230, 235, 242, 0.62);
+  pointer-events: none;
+}
 .flow-pick[aria-selected="false"] { color: #eaf2ff; background: #1b2638; box-shadow: inset 0 0 0 1px rgba(156, 201, 255, 0.35); }
 #dataflow.user-picked .flow-pick[aria-selected="false"] { opacity: 0.8; }
 
@@ -533,7 +547,7 @@
 @media (max-width: 699px) {
   /* Phones: the heading, the choices and the whole panel fit one screen (390 x 664). */
   #dataflow .sec-h { margin-bottom: 12px; }
-  .flow-choose { gap: 8px; margin: 0 0 12px; }
+  .flow-choose { gap: 8px; margin: 16px 0 12px; }
   .flow-choose .flow-pick { flex: 1 1 auto; padding: 9px 12px; text-align: center; }
   .flow-panel { padding: 10px 8px 8px; }
   .flow-panel figcaption { gap: 8px; margin-bottom: 6px; font-size: 15px; }

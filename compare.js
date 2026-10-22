@@ -357,7 +357,8 @@
         if (anims !== mine) return;
         return typePoint(svg).then(() => {
           // Then, unless the visitor has chosen for themselves, it moves on to ZOE AI.
-          if (anims === mine && !section.classList.contains('user-picked')) later(() => pick('zoe'), FLIP_MS);
+          // The flip counts as the choice too: from then on neither pill glows, and it never flips again.
+          if (anims === mine && !section.classList.contains('user-picked')) later(() => { section.classList.add('user-picked'); pick('zoe'); }, FLIP_MS);
         });
       }).catch(() => {});
     }

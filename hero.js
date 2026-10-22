@@ -82,9 +82,9 @@ const VAULT_COUNT = 28;
 
 // Spoken lines. *word* pops when it lands; [ORG_n] renders as a token.
 const LINES = {
-  jimmy1:  "Bob. They're buying us out. Term sheet's in my hand.",
+  jimmy1:  "Bob. They're buying us out, here's the term sheet, can you throw a first draft together?",
   bob1:    "Right now? We're in *THEIR OFFICE*.",
-  jimmy2:  'Momentum, Bob. Draft the agreement. You have *10 MINUTES*.',
+  jimmy2:  'Perfect opportunity with everyone in the same room. You have *10 MINUTES*, I know I can count on you.',
   snapped: 'Picture taken. Into the laptop.',
   noTrust: "I don't trust their Wi-Fi. Going local.",
   wifiOff: "Wi-Fi off. Let's go.",
@@ -93,7 +93,7 @@ const LINES = {
   found:   'Found 28 files on this client in your vault.',
   loaded:  "Loaded your firm's buyout template and the conservative seller playbook.",
   conserv: "Conservative to start. We'll see what they come back with.",
-  toDraft: "To draft, I need the frontier AI. I'll clean the data before the Wi-Fi comes back.",
+  toDraft: "Bringing in the frontier AI for assistance on this one. I'll clean the data before the Wi-Fi comes back.",
   cleaned: 'Data cleaned. Wi-Fi on.',
   toCloud: 'Masked term sheet, template, playbook. Draft the agreement.',
   ask:     'Drafting. Who is [ORG_5]? Send what you have.',
@@ -103,6 +103,7 @@ const LINES = {
   catch:   '[ORG_5] is an empty shell. [ORG_6] is the parent, and it is not in this deal.',
   fix:     'Adding [ORG_6]: parent guaranty, indemnification. Drafting.',
   back:    'Draft returning.',
+  apply:   'Applying draft edits.',
   caught:  'They left the parent off the hook. Caught it.',
   jimmy3:  "Ten minutes. Tell me you've got something.",
   bob3:    "Draft's done. And their shell left the parent off the hook. It's in now.",
@@ -165,6 +166,7 @@ function track(event, data) {
   const PORTRAIT_SCREEN_UP = 282;  // the returning draft: the screen's top edge, back at reading zoom
   const LAPTOP_BASE = 0.86;    // the open laptop's base, as a share of the frame height (lid_45)
   const SHEET_TYPE = 0.025;    // the paper's type size, as a share of its width: a full page of small type
+  const SKIP_SHOW_MS = 10000;   // the skip button fades in this long after load
   const HANDOVER_BEAT_MS = 400; // after the laptop lands, before the phone moves to it
   const CAPTURE_HOLD_MS = 1100; // the captured page shows in the phone before the laptop comes in
   const LAPTOP_IN_MS = 1100;    // the laptop's slide in from the right (the .scene translate in styles.css)
@@ -274,7 +276,15 @@ function track(event, data) {
       if (!part) return;
       if (part[0] === '*') out.push({ text: part.slice(1, -1), cls: 'em' });
       else if (part[0] === '[') out.push({ text: part, cls: 'pii is-masked' });
-      else out.push({ text: part, cls: '' });
+      else {
+        // Punctuation straight after an emphasis stays on its line (it is typed as its own piece).
+        const prev = out[out.length - 1];
+        const tail = prev && prev.cls === 'em' ? part.match(/^[,.;:!?]+/) : null;
+        if (tail) {
+          out.push({ text: tail[0], cls: 'tail' });
+          if (part.length > tail[0].length) out.push({ text: part.slice(tail[0].length), cls: '' });
+        } else out.push({ text: part, cls: '' });
+      }
     });
     return out;
   }
@@ -288,20 +298,71 @@ function track(event, data) {
     if (r.cancelled) throw new Cancelled();
   }
 
+  // ---------- Skip: fast-forward to the next step ----------
+  // While skipping, every wait, typed line, timer and animation completes at once and each gesture
+  // performs itself, until the next act begins (from Act V, until the end pills are up). Clicks made
+  // while skipping queue one more step each.
+  let skipTo = 0;                                   // the act to stop at; 6 means the end pills
+  const skipping = () => skipTo > act;
+  // Story timers that a skip runs at once (they are also cancelled with the run on Replay).
+  const pendingLater = new Set();
+  function later(fn, ms) {
+    const job = { fn, t: 0 };
+    job.t = setTimeout(() => { pendingLater.delete(job); fn(); }, skipping() ? 0 : ms);
+    pendingLater.add(job);
+    return job.t;
+  }
+  function flushLater() {
+    const jobs = Array.from(pendingLater);
+    pendingLater.clear();
+    jobs.forEach((j) => { clearTimeout(j.t); j.fn(); });
+  }
+
+  function skipStep() {
+    if (RM || storyEndedAt) return;
+    track('skip', { act });
+    skipTo = Math.min(6, Math.max(skipTo, act) + 1);
+    stage.classList.add('is-skipping');
+    // Whatever the story is waiting on now finishes at once.
+    flushLater();
+    if (gestureNow && !gestureNow.busy) gestureNow.perform('skip');
+    flushWaits();
+    if (typeKick) typeKick();
+  }
+
+  function stopSkip() {
+    skipTo = 0;
+    stage.classList.remove('is-skipping');
+  }
+
+  // The waits pending when skip is pressed, so they can be released at once.
+  const pendingWaits = new Set();
+  function flushWaits() {
+    pendingWaits.forEach((w) => w());
+    pendingWaits.clear();
+  }
+
   function wait(ms, instantOk = true) {
     const r = run;
-    if (RM && instantOk) return Promise.resolve().then(() => check(r));
+    if ((RM && instantOk) || skipping()) return Promise.resolve().then(() => check(r));
     return new Promise((resolve, reject) => {
-      const t = setTimeout(() => {
+      const done = () => {
+        clearTimeout(t);
         r.timers.delete(t);
+        pendingWaits.delete(done);
         if (r.cancelled) reject(new Cancelled());
         else resolve();
-      }, ms);
+      };
+      const t = setTimeout(done, ms);
       r.timers.add(t);
+      pendingWaits.add(done);
     });
   }
 
   function cancelRun() {
+    pendingLater.forEach((j) => clearTimeout(j.t));
+    pendingLater.clear();
+    pendingWaits.clear();
     run.cancelled = true;
     run.timers.forEach(clearTimeout);
     run.timers.clear();
@@ -310,7 +371,7 @@ function track(event, data) {
   }
 
   function animate(el, keyframes, opts) {
-    if (RM || !el.animate) return Promise.resolve();
+    if (RM || skipping() || !el.animate) return Promise.resolve();
     return el.animate(keyframes, opts).finished.catch(() => {});
   }
 
@@ -331,14 +392,31 @@ function track(event, data) {
   function typeInto(el, line) {
     const r = run;
     el.textContent = '';
-    const segs = segments(line).map((s) => {
+    let wrap = null;
+    const segs = segments(line).map((s, i, all) => {
       const span = document.createElement('span');
-      if (s.cls) span.className = s.cls;
-      el.appendChild(span);
+      if (s.cls && s.cls !== 'tail') span.className = s.cls;
+      // An emphasis and the punctuation after it share a no-wrap wrapper.
+      if (s.cls === 'em' && all[i + 1] && all[i + 1].cls === 'tail') {
+        wrap = document.createElement('span');
+        wrap.className = 'nowrap';
+        el.appendChild(wrap);
+        wrap.appendChild(span);
+      } else if (s.cls === 'tail' && wrap) {
+        wrap.appendChild(span);
+        wrap = null;
+      } else {
+        el.appendChild(span);
+      }
       return { s, span };
     });
-    if (RM) {
-      segs.forEach(({ s, span }) => { span.textContent = s.text; });
+    const all = () => segs.forEach(({ s, span }) => {
+      span.textContent = s.text;
+      if (s.cls === 'em') span.classList.add('is-pop');
+    });
+    if (RM || skipping()) {
+      all();
+      if (stripMode === 'centre') placeStrip();
       return Promise.resolve();
     }
     return new Promise((resolve, reject) => {
@@ -346,6 +424,12 @@ function track(event, data) {
       let c = 0;
       const tick = () => {
         if (r.cancelled) { reject(new Cancelled()); return; }
+        if (skipping()) {
+          all();
+          if (stripMode === 'centre') placeStrip();
+          resolve();
+          return;
+        }
         const seg = segs[i];
         if (!seg) { resolve(); return; }
         // Tokens land whole, the way the product shows them.
@@ -359,10 +443,12 @@ function track(event, data) {
         }
         const t = setTimeout(tick, TYPE_MS);
         r.timers.add(t);
+        typeKick = () => { clearTimeout(t); tick(); };
       };
       tick();
     });
   }
+  let typeKick = null;
 
   // Reading time after a line has typed.
   const dwell = (line) => HOLD * (220 + plain(line).length * 8);
@@ -404,7 +490,7 @@ function track(event, data) {
   function clearStrip(selector = '.msg') {
     strip.querySelectorAll(selector).forEach((m) => {
       m.classList.add('is-out');
-      const t = setTimeout(() => m.remove(), RM ? 0 : 320);
+      const t = later(() => m.remove(), RM ? 0 : 320);
       run.timers.add(t);
     });
   }
@@ -464,7 +550,7 @@ function track(event, data) {
       await wait(dwell(line));
       settle();
     } else {
-      talkTimer = setTimeout(settle, RM ? 0 : dwell(line));
+      talkTimer = later(settle, RM ? 0 : dwell(line));
       run.timers.add(talkTimer);
     }
   }
@@ -484,6 +570,7 @@ function track(event, data) {
 
   function setAct(n) {
     act = n;
+    if (skipTo && n >= skipTo) stopSkip();
     stage.dataset.act = String(n);
     dots.forEach((d, i) => {
       d.classList.toggle('is-on', i === n - 1);
@@ -844,6 +931,7 @@ function track(event, data) {
         if (keyboardMode && ae !== el && (!ae || ae === document.body || stage.contains(ae))) el.focus({ preventScroll: true });
       }
       armIdle();
+      if (skipping()) Promise.resolve().then(() => gestureNow && gestureNow.perform('skip'));
     });
   }
 
@@ -915,7 +1003,7 @@ function track(event, data) {
     await glideTo(sheetMid(), 380);
     phone.classList.add('is-locked');
     $('.phone-body', phone).classList.add('is-settle');
-    const t = setTimeout(() => phone.classList.add('shutter-armed'), RM ? 0 : 300);
+    const t = later(() => phone.classList.add('shutter-armed'), RM ? 0 : 300);
     run.timers.add(t);
     const g = gestureNow;
     if (g && g.name === 'phone' && !g.busy) {
@@ -993,7 +1081,7 @@ function track(event, data) {
       { transform: f1, opacity: 1, offset: 0.8 },
       { transform: f1, opacity: 0 },
     ], { duration: 900 * MOTION, easing: 'cubic-bezier(0.5, 0, 0.3, 1)' });
-    const t = setTimeout(() => {
+    const t = later(() => {
       rim.classList.remove('is-glowing');
       void rim.offsetWidth;
       rim.classList.add('is-glowing');
@@ -1017,7 +1105,7 @@ function track(event, data) {
     await wait(340 * MOTION);
     phone.classList.add('is-dropping');
     // The paper fades: it is in the laptop now.
-    const t2 = setTimeout(() => sheet.classList.add('is-gone'), 380 * MOTION);
+    const t2 = later(() => sheet.classList.add('is-gone'), 380 * MOTION);
     run.timers.add(t2);
     await wait(500 * MOTION);
   }
@@ -1257,6 +1345,12 @@ function track(event, data) {
 
   function tweenTo(target, ms, done, ease = easeOutCubic) {
     cancelTween();
+    if (skipping()) {
+      progress = target;
+      render();
+      if (done) Promise.resolve().then(done);
+      return;
+    }
     const from = progress;
     const t0 = performance.now();
     const step = (now) => {
@@ -1292,7 +1386,7 @@ function track(event, data) {
 
   function playOpen(method) {
     if (!lidArmed || lidDone === 'opening') return;
-    if (!allReady) {
+    if (!allReady && !skipping()) {
       // The chevrons keep drifting; the lid opens the moment the last frame decodes.
       pendingOpen = pendingOpen || method;
       return;
@@ -1470,7 +1564,7 @@ function track(event, data) {
     const page = ws('.editor > .ed-page');
     const bar = ws('.sweep');
     const items = allPii();
-    if (RM) { items.forEach(apply); return; }
+    if (RM || skipping()) { items.forEach(apply); return; }
     const ew = editor.clientWidth;
     const viewH = editor.clientHeight - page.offsetTop;
     const total = page.offsetHeight;
@@ -1492,7 +1586,7 @@ function track(event, data) {
         const mid = o.y + o.h / 2;
         if (mid < off || mid > off + viewH) return; // not on this screen
         done.add(el);
-        const t = setTimeout(() => apply(el), ((o.x + o.w * 0.5) / ew) * SWEEP_MS);
+        const t = later(() => apply(el), ((o.x + o.w * 0.5) / ew) * SWEEP_MS);
         run.timers.add(t);
       });
       await wait(SWEEP_MS + 150);
@@ -1549,7 +1643,7 @@ function track(event, data) {
     const cards = Array.from(screen.querySelectorAll('.files .file'));
     cards.forEach((c, i) => {
       if (RM) { c.classList.add('is-blue'); return; }
-      const t = setTimeout(() => c.classList.add('is-blue'), i * 18);
+      const t = later(() => c.classList.add('is-blue'), i * 18);
       run.timers.add(t);
     });
   }
@@ -1582,7 +1676,7 @@ function track(event, data) {
         animate($('.page6-bar', page), [{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(100%)', opacity: 1 }], { duration: PAGE_SCRUB_MS, easing: 'linear' });
       }
       lines.forEach((ln, i) => {
-        const t = setTimeout(() => ln.classList.add('is-on'), RM ? 0 : ((i + 0.5) / lines.length) * PAGE_SCRUB_MS);
+        const t = later(() => ln.classList.add('is-on'), RM ? 0 : ((i + 0.5) / lines.length) * PAGE_SCRUB_MS);
         run.timers.add(t);
       });
       await wait(PAGE_SCRUB_MS + 80);
@@ -1631,6 +1725,8 @@ function track(event, data) {
   // The end: one way on (to the comparison, which unlocks the page) and Replay.
   // (The inspect view below is no longer offered from the page; window.__zoeHero.inspect still opens it.)
   function endPills() {
+    stopSkip();
+    skipBtn.classList.remove('is-in');
     pills.innerHTML = '';
     pill(UI.pills.why, 'is-main', () => { track('pill_why'); toComparison(); });
     pill(UI.pills.replay, '', () => { track('pill_replay'); lockHero(); start(); });
@@ -1824,15 +1920,16 @@ function track(event, data) {
     await wait(Math.max(KEY_LINE_MS, dwell(LINES.catch)));
     await cloudSay('fix', false);
     await wait(Math.max(KEY_LINE_MS, dwell(LINES.fix)));
-    // The draft streams back.
+    // The draft streams back, and ZOE applies it.
     const back = cloudSay('back', false);
     stream.classList.add('is-back');
-    camera('return');
-    // On phones the draft takes the screen at reading zoom; ZOE's earlier line steps aside so nothing covers the laptop.
-    if (geo.portrait) zoe.classList.remove('is-in');
     await back;
     await wait(900 * MOTION);
     stream.classList.remove('is-back');
+    await zoeSay('apply');
+    camera('return');
+    // On phones the draft takes the screen at reading zoom; ZOE's line steps aside so nothing covers the laptop.
+    if (geo.portrait) zoe.classList.remove('is-in');
     cloud.classList.remove('is-busy');
     await rehydrate();
     await beat(300);
@@ -1863,6 +1960,8 @@ function track(event, data) {
 
   function start() {
     cancelRun();
+    stopSkip();
+    if (skipShown) skipBtn.classList.add('is-in');
     run = { id: run.id + 1, cancelled: false, timers: new Set() };
     phoneStage = 0;
     locked = false;
@@ -1958,6 +2057,23 @@ function track(event, data) {
     if (e.key === 'Escape' && /^#(privacy|terms)$/.test(location.hash)) location.hash = 'site-footer';
   });
 
+  // The skip button: quiet, it fades in ten seconds after load (not under reduced motion, where the
+  // Next pill is the step control). It never unlocks the page.
+  const skipBtn = $('.skip-step', stage);
+  let skipShown = false;
+  if (!RM) {
+    setTimeout(() => {
+      skipShown = true;
+      if (!storyEndedAt) skipBtn.classList.add('is-in');
+    }, SKIP_SHOW_MS);
+    skipBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      skipStep();
+    });
+  } else {
+    skipBtn.hidden = true;
+  }
+
   start();
 
   // Exposed for tools/shots.spec.js and for tuning in the console.
@@ -1974,6 +2090,8 @@ function track(event, data) {
     inspect: () => openInspect(),
     toComparison: () => toComparison(),
     get locked() { return heroLocked; },
+    get skipping() { return skipping(); },
+    skip: () => skipStep(),
     get shutterArmed() { return locked; },
     replay: start,
   };

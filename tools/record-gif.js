@@ -1,5 +1,5 @@
 // Records a full run of the hero as an animated GIF (and reports its running time).
-//   node tools/record-gif.js <narrow|wide|wideHi> <untouched|touched|drawer|lid|compare-cloud|compare-zoe|logo|act4|opening|shutter|landing|compare-flip> [out.gif] [--throttle]
+//   node tools/record-gif.js <narrow|wide|wideHi> <untouched|touched|drawer|lid|compare-cloud|compare-zoe|logo|act4|opening|shutter|landing|compare-flip|skip> [out.gif] [--throttle]
 // `opening` is untouched from first paint until the lid has opened and the workspace has come up.
 // Needs playwright, gifenc and pngjs on NODE_PATH; serve the site on :8000 first.
 // Frames come from the browser's own screencast, resampled to a steady 8 fps.
@@ -107,6 +107,18 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     // The phone carries the picture to the laptop by itself: laptop in, glide, bump, card, drop, centre.
     await page.waitForFunction(() => window.__zoeHero.gesture === 'lid', null, { timeout: 15000 });
     await page.waitForTimeout(1500);
+  } else if (mode === 'skip') {
+    // A returning visitor: skip appears at 10 s, then a press about every 1.5 s runs the demo to its end.
+    await page.waitForFunction(() => document.querySelector('.skip-step').classList.contains('is-in'), null, { timeout: 15000 });
+    await page.waitForTimeout(1200);
+    trimBefore = Date.now() / 1000 - 0.6;
+    for (let i = 0; i < 8; i += 1) {
+      if (await page.evaluate(() => window.__zoeHero.ended > 0)) break;
+      const b = await page.locator('.skip-step').boundingBox();
+      if (b) await page.mouse.click(b.x + b.width / 2, b.y + b.height / 2);
+      await page.waitForTimeout(1500);
+    }
+    await page.waitForTimeout(2500);
   } else if (mode === 'compare-flip') {
     // The landing: Standard cloud AI plays once, types its point, holds, then flips to ZOE AI.
     await page.waitForTimeout(600);

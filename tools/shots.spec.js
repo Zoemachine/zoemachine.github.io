@@ -212,10 +212,11 @@ test('Act I: a bare stage, the chat dead centre, then the strip moves and the pa
   expect(await opacity(page, '.brand')).toBe(1);
   await page.waitForFunction(() => {
     const m = document.querySelectorAll('.strip .msg');
-    return m.length === 3 && m[2].textContent.endsWith('10 MINUTES.');
+    return m.length === 3 && m[2].textContent.endsWith('I know I can count on you.');
   }, null, { timeout: 12000 });
   metrics.act1_chat_ms = Math.round((await page.evaluate(() => performance.now())) - t0);
-  expect(metrics.act1_chat_ms).toBeLessThan(7000);
+  // The longer Act I lines of 2026-10-22 type in about 8.8 s at the same speed; the limit moved, not the pace.
+  expect(metrics.act1_chat_ms).toBeLessThan(10000);
   const pops = await page.$$eval('.strip .em.is-pop', (els) => els.map((e) => e.textContent));
   expect(pops).toEqual(['THEIR OFFICE', '10 MINUTES']);
   // Dead centre, and larger than the strip's own size.
@@ -500,6 +501,7 @@ test('Act IV: ZOE finds and redacts, the cloud speaks the catch and the fix, the
   const order = ['ZOE: Searching the vault…', 'ZOE: Found 6 relevant files. Redacting.', 'ZOE: Sent.',
     'Frontier AI: [ORG_5] is an empty shell. [ORG_6] is the parent, and it is not in this deal.',
     'Frontier AI: Adding [ORG_6]: parent guaranty, indemnification. Drafting.', 'Frontier AI: Draft returning.',
+    'ZOE: Applying draft edits.',
     'Bob (thinking): They left the parent off the hook. Caught it.'];
   const at = order.map((l) => lines.indexOf(l));
   if (!at.every((i, k) => i >= 0 && (k === 0 || i > at[k - 1]))) console.log('[journal]', JSON.stringify(lines));
@@ -565,6 +567,42 @@ test('Act V: one button and Replay; the button unlocks and lands on the comparis
   for (const ev of ['phone_snapped', 'lid_opened', 'marked', 'scrubbed', 'reached_cloud', 'pill_why', 'pill_replay', 'deep_dive_reached']) {
     expect(events).toContain(ev);
   }
+});
+
+test('skip: quiet, after 10 s; each press jumps a step; spam reaches the end pills; never unlocks', async ({ page }, info) => {
+  test.setTimeout(120000);
+  const events = [];
+  page.on('console', (m) => { const t = m.text(); if (t.startsWith('[track] skip')) events.push(t); });
+  await open(page);
+  const btn = page.locator('.skip-step');
+  await expect(btn).toHaveAttribute('aria-label', 'Skip to the next step');
+  await page.waitForTimeout(5000);
+  expect(await btn.evaluate((e) => getComputedStyle(e).opacity)).toBe('0');
+  await page.waitForFunction(() => document.querySelector('.skip-step').classList.contains('is-in'), null, { timeout: 8000 });
+  await page.waitForTimeout(900);
+  await page.locator('.stage').screenshot({ path: path.join(SHOTS, `${info.project.name}-skip-button.png`) });
+  // One press: the rest of Act I happens at once, and Act II waits for the lid.
+  await btn.click({ force: true });
+  await waitGesture(page, 'lid', 8000);
+  expect(await hero(page, 'act')).toBe(2);
+  // Five quick presses take it the rest of the way.
+  for (let i = 0; i < 5; i += 1) await btn.click({ force: true });
+  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 30000 });
+  expect(await page.$$eval('.pills .pill', (els) => els.map((e) => e.textContent))).toEqual(['Why is ZOE AI different?', 'Replay']);
+  expect(await page.$eval('.draft', (el) => el.textContent)).toContain('Meridian Holdings LLC (Parent Guarantor)');
+  expect(await page.locator('.editor > .ed-page .pii.is-masked').count()).toBeGreaterThanOrEqual(19);
+  expect(await hero(page, 'locked')).toBe(true);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  expect(events.length).toBeGreaterThanOrEqual(2);
+  expect(events[0]).toContain('act: 1');
+  await shot(page, info, 'skip-end');
+  // Keyboard: Tab reaches it after Replay.
+  await page.locator('.pill', { hasText: 'Replay' }).click();
+  await page.waitForTimeout(300);
+  await expect(btn).toHaveClass(/is-in/);
+  await btn.focus();
+  await page.keyboard.press('Enter');
+  await waitGesture(page, 'lid', 8000);
 });
 
 test('the hero is its own screen: wheel, touch and keys do not scroll it', async ({ page }, info) => {
@@ -819,6 +857,13 @@ test('comparison: Standard cloud AI chosen to begin with, each panel animates, s
   expect(+(await page.locator('#flow-zoe .mv-packet').evaluate((e) => getComputedStyle(e).opacity))).toBeGreaterThan(0.9);
 });
 
+
+// Whether a comparison pill is glowing (its ::after ring breathing).
+const glowing = (page, which) => page.locator(`.flow-pick[data-pick="${which}"]`).evaluate((e) => {
+  const a = getComputedStyle(e, '::after');
+  return a.content !== 'none' && a.animationName !== 'none';
+});
+
 test('comparison: the cloud panel plays once, types its point, holds, then flips to ZOE AI; a click cancels the flip', async ({ page }, info) => {
   test.setTimeout(90000);
   await page.goto('/');
@@ -826,6 +871,13 @@ test('comparison: the cloud panel plays once, types its point, holds, then flips
   await page.evaluate(() => window.__zoeHero.toComparison());
   await expect(page.locator('#flow-h')).toHaveText('Why is ZOE different?');
   await page.waitForFunction(() => window.__zoeCompare && window.__zoeCompare.running, null, { timeout: 8000 });
+  // On arrival: Standard cloud AI selected and still; the ZOE AI System pill glows, with its tag.
+  await expect(page.locator('.flow-pick[data-pick="zoe"]')).toContainText('ZOE AI System');
+  await expect(page.locator('.flow-pick[data-pick="zoe"] .patent')).toHaveText('Patent pending');
+  expect(await glowing(page, 'cloud')).toBe(false);
+  expect(await glowing(page, 'zoe')).toBe(true);
+  await page.waitForTimeout(600);
+  await page.locator('#dataflow .flow-choose').screenshot({ path: path.join(SHOTS, `${info.project.name}-pills-arrival.png`) });
   await page.waitForFunction(() => window.__zoeCompare.finished, null, { timeout: 15000 });
   await page.waitForFunction(() => window.__zoeCompare.typed, null, { timeout: 8000 });
   const typedAt = Date.now();
@@ -838,6 +890,11 @@ test('comparison: the cloud panel plays once, types its point, holds, then flips
   await page.locator('#dataflow').screenshot({ path: path.join(SHOTS, `${info.project.name}-compare-cloud-done.png`) });
   await page.waitForFunction(() => window.__zoeCompare.picked === 'zoe', null, { timeout: 8000 });
   metrics.compare_flip_after_typed_ms = Date.now() - typedAt;
+  // After the flip neither pill glows, for the rest of the visit.
+  await page.waitForTimeout(400);
+  expect(await glowing(page, 'cloud')).toBe(false);
+  expect(await glowing(page, 'zoe')).toBe(false);
+  await page.locator('#dataflow .flow-choose').screenshot({ path: path.join(SHOTS, `${info.project.name}-pills-after-flip.png`) });
   expect(metrics.compare_flip_after_typed_ms).toBeGreaterThan(4000);
   expect(metrics.compare_flip_after_typed_ms).toBeLessThan(6500);
   // ZOE AI: the pill fits its text; the blurb replaces "(optional)"; the caption stays once in.
