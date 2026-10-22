@@ -206,12 +206,14 @@
 .flow-svg .fl-captions.is-start text { text-anchor: start; }
 /* The tall (phone) layout: slightly smaller type so every label fits its box. */
 .flow-svg.is-tall .fl-cap { font-size: 17px; }
-.flow-svg.is-tall .fl-cap2 { font-size: 14px; }
+.flow-svg.is-tall .fl-cap2 { font-size: 13px; }
 .flow-svg.is-tall .fl-t { font-size: 15px; }
-.flow-svg.is-tall .fl-s { font-size: 12px; }
+.flow-svg.is-tall .fl-s { font-size: 11px; }
 .fl-cap.is-risk { fill: #ff8f88; }
 .fl-cap.is-zoe { fill: #9cc9ff; }
 .fl-cap2 { font-size: 15px; fill: var(--ink-soft); }
+.fl-point { font-size: 16px; font-weight: 600; fill: #ffd2cd; }
+.flow-svg.is-tall .fl-point { font-size: 14px; }
 .fl-laptop { fill: rgba(95, 168, 255, 0.04); stroke: rgba(207, 228, 255, 0.55); stroke-width: 2; }
 .fl-laptop-glow { fill: none; stroke: rgba(95, 168, 255, 0.55); stroke-width: 10; opacity: 0.3; }
 .fl-base { fill: rgba(207, 228, 255, 0.25); }
@@ -529,8 +531,13 @@
 .modal-x:hover { color: var(--ink); background: rgba(255, 255, 255, 0.06); }
 
 @media (max-width: 699px) {
-  .flow-panel { padding: 12px; }
-  .flow-choose .flow-pick { flex: 1 1 auto; text-align: center; }
+  /* Phones: the heading, the choices and the whole panel fit one screen (390 x 664). */
+  #dataflow .sec-h { margin-bottom: 12px; }
+  .flow-choose { gap: 8px; margin: 0 0 12px; }
+  .flow-choose .flow-pick { flex: 1 1 auto; padding: 9px 12px; text-align: center; }
+  .flow-panel { padding: 10px 8px 8px; }
+  .flow-panel figcaption { gap: 8px; margin-bottom: 6px; font-size: 15px; }
+  .flow-panel .flow-tag { padding: 2px 8px; font-size: 11px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

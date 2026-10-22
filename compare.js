@@ -1,6 +1,7 @@
-// ZOE AI — the comparison below the hero: standard cloud AI versus ZOE AI, behind a choice.
-// Each diagram is drawn from the layout data below (a wide one and a tall one for phones) and
-// animated with the Web Animations API (transform and opacity, nothing else), looping while it is on screen.
+// ZOE AI — the comparison below the hero: standard cloud AI versus ZOE AI.
+// Each diagram is drawn from the layout data below (a wide one, and a compact tall one that fits a phone
+// screen) and animated with the Web Animations API (transform and opacity, nothing else). The cloud
+// panel plays once and holds on its caption, then flips to ZOE AI; the ZOE panel's motion loops gently.
 
 (() => {
   'use strict';
@@ -10,6 +11,9 @@
   const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const tallMQ = window.matchMedia('(max-width: 699px)');
   const LOOP_MS = 8000;
+  const FLIP_MS = 5000;   // after the cloud panel's caption has typed, before it flips to ZOE AI
+  const TYPE_MS = 24;     // the cloud caption's added sentence, per character (the hero's pace)
+  const POINT = 'A chain of AI vendors is a larger attack surface than traditional cloud software.';
 
   // ---------- Layouts ----------
 
@@ -30,23 +34,28 @@
         { box: [812, 424, 324, 72], t: 'Page renderer', s: 'your pages turned into images' },
       ],
       caption: [24, 412, 'start'],
+      point: [POINT],
+      explain: ['The file left the building at hop one, and every', 'system downstream reads it in the clear.'],
     },
+    // Compact, so the heading, the choices and the whole panel fit one phone screen (390 x 664).
     tall: {
-      view: [400, 900],
-      control: { y: 132, badge: [118, 120, 164, 24] },
+      view: [400, 548],
+      control: { y: 70, badge: [118, 59, 164, 22] },
       hops: [
-        { id: 'laptop', box: [120, 30, 160, 70], t: 'Your laptop', s: "your client's file", safe: true },
-        { id: 'router', box: [120, 164, 160, 70], t: 'Router', s: 'your office' },
-        { id: 'isp', box: [120, 270, 160, 70], t: 'Internet provider', s: 'public internet' },
-        { id: 'vendor', box: [110, 376, 180, 80], t: 'Vendor cloud', s: 'their servers' },
+        { id: 'laptop', box: [110, 8, 180, 48], t: 'Your laptop', s: "your client's file", safe: true },
+        { id: 'router', box: [110, 84, 180, 46], t: 'Router', s: 'your office' },
+        { id: 'isp', box: [110, 146, 180, 46], t: 'Internet provider', s: 'public internet' },
+        { id: 'vendor', box: [100, 208, 200, 52], t: 'Vendor cloud', s: 'their servers' },
       ],
       down: [
-        { box: [10, 520, 185, 76], t: 'Name reader', s: 'reads every name' },
-        { box: [205, 520, 185, 76], t: 'Search index', s: 'your clauses, their disk' },
-        { box: [10, 640, 185, 76], t: 'Drafting model', s: 'generates from your text' },
-        { box: [205, 640, 185, 76], t: 'Page renderer', s: 'your pages as images' },
+        { box: [6, 292, 190, 50], t: 'Name reader', s: 'reads every name' },
+        { box: [204, 292, 190, 50], t: 'Search index', s: 'your clauses, their disk' },
+        { box: [6, 354, 190, 50], t: 'Drafting model', s: 'generates from your text' },
+        { box: [204, 354, 190, 50], t: 'Page renderer', s: 'your pages as images' },
       ],
-      caption: [200, 790, 'middle'],
+      caption: [200, 436, 'middle'],
+      point: ['A chain of AI vendors is a larger attack', 'surface than traditional cloud software.'],
+      explain: ['The file left the building at hop one, and every', 'system downstream reads it in the clear.'],
     },
   };
 
@@ -66,24 +75,26 @@
       ],
       line: [904, 241, 994, 241],
       cloud: [1066, 241],
+      blurb: ['frontier model, or a high-end', "model on the firm's own server"],
       caption: [530, 486, 'middle'],
     },
     tall: {
-      view: [400, 900],
-      badge: [57, 14, 286, 28],
-      laptop: [16, 56, 368, 560],
-      base: [0, 622, 400, 14],
-      core: [110, 300, 180, 80],
-      doc: [200, 450],
+      view: [400, 552],
+      badge: [57, 4, 286, 24],
+      laptop: [16, 36, 368, 310],
+      base: [0, 352, 400, 12],
+      core: [120, 142, 160, 60],
+      doc: [200, 238],
       parts: [
-        { box: [32, 96, 160, 70], t: 'Name finder', s: 'finds every identifier' },
-        { box: [208, 96, 160, 70], t: 'Clause library', s: 'templates and clauses' },
-        { box: [32, 520, 160, 70], t: 'Document reader', s: 'reads files locally' },
-        { box: [208, 520, 160, 70], t: 'Signature reader', s: 'reads signature pages' },
+        { box: [30, 52, 166, 54], t: 'Name finder', s: 'finds every identifier' },
+        { box: [204, 52, 166, 54], t: 'Clause library', s: 'templates and clauses' },
+        { box: [30, 280, 166, 54], t: 'Document reader', s: 'reads files locally' },
+        { box: [204, 280, 166, 54], t: 'Signature reader', s: 'reads signature pages' },
       ],
-      line: [200, 640, 200, 724],
-      cloud: [200, 760],
-      caption: [200, 830, 'middle'],
+      line: [200, 368, 200, 398],
+      cloud: [200, 436],
+      blurb: ['frontier model, or a high-end', "model on the firm's own server"],
+      caption: [200, 520, 'middle'],
     },
   };
 
@@ -132,15 +143,20 @@
     L.down.forEach((d, i) => { out += docGlyph(`mv-copy mv-copy-${i}`); });
     out += docGlyph('mv-doc');
     const [cx, cy, anchor] = L.caption;
-    out += `<g class="fl-captions${anchor === 'start' ? ' is-start' : ''}"><text class="fl-cap is-risk" x="${cx}" y="${cy}">Four hops. Three systems you don't control.</text>` +
-      `<text class="fl-cap2" x="${cx}" y="${cy + 26}">The file left the building at hop one, and every</text><text class="fl-cap2" x="${cx}" y="${cy + 48}">system downstream reads it in the clear.</text></g></svg>`;
+    const step = tall ? 20 : 24;
+    let y = cy;
+    out += `<g class="fl-captions${anchor === 'start' ? ' is-start' : ''}"><text class="fl-cap is-risk" x="${cx}" y="${y}">Four hops. Three systems you don't control.</text>`;
+    // The point, typed out once the picture is complete.
+    L.point.forEach((t, i) => { y += i === 0 ? step + 2 : step; out += `<text class="fl-point" x="${cx}" y="${y}" data-text="${esc(t)}"></text>`; });
+    L.explain.forEach((t) => { y += step; out += `<text class="fl-cap2" x="${cx}" y="${y}">${esc(t)}</text>`; });
+    out += '</g></svg>';
     return out;
   }
 
   function drawZoe(L) {
     const [W, H] = L.view;
     const c = mid(L.core);
-    let out = `<svg class="flow-svg${W < H ? ' is-tall' : ''}" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="zoeTitle"><title id="zoeTitle">With ZOE AI, everything runs inside your laptop and the document never moves. The one thing that can cross to the optional frontier model is a masked question.</title>`;
+    let out = `<svg class="flow-svg${W < H ? ' is-tall' : ''}" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="zoeTitle"><title id="zoeTitle">With ZOE AI, everything runs inside your laptop and the document never moves. The one thing that can cross to the frontier model, or to a high-end model on the firm's own server, is a masked question.</title>`;
     const bd = L.badge;
     out += `<rect class="fl-pill is-zoe" x="${bd[0]}" y="${bd[1]}" width="${bd[2]}" height="${bd[3]}" rx="${bd[3] / 2}"/><text class="fl-badge is-zoe" x="${bd[0] + bd[2] / 2}" y="${bd[1] + bd[3] / 2 + 4}">Everything below runs on this machine</text>`;
     const lp = L.laptop;
@@ -163,11 +179,12 @@
     out += `<line class="fl-opt" x1="${ln[0]}" y1="${ln[1]}" x2="${ln[2]}" y2="${ln[3]}" stroke-dasharray="6 6"/>`;
     const [kx, ky] = L.cloud;
     out += `<path class="fl-cloud" transform="translate(${kx - 66} ${ky - 50})" d="M32 62 a26 26 0 0 1 4 -51 a34 34 0 0 1 63 8 a22 22 0 0 1 -3 43 z"/>`;
-    out += `<text class="fl-ns" x="${kx}" y="${ky + 34}">frontier model</text><text class="fl-ns" x="${kx}" y="${ky + 52}">(optional)</text>`;
+    const bx = Math.min(kx, W - 106);
+    L.blurb.forEach((t, i) => { out += `<text class="fl-ns" x="${bx}" y="${ky + 34 + i * 17}">${esc(t)}</text>`; });
     out += `<g class="mv-packet"><rect x="-62" y="-13" width="124" height="26" rx="13"/><text y="5">masked question</text></g>`;
     const [cx, cy] = L.caption;
     out += `<g class="fl-captions"><text class="fl-cap is-zoe" x="${cx}" y="${cy}">Zero hops. The document never leaves this box.</text>` +
-      `<text class="fl-cap2" x="${cx}" y="${cy + 26}">What can travel: a masked question you approved.</text></g></svg>`;
+      `<text class="fl-cap2" x="${cx}" y="${cy + 26}">What can travel is a masked question you approved.</text></g></svg>`;
     return out;
   }
 
@@ -184,7 +201,7 @@
 
   function animateCloud(svg, L) {
     const anims = [];
-    const run = (el, frames, opts) => { if (el) anims.push(play(el, frames, opts)); };
+    const run = (el, frames, opts) => { if (el) anims.push(play(el, frames, Object.assign({ iterations: 1, fill: 'forwards' }, opts))); };
     const P = L.hops.map((h) => mid(h.box));
     run(svg.querySelector('.mv-doc'), [
       { offset: 0, transform: tr(P[0]), opacity: 0 },
@@ -206,22 +223,20 @@
         { offset: 0.5, transform: tr(P[3]), opacity: 0 },
         { offset: 0.52, transform: tr(P[3]), opacity: 1 },
         { offset: arrive, transform: tr(end), opacity: 1 },
-        { offset: 0.93, transform: tr(end), opacity: 1 },
-        { offset: 0.98, transform: tr(end), opacity: 0 },
-        { offset: 1, transform: tr(end), opacity: 0 },
+        { offset: 1, transform: tr(end), opacity: 1 },
       ], { easing: 'ease-out' });
       run(svg.querySelector(`.fl-hit[data-i="${i}"]`), [
         { offset: 0, opacity: 0 }, { offset: arrive, opacity: 0 }, { offset: arrive + 0.02, opacity: 1 },
-        { offset: arrive + 0.08, opacity: 0.45 }, { offset: 0.93, opacity: 0.45 }, { offset: 0.98, opacity: 0 }, { offset: 1, opacity: 0 },
+        { offset: arrive + 0.08, opacity: 0.45 }, { offset: 1, opacity: 0.45 },
       ]);
       run(svg.querySelector(`.fl-tag[data-i="${i}"]`), [
         { offset: 0, opacity: 0 }, { offset: arrive + 0.02, opacity: 0 }, { offset: arrive + 0.05, opacity: 1 },
-        { offset: 0.93, opacity: 1 }, { offset: 0.98, opacity: 0 }, { offset: 1, opacity: 0 },
+        { offset: 1, opacity: 1 },
       ]);
     });
     run(svg.querySelector('.fl-captions'), [
       { offset: 0, opacity: 0 }, { offset: 0.74, opacity: 0 }, { offset: 0.78, opacity: 1 },
-      { offset: 0.93, opacity: 1 }, { offset: 0.98, opacity: 0 }, { offset: 1, opacity: 0 },
+      { offset: 1, opacity: 1 },
     ]);
     return anims;
   }
@@ -261,10 +276,10 @@
       { offset: 0.84, transform: tr(to), opacity: 0 },
       { offset: 1, transform: tr(to), opacity: 0 },
     ], { easing: 'ease-in-out' });
+    // The caption fades in once and stays; the motion above it keeps looping.
     run(svg.querySelector('.fl-captions'), [
-      { offset: 0, opacity: 0 }, { offset: 0.8, opacity: 0 }, { offset: 0.84, opacity: 1 },
-      { offset: 0.95, opacity: 1 }, { offset: 0.99, opacity: 0 }, { offset: 1, opacity: 0 },
-    ]);
+      { offset: 0, opacity: 0 }, { offset: 0.8, opacity: 0 }, { offset: 0.84, opacity: 1 }, { offset: 1, opacity: 1 },
+    ], { iterations: 1, fill: 'forwards' });
     return anims;
   }
 
@@ -276,9 +291,50 @@
   let anims = [];
   let onScreen = false;
 
+  let timers = [];
+  let typed = false;
+  const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; };
+
+  // The pills on the drawing size themselves to their text, so it never overflows in any font.
+  function fitBadges(svg) {
+    svg.querySelectorAll('.fl-badge').forEach((t) => {
+      const r = t.previousElementSibling;
+      const b = t.getBBox();
+      if (!r || !b.width) return;
+      r.setAttribute('x', (b.x - 12).toFixed(1));
+      r.setAttribute('width', (b.width + 24).toFixed(1));
+    });
+  }
+
+  // The cloud's point, typed out after the picture completes.
+  function typePoint(svg) {
+    const lines = Array.from(svg.querySelectorAll('.fl-point'));
+    if (RM) {
+      lines.forEach((t) => { t.textContent = t.dataset.text; });
+      typed = true;
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      let i = 0;
+      let c = 0;
+      const tick = () => {
+        const t = lines[i];
+        if (!t) { typed = true; resolve(); return; }
+        c += 1;
+        t.textContent = t.dataset.text.slice(0, c);
+        if (c >= t.dataset.text.length) { i += 1; c = 0; }
+        later(tick, TYPE_MS);
+      };
+      tick();
+    });
+  }
+
   function render() {
     anims.forEach((a) => a.cancel());
     anims = [];
+    timers.forEach(clearTimeout);
+    timers = [];
+    typed = false;
     if (!picked) return;
     const panel = panels[picked];
     const holder = panel.querySelector('.flow-draw');
@@ -286,12 +342,24 @@
     const L = (picked === 'cloud' ? CLOUD : ZOE)[tall ? 'tall' : 'wide'];
     holder.innerHTML = picked === 'cloud' ? drawCloud(L) : drawZoe(L);
     const svg = holder.querySelector('svg');
+    fitBadges(svg);
     anims = picked === 'cloud' ? animateCloud(svg, L) : animateZoe(svg, L);
     if (RM) {
-      // Reduced motion: the finished picture, still.
-      anims.forEach((a) => { a.pause(); a.currentTime = (a.effect.getTiming().duration || LOOP_MS) * 0.9; });
-    } else if (!onScreen) {
-      anims.forEach((a) => a.pause());
+      // Reduced motion: the finished picture, still, with the point in full; it does not flip by itself.
+      anims.forEach((a) => { a.pause(); a.currentTime = (a.effect.getTiming().duration || LOOP_MS) * (picked === 'cloud' ? 1 : 0.9); });
+      if (picked === 'cloud') typePoint(svg);
+      return;
+    }
+    if (!onScreen) anims.forEach((a) => a.pause());
+    if (picked === 'cloud') {
+      const mine = anims;
+      Promise.all(mine.map((a) => a.finished)).then(() => {
+        if (anims !== mine) return;
+        return typePoint(svg).then(() => {
+          // Then, unless the visitor has chosen for themselves, it moves on to ZOE AI.
+          if (anims === mine && !section.classList.contains('user-picked')) later(() => pick('zoe'), FLIP_MS);
+        });
+      }).catch(() => {});
     }
   }
 
@@ -307,6 +375,7 @@
     render();
   }
 
+  // A click is the visitor's choice: it cancels any pending flip, for good.
   pills.forEach((p) => p.addEventListener('click', () => {
     section.classList.add('user-picked');
     pick(p.dataset.pick);
@@ -317,7 +386,10 @@
     new IntersectionObserver((entries) => {
       onScreen = entries.some((e) => e.isIntersecting);
       if (RM) return;
-      anims.forEach((a) => (onScreen ? a.play() : a.pause()));
+      anims.forEach((a) => {
+        if (onScreen && a.playState === 'paused') a.play();
+        else if (!onScreen && a.playState === 'running') a.pause();
+      });
     }, { threshold: 0.15 }).observe(section);
   } else {
     onScreen = true;
@@ -331,6 +403,8 @@
     pick,
     get picked() { return picked; },
     get running() { return anims.length > 0 && anims.every((a) => a.playState === 'running'); },
+    get finished() { return anims.length > 0 && anims.every((a) => a.playState === 'finished'); },
+    get typed() { return typed; },
     seek(ms) { anims.forEach((a) => { a.pause(); a.currentTime = ms; }); },
   };
 })();

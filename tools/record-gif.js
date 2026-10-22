@@ -1,5 +1,5 @@
 // Records a full run of the hero as an animated GIF (and reports its running time).
-//   node tools/record-gif.js <narrow|wide|wideHi> <untouched|touched|drawer|lid|compare-cloud|compare-zoe|logo|act4|opening|shutter|landing> [out.gif] [--throttle]
+//   node tools/record-gif.js <narrow|wide|wideHi> <untouched|touched|drawer|lid|compare-cloud|compare-zoe|logo|act4|opening|shutter|landing|compare-flip> [out.gif] [--throttle]
 // `opening` is untouched from first paint until the lid has opened and the workspace has come up.
 // Needs playwright, gifenc and pngjs on NODE_PATH; serve the site on :8000 first.
 // Frames come from the browser's own screencast, resampled to a steady 8 fps.
@@ -14,6 +14,7 @@ const throttle = process.argv.includes('--throttle');
 const BASE = process.env.BASE_URL || 'http://127.0.0.1:8000/';
 const VIEWS = {
   narrow: { ctx: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }, gifW: 390 },
+  narrowHi: { ctx: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }, gifW: 780 },
   // Full-resolution capture for close-ups that are cropped afterwards.
   wideHi: { ctx: { viewport: { width: 1440, height: 900 } }, gifW: 1440 },
   wide: { ctx: { viewport: { width: 1440, height: 900 } }, gifW: 720 },
@@ -103,7 +104,16 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     await page.waitForTimeout(2200);
     const sb = await page.locator('.phone-shutter').boundingBox();
     await page.mouse.click(sb.x + sb.width / 2, sb.y + sb.height / 2);
-    await page.waitForTimeout(4200);
+    // The phone carries the picture to the laptop by itself: laptop in, glide, bump, card, drop, centre.
+    await page.waitForFunction(() => window.__zoeHero.gesture === 'lid', null, { timeout: 15000 });
+    await page.waitForTimeout(1500);
+  } else if (mode === 'compare-flip') {
+    // The landing: Standard cloud AI plays once, types its point, holds, then flips to ZOE AI.
+    await page.waitForTimeout(600);
+    trimBefore = Date.now() / 1000;
+    await page.evaluate(() => window.__zoeHero.toComparison());
+    await page.waitForFunction(() => window.__zoeCompare && window.__zoeCompare.picked === 'zoe', null, { timeout: 30000 });
+    await page.waitForTimeout(9000);
   } else if (mode === 'landing') {
     // The end of the story, then `Why is ZOE AI different?` and the landing on the comparison.
     for (;;) {
@@ -131,15 +141,18 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     await page.waitForFunction(() => window.__zoeHero.act === 5, null, { timeout: 120000, polling: 200 });
     await page.waitForTimeout(1500);
   } else if (mode === 'logo') {
-    // Close on the big wordmark: its O turning on the closed laptop for 12 s.
-    await page.waitForTimeout(800);
+    // Close on the big wordmark: two full turns of its O (20 s), once the laptop has arrived.
+    await page.waitForFunction(() => window.__zoeHero.gesture === 'phone', null, { timeout: 30000 });
+    await page.evaluate(() => window.__zoeHero.perform('tap'));
+    await page.waitForFunction(() => window.__zoeHero.gesture === 'lid', null, { timeout: 40000 });
+    await page.waitForTimeout(1500);
     const r = await page.locator('.logo-o').boundingBox();
     const k = view.gifW / view.ctx.viewport.width;
     const w = r.width * 4.4;
     const h = r.height * 1.9;
     crop = [r.x + r.width / 2 - w * 0.4, r.y - r.height * 0.45, w, h].map((v) => Math.round(v * k));
     trimBefore = Date.now() / 1000;
-    await page.waitForTimeout(12000);
+    await page.waitForTimeout(20500);
   } else if (mode === 'lid') {
     // The lid under a hand: tap the phone through Act I, then lift the lid slowly, pause, lift on, release.
     await page.waitForFunction(() => window.__zoeHero.gesture === 'phone');

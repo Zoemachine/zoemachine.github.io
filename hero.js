@@ -98,9 +98,11 @@ const LINES = {
   toCloud: 'Masked term sheet, template, playbook. Draft the agreement.',
   ask:     'Drafting. Who is [ORG_5]? Send what you have.',
   search:  'Searching the vault…',
-  shell:   '[ORG_5] is an empty shell. [ORG_6] is the parent. [ORG_6] is not in this deal.',
-  redact:  'Redacting 6 files. Sent.',
-  fix:     'Adding [ORG_6]: parent guaranty, indemnification. Draft returning.',
+  redact6: 'Found 6 relevant files. Redacting.',
+  sent:    'Sent.',
+  catch:   '[ORG_5] is an empty shell. [ORG_6] is the parent, and it is not in this deal.',
+  fix:     'Adding [ORG_6]: parent guaranty, indemnification. Drafting.',
+  back:    'Draft returning.',
   caught:  'They left the parent off the hook. Caught it.',
   jimmy3:  "Ten minutes. Tell me you've got something.",
   bob3:    "Draft's done. And their shell left the parent off the hook. It's in now.",
@@ -151,7 +153,10 @@ function track(event, data) {
   const HOLD = 2;              // reading time: every spoken line and the pauses between beats
   const MOTION = 1;            // the file web, the streams, the card flight, the rehydration
   const KEY_LINE_MS = 3000;    // the catch and the fix stay on screen at least this long
-  const TEMPLATE_HOLD = 1.6;   // the template-and-playbook beat: its two lines held 1.6x the usual reading time
+  // The template-and-playbook beat: each line's hold is midway between the original and the 1.6x
+  // trial (ZOE's line was held 1x, Bob's thought not at all), and the pace is normal again after it.
+  const TEMPLATE_HOLD_ZOE = 1.3;
+  const TEMPLATE_HOLD_BOB = 0.8;
   // Portrait round trip: where the screen's top edge sits, the cloud's height, and the gap for the stream.
   const PORTRAIT_CLOUD_Y = 28;     // the cloud's top edge during the round trip
   const PORTRAIT_CLOUD_H = 150;
@@ -160,6 +165,7 @@ function track(event, data) {
   const PORTRAIT_SCREEN_UP = 282;  // the returning draft: the screen's top edge, back at reading zoom
   const LAPTOP_BASE = 0.86;    // the open laptop's base, as a share of the frame height (lid_45)
   const SHEET_TYPE = 0.025;    // the paper's type size, as a share of its width: a full page of small type
+  const HANDOVER_BEAT_MS = 400; // after the laptop lands, before the phone moves to it
   const CAPTURE_HOLD_MS = 1100; // the captured page shows in the phone before the laptop comes in
   const LAPTOP_IN_MS = 1100;    // the laptop's slide in from the right (the .scene translate in styles.css)
 
@@ -174,7 +180,7 @@ function track(event, data) {
 
   // The baked wordmark's O, per frame: [dx, dy] from its frame-1 centre in frame widths, and its
   // scale, from a circle fit on all 45 frames (smoothed over five). Moves .logo-o with the drift.
-  const LOGO_O = [[0.0, 0.0, 1.0], [0.0, -1e-05, 1.0], [-1e-05, 1e-05, 1.0003], [2e-05, -3e-05, 0.9994], [1e-05, -5e-05, 0.9997], [3e-05, -6e-05, 0.9991], [3e-05, -6e-05, 0.9991], [5e-05, -9e-05, 0.9986], [5e-05, -9e-05, 0.9986], [2e-05, -2e-05, 0.9994], [-2e-05, 2e-05, 1.0006], [-6e-05, 6e-05, 1.0014], [-0.0001, 6e-05, 1.0017], [-0.00022, 0.0001, 1.0034], [-0.00032, 6e-05, 1.004], [-0.00043, 1e-05, 1.004], [-0.00056, -5e-05, 1.0046], [-0.00072, -6e-05, 1.0057], [-0.00082, -0.00013, 1.0055], [-0.00094, -0.00019, 1.0055], [-0.00105, -0.00025, 1.0055], [-0.00114, -0.00037, 1.0043], [-0.00121, -0.00049, 1.0032], [-0.00129, -0.00061, 1.0023], [-0.00133, -0.00075, 1.0003], [-0.0014, -0.00088, 0.9991], [-0.00146, -0.00098, 0.9983], [-0.00153, -0.00109, 0.9971], [-0.00157, -0.00122, 0.9951], [-0.00164, -0.00134, 0.994], [-0.0017, -0.00145, 0.9925], [-0.00176, -0.00156, 0.9911], [-0.00182, -0.00166, 0.99], [-0.0019, -0.00175, 0.9891], [-0.00197, -0.00182, 0.9885], [-0.00203, -0.00191, 0.9877], [-0.00207, -0.00206, 0.9859], [-0.00212, -0.00218, 0.9845], [-0.00217, -0.0023, 0.9828], [-0.00222, -0.00242, 0.9811], [-0.00227, -0.00253, 0.9793], [-0.00232, -0.00261, 0.9782], [-0.00238, -0.0027, 0.977], [-0.00241, -0.00274, 0.9767], [-0.00243, -0.0028, 0.9761]];
+  const LOGO_O = [[0.0,0.0,1.0],[-0.0,-0.0,1.0],[-1e-05,-0.0,1.0],[-1e-05,-1e-05,0.9999],[-1e-05,-1e-05,0.9998],[-2e-05,-1e-05,0.9998],[-2e-05,-1e-05,0.9997],[-2e-05,-0.0,0.9997],[-2e-05,0.0,0.9997],[-2e-05,1e-05,0.9997],[-2e-05,1e-05,0.9997],[-5e-05,1e-05,0.9995],[-0.0001,-2e-05,0.9993],[-0.00021,-8e-05,0.9991],[-0.00033,-0.00017,0.9988],[-0.00049,-0.00027,0.9985],[-0.00066,-0.0004,0.9982],[-0.00083,-0.00052,0.9979],[-0.001,-0.00065,0.9977],[-0.00117,-0.00078,0.9975],[-0.00135,-0.0009,0.9971],[-0.00154,-0.00104,0.9969],[-0.00172,-0.00117,0.9967],[-0.0019,-0.00131,0.9964],[-0.00208,-0.00145,0.996],[-0.00225,-0.0016,0.9958],[-0.0024,-0.00173,0.9955],[-0.00257,-0.00187,0.9949],[-0.00274,-0.002,0.9945],[-0.00291,-0.00215,0.994],[-0.0031,-0.00228,0.9936],[-0.00328,-0.00243,0.9932],[-0.00345,-0.00256,0.993],[-0.00362,-0.00271,0.9926],[-0.0038,-0.00283,0.9925],[-0.00397,-0.00297,0.9922],[-0.00415,-0.00312,0.992],[-0.00432,-0.00328,0.9915],[-0.00449,-0.00342,0.9911],[-0.00466,-0.00356,0.9906],[-0.00481,-0.00368,0.99],[-0.00496,-0.00381,0.9894],[-0.00511,-0.00394,0.989],[-0.00518,-0.004,0.9887],[-0.00525,-0.00407,0.9884]];
 
   // Screen rectangle on lid_45 as fractions of the frame (matches --screen-* in styles.css).
   const SCR = { x: 0.3068, y: 0.3602, w: 0.3839, h: 0.3963 };
@@ -885,9 +891,9 @@ function track(event, data) {
     const cue = $('.phone-cue', phone);
     if (!cue) return;
     const p = geo.portrait;
-    if (phoneStage === 0) cue.textContent = p ? 'Drag ↑' : 'Drag ←';
-    else cue.textContent = p ? 'Drag ↓' : 'Drag →';
-    phone.classList.toggle('cue-on', phoneStage > 0);
+    // The one cue is the first drag; after the shutter the phone moves on its own.
+    cue.textContent = p ? 'Drag ↑' : 'Drag ←';
+    phone.classList.toggle('cue-on', false);
   }
 
   async function glideTo(pt, ms = 420) {
@@ -918,10 +924,12 @@ function track(event, data) {
     }
   }
 
+  // The shutter: the picture, then the phone carries it to the laptop by itself.
   function pressShutter() {
     if (!locked || phoneStage !== 0) return;
     noteInput();
     snap();
+    if (gestureNow && gestureNow.name === 'phone') gestureNow.perform('shutter');
   }
 
   function snap() {
@@ -960,12 +968,6 @@ function track(event, data) {
     laptopReady = true;
     stage.dataset.open = 'laptop-ready';
     phone.classList.remove('cue-wait');
-    // The hand-over waits for the visitor too, on the later idle clock.
-    const g = gestureNow;
-    if (g && g.name === 'phone' && !g.busy) {
-      g.idleMs = IDLE_LATER_MS;
-      armIdle();
-    }
   }
 
   async function bump() {
@@ -1039,10 +1041,10 @@ function track(event, data) {
       }
       snap();
     }
+    // The laptop arrives, then the phone glides to it and bumps it.
     await arrival;
-    // Done for the visitor (tap, key or idle): the cue reads before the phone moves on.
-    if (method !== 'drag') await wait(800);
-    await glideTo(geo.bump, method === 'drag' ? 260 : 600);
+    await wait(HANDOVER_BEAT_MS);
+    await glideTo(geo.bump, 600);
     await bump();
   }
 
@@ -1051,12 +1053,6 @@ function track(event, data) {
   const pageBox = () => ({ x0: geo.sheet.x, x1: geo.sheet.x + geo.sheet.w, y0: geo.sheet.y, y1: geo.sheet.y + geo.sheet.h });
   // The shutter fires once the phone is well over the page, so the viewfinder is seen first.
   const overPage = (c) => insideXY(c, pageBox(), -0.26 * geo.sheet.w, -0.22 * geo.sheet.h);
-  const clearOfPage = (c) => !insideXY(c, pageBox(), 12, 12);
-  // The phone reaches the laptop once its leading edge is well onto it.
-  const overLaptop = (c) => (geo.portrait
-    ? insideXY(c, geo.laptop, 0, 0.36 * geo.phone.h)
-    : insideXY(c, geo.laptop, 0.36 * geo.phone.w, 0.2 * geo.phone.h));
-  const offStage = (c) => c.x < 0 || c.y < 0 || c.x > geo.V || c.y > geo.VH;
 
   phone.addEventListener('pointerdown', (e) => {
     if (!gestureNow || gestureNow.name !== 'phone' || gestureNow.busy) return;
@@ -1080,12 +1076,6 @@ function track(event, data) {
     setPhoneOff(d.ox + dx, d.oy + dy);
     const c = phoneCenter();
     if (phoneStage === 0 && !locked && overPage(c)) lockOn();
-    // The bump needs the phone on the laptop and clear of the page it just photographed.
-    else if (phoneStage === 1 && laptopReady && overLaptop(c) && clearOfPage(c)) {
-      phoneDrag = null;
-      phone.classList.remove('is-dragging');
-      gestureNow && gestureNow.perform('drag');
-    }
   });
 
   function endPhoneDrag(e, cancelled) {
@@ -1111,10 +1101,6 @@ function track(event, data) {
       // Forgiving: let go near the page and the phone lines up and locks on.
       if (Math.hypot(c.x - s.x, c.y - s.y) < 0.75 * Math.max(geo.sheet.w, geo.sheet.h)) lockOn().catch(() => {});
       else glideTo({ x: geo.phone.x + geo.phone.w / 2, y: geo.phone.y + geo.phone.h / 2 }, 450).catch(() => {});
-    } else if (phoneStage === 1) {
-      if (laptopReady && overLaptop(c) && clearOfPage(c)) gestureNow.perform('drag');
-      // Let go elsewhere and it holds the picture where it is, unless that is the laptop's place or off the stage.
-      else if (overLaptop(c) || offStage(c)) glideTo(s, 450).catch(() => {});
     }
   }
 
@@ -1780,13 +1766,11 @@ function track(event, data) {
     ws('.card-t').classList.add('is-in');
     await beat(120);
     ws('.card-p').classList.add('is-in');
-    // The template-and-playbook beat is read in full: ZOE's line, then Bob's thought, each held longer,
-    // then a pause before ZOE goes on.
+    // The template-and-playbook beat: ZOE's line, then Bob's thought, each held to be read.
     await zoeSay('loaded', false);
-    await wait(TEMPLATE_HOLD * dwell(LINES.loaded));
+    await wait(TEMPLATE_HOLD_ZOE * dwell(LINES.loaded));
     await think('conserv', false);
-    await wait(TEMPLATE_HOLD * dwell(LINES.conserv));
-    await beat(900);
+    await wait(TEMPLATE_HOLD_BOB * dwell(LINES.conserv));
     const scrub = ws('.btn-scrub');
     scrub.classList.add('is-armed');
     const toDraft = zoeSay('toDraft', false);
@@ -1827,23 +1811,27 @@ function track(event, data) {
     await cloudSay('ask');
     zoeWorking(true);
     ripple();
+    // ZOE finds and redacts; the frontier AI makes the catch and the fix.
     await zoeSay('search', false);
     await beat(350);
-    // The catch: ZOE's line stays up at least 3 s.
-    await zoeSay('shell', false);
-    await wait(Math.max(KEY_LINE_MS, dwell(LINES.shell)));
-    const redacting = zoeSay('redact', false);
+    const redacting = zoeSay('redact6', false);
     await sendFiles();
     await redacting;
+    await zoeSay('sent');
     zoeWorking(false);
-    // The fix: the cloud's line stays up at least 3 s while the draft streams back.
-    const fix = cloudSay('fix', false);
+    // The catch and the fix: each of the cloud's lines stays up at least 3 s.
+    await cloudSay('catch', false);
+    await wait(Math.max(KEY_LINE_MS, dwell(LINES.catch)));
+    await cloudSay('fix', false);
+    await wait(Math.max(KEY_LINE_MS, dwell(LINES.fix)));
+    // The draft streams back.
+    const back = cloudSay('back', false);
     stream.classList.add('is-back');
     camera('return');
     // On phones the draft takes the screen at reading zoom; ZOE's earlier line steps aside so nothing covers the laptop.
     if (geo.portrait) zoe.classList.remove('is-in');
-    await fix;
-    await wait(Math.max(KEY_LINE_MS, 900 * MOTION));
+    await back;
+    await wait(900 * MOTION);
     stream.classList.remove('is-back');
     cloud.classList.remove('is-busy');
     await rehydrate();

@@ -250,7 +250,7 @@ test('Act I: a bare stage, the chat dead centre, then the strip moves and the pa
   await shot(page, info, 'act1');
 });
 
-test('Act I: drag the phone onto the term sheet, press the shutter, then into the laptop', async ({ page }, info) => {
+test('Act I: drag the phone onto the term sheet, press the shutter; the phone hands over by itself', async ({ page }, info) => {
   await open(page);
   await waitGesture(page, 'phone');
   await page.waitForTimeout(700);
@@ -308,12 +308,8 @@ test('Act I: drag the phone onto the term sheet, press the shutter, then into th
   expect(await opacity(page, '.scene')).toBe(1);
   expect(await opacity(page, '.brand')).toBeLessThan(0.05);
   await shot(page, info, 'act1-laptop-in');
-  const lap = await page.locator('.scene').boundingBox();
-  const target = { x: lap.x + lap.width * 0.5, y: lap.y + lap.height * 0.65 };
-  const ph2 = await center(page, '.phone');
-  const d2 = await startDrag(page, info, ph2);
-  await dragPath(d2, ph2, target, 20);
-  await d2.end();
+  // No second drag: the phone goes to the laptop and bumps it by itself, and there is no `Drag` cue for it.
+  expect(await opacity(page, '.phone-cue')).toBeLessThan(0.05);
   await page.waitForFunction(() => parseFloat(getComputedStyle(document.querySelector('.transfer')).opacity) > 0.95, null, { timeout: 4000 });
   await page.waitForTimeout(300);
   const px = await page.$eval('.transfer', (el) => parseFloat(getComputedStyle(el).fontSize));
@@ -468,14 +464,11 @@ test('Acts III-IV: Wi-Fi OFF before ZOE speaks, marking, scrub, ON after "Data c
   expect(firstOn.t).toBeGreaterThanOrEqual(cleaned.t);
 });
 
-test('Act IV: the catch is spoken by ZOE, the fix by the cloud, then the rehydration snap', async ({ page }, info) => {
+test('Act IV: ZOE finds and redacts, the cloud speaks the catch and the fix, then the rehydration snap', async ({ page }, info) => {
   await open(page);
   await startJournal(page);
   await runTo(page, 'scrub');
   await page.evaluate(() => window.__zoeHero.perform('click'));
-  await page.waitForFunction(() => document.querySelector('.zoe-say').textContent.includes('empty shell'), null, { timeout: 20000 });
-  await page.waitForTimeout(700);
-  await shot(page, info, 'act4-catch');
   // Six pages, each scrubbed line by line, then sent: about 5 s in all.
   await page.waitForFunction(() => document.querySelector('.page6.is-in'), null, { timeout: 15000 });
   const t0 = Date.now();
@@ -488,7 +481,10 @@ test('Act IV: the catch is spoken by ZOE, the fix by the cloud, then the rehydra
   expect(metrics.six_pages_ms).toBeGreaterThan(4000);
   expect(metrics.six_pages_ms).toBeLessThan(6500);
   expect(await page.locator('.page6 i.is-on').count()).toBe(48);
-  expect(await page.locator('.zoe-say').textContent()).toContain('Redacting 6 files');
+  expect(await page.locator('.zoe-say').textContent()).toContain('Found 6 relevant files. Redacting.');
+  await page.waitForFunction(() => document.querySelector('.cloud-say').textContent.includes('empty shell'), null, { timeout: 20000 });
+  await page.waitForTimeout(900);
+  await shot(page, info, 'act4-catch');
   await page.waitForFunction(() => document.querySelector('.draft').classList.contains('is-in'), null, { timeout: 12000 });
   await page.waitForTimeout(350);
   const before = await page.$eval('.draft', (el) => el.textContent);
@@ -499,9 +495,17 @@ test('Act IV: the catch is spoken by ZOE, the fix by the cloud, then the rehydra
   expect(await page.$eval('.draft', (el) => el.textContent)).toContain('$45,000,000');
   await page.waitForTimeout(400);
   await shot(page, info, 'act4-rehydrated');
+  await page.waitForFunction(() => window.__journal.some((e) => e.k === 'line' && e.v.includes('Caught it')), null, { timeout: 15000 });
   const lines = (await page.evaluate(() => window.__journal)).filter((e) => e.k === 'line').map((e) => e.v);
-  expect(lines.find((l) => l.includes('empty shell'))).toMatch(/^ZOE:/);
-  expect(lines.find((l) => l.includes('parent guaranty'))).toMatch(/^Frontier AI:/);
+  const order = ['ZOE: Searching the vault…', 'ZOE: Found 6 relevant files. Redacting.', 'ZOE: Sent.',
+    'Frontier AI: [ORG_5] is an empty shell. [ORG_6] is the parent, and it is not in this deal.',
+    'Frontier AI: Adding [ORG_6]: parent guaranty, indemnification. Drafting.', 'Frontier AI: Draft returning.',
+    'Bob (thinking): They left the parent off the hook. Caught it.'];
+  const at = order.map((l) => lines.indexOf(l));
+  if (!at.every((i, k) => i >= 0 && (k === 0 || i > at[k - 1]))) console.log('[journal]', JSON.stringify(lines));
+  expect(at.every((i) => i >= 0)).toBe(true);
+  expect(at).toEqual([...at].sort((a, b) => a - b));
+  expect(lines.some((l) => l.startsWith('ZOE:') && l.includes('empty shell'))).toBe(false);
 });
 
 test('Act V: one button and Replay; the button unlocks and lands on the comparison; replay twice; analytics', async ({ page }, info) => {
@@ -691,6 +695,9 @@ test('no JavaScript: open laptop and the five acts as text, matching hero.js', a
   const start = src.indexOf('const LINES = {');
   const block = src.slice(start, src.indexOf('};', start));
   const lines = Array.from(block.matchAll(/^\s+\w+:\s+(['"])(.*)\1,$/gm)).map((m) => m[2].replace(/\*/g, '').replace(/\\'/g, "'"));
+  // Every spoken line has its own key (a repeated key silently replaces an earlier line).
+  const keys = Array.from(block.matchAll(/^\s+(\w+):\s+['"]/gm)).map((m) => m[1]);
+  expect(keys.filter((k, i) => keys.indexOf(k) !== i)).toEqual([]);
   expect(lines.length).toBeGreaterThan(20);
   lines.forEach((l) => expect(noscript).toContain(l));
   await ctx.close();
@@ -736,24 +743,28 @@ test('below the hero: every section, both modals, numbers and image sizes', asyn
 test('the living O: the wordmark overlay rides the drift, the bubble O grows, the small O turns', async ({ page }, info) => {
   await page.goto('/');
   await page.waitForTimeout(800);
-  // The overlay's centre sits on the baked O's measured centre (frame 1: 857.0, 202.0 of 1920 x 1080).
+  // The overlay's centre sits on the ring's measured centre (frame 1: 851.56, 207.45 of 1920 x 1080).
+  await page.waitForFunction(() => window.__zoeHero.gesture === 'phone', null, { timeout: 30000 });
+  await page.evaluate(() => window.__zoeHero.perform('tap'));
+  await page.waitForFunction(() => window.__zoeHero.gesture === 'lid', null, { timeout: 40000 });
+  await page.waitForTimeout(1500);
   const at = async (fx, fy) => {
     const s = await page.locator('.scene').boundingBox();
     const o = await page.locator('.logo-o').boundingBox();
     return { dx: o.x + o.width / 2 - (s.x + fx * s.width), dy: o.y + o.height / 2 - (s.y + fy * s.height) };
   };
-  const f1 = await at(857.0 / 1920, 202.0 / 1080);
+  const f1 = await at(851.56 / 1920, 207.45 / 1080);
   expect(Math.abs(f1.dx)).toBeLessThan(1.5);
   expect(Math.abs(f1.dy)).toBeLessThan(1.5);
   expect(await page.locator('.logo-o-a').evaluate((e) => e.getAnimations()[0].playState)).toBe('running');
   await runTo(page, 'mark');
-  // Frame 45 after the lid opened: the O has drifted to (852.3, 196.6); the scene may be zoomed, so measure unscaled.
+  // Frame 45 after the lid opened: the ring has drifted to (841.48, 199.63); the scene may be zoomed, so measure unscaled.
   const drift = await page.evaluate(() => {
     const st = getComputedStyle(document.querySelector('.logo-o'));
     return [st.getPropertyValue('--odx'), st.getPropertyValue('--ody')].map(Number);
   });
-  expect(Math.abs(drift[0] * 1920 - (852.3 - 857.0))).toBeLessThan(0.6);
-  expect(Math.abs(drift[1] * 1920 - (196.6 - 202.0))).toBeLessThan(0.6);
+  expect(Math.abs(drift[0] * 1920 - (841.48 - 851.56))).toBeLessThan(0.6);
+  expect(Math.abs(drift[1] * 1920 - (199.63 - 207.45))).toBeLessThan(0.6);
   await page.waitForFunction(() => document.querySelector('.zoe').classList.contains('is-talking') || document.querySelector('.zoe').classList.contains('is-working'), null, { timeout: 30000 });
   const grown = await page.locator('.zoe-mark .o-wrap').evaluate((e) => new DOMMatrix(getComputedStyle(e).transform).a);
   expect(grown).toBeGreaterThan(1.5);
@@ -806,6 +817,64 @@ test('comparison: Standard cloud AI chosen to begin with, each panel animates, s
   await page.locator('.flow-pick[data-pick="zoe"]').click();
   await page.evaluate(() => window.__zoeCompare.seek(6000));
   expect(+(await page.locator('#flow-zoe .mv-packet').evaluate((e) => getComputedStyle(e).opacity))).toBeGreaterThan(0.9);
+});
+
+test('comparison: the cloud panel plays once, types its point, holds, then flips to ZOE AI; a click cancels the flip', async ({ page }, info) => {
+  test.setTimeout(90000);
+  await page.goto('/');
+  await page.waitForTimeout(400);
+  await page.evaluate(() => window.__zoeHero.toComparison());
+  await expect(page.locator('#flow-h')).toHaveText('Why is ZOE different?');
+  await page.waitForFunction(() => window.__zoeCompare && window.__zoeCompare.running, null, { timeout: 8000 });
+  await page.waitForFunction(() => window.__zoeCompare.finished, null, { timeout: 15000 });
+  await page.waitForFunction(() => window.__zoeCompare.typed, null, { timeout: 8000 });
+  const typedAt = Date.now();
+  const point = await page.locator('#flow-cloud .fl-point').evaluateAll((els) => els.map((e) => e.textContent).join(' '));
+  expect(point).toBe('A chain of AI vendors is a larger attack surface than traditional cloud software.');
+  // It holds: the caption stays, nothing loops.
+  await page.waitForTimeout(2500);
+  expect(await page.locator('#flow-cloud .fl-captions').evaluate((e) => getComputedStyle(e).opacity)).toBe('1');
+  expect(await page.evaluate(() => window.__zoeCompare.picked)).toBe('cloud');
+  await page.locator('#dataflow').screenshot({ path: path.join(SHOTS, `${info.project.name}-compare-cloud-done.png`) });
+  await page.waitForFunction(() => window.__zoeCompare.picked === 'zoe', null, { timeout: 8000 });
+  metrics.compare_flip_after_typed_ms = Date.now() - typedAt;
+  expect(metrics.compare_flip_after_typed_ms).toBeGreaterThan(4000);
+  expect(metrics.compare_flip_after_typed_ms).toBeLessThan(6500);
+  // ZOE AI: the pill fits its text; the blurb replaces "(optional)"; the caption stays once in.
+  const pill = await page.locator('#flow-zoe .fl-badge').evaluate((t) => { const b = t.getBBox(); const r = t.previousElementSibling.getBBox(); return b.x >= r.x && b.x + b.width <= r.x + r.width; });
+  expect(pill).toBe(true);
+  const zoeText = await page.locator('#flow-zoe svg').textContent();
+  expect(zoeText).toContain("frontier model, or a high-end");
+  expect(zoeText).not.toContain('(optional)');
+  await page.waitForTimeout(9000);
+  expect(await page.locator('#flow-zoe .fl-captions').evaluate((e) => getComputedStyle(e).opacity)).toBe('1');
+  await page.locator('#dataflow').screenshot({ path: path.join(SHOTS, `${info.project.name}-compare-zoe-held.png`) });
+  // A click back to Standard plays it again and never flips by itself.
+  await page.locator('.flow-pick[data-pick="cloud"]').click();
+  await page.waitForFunction(() => window.__zoeCompare.typed, null, { timeout: 20000 });
+  await page.waitForTimeout(6500);
+  expect(await page.evaluate(() => window.__zoeCompare.picked)).toBe('cloud');
+});
+
+test('comparison fits one phone screen: heading, choices and the whole panel at 390x664 and 390x844', async ({ browser }, info) => {
+  test.skip(isWide(info), 'phone sizes');
+  for (const height of [664, 844]) {
+    const ctx = await browser.newContext({ viewport: { width: 390, height }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+    const page = await ctx.newPage();
+    await page.goto(BASE);
+    await page.waitForTimeout(400);
+    await page.evaluate(() => window.__zoeHero.toComparison());
+    await page.waitForFunction(() => window.__zoeCompare && window.__zoeCompare.picked === 'cloud', null, { timeout: 8000 });
+    await page.waitForTimeout(1200);
+    for (const which of ['cloud', 'zoe']) {
+      if (which === 'zoe') { await page.locator('.flow-pick[data-pick="zoe"]').click(); await page.waitForTimeout(400); }
+      const r = await page.evaluate((w) => ({ head: document.getElementById('flow-h').getBoundingClientRect().top, bottom: document.getElementById(`flow-${w}`).getBoundingClientRect().bottom, vh: innerHeight }), which);
+      expect(r.head).toBeGreaterThanOrEqual(0);
+      expect(r.bottom).toBeLessThanOrEqual(r.vh);
+      await page.screenshot({ path: path.join(SHOTS, `phone-${height}-compare-${which}.png`) });
+    }
+    await ctx.close();
+  }
 });
 
 test('comparison under reduced motion: a still picture', async ({ page }) => {

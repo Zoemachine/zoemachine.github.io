@@ -169,13 +169,14 @@ body {
 .lid { opacity: 0; }
 .lid.is-live { opacity: 1; }
 
-/* The baked wordmark's O, alive. The box is centred on the O as it sits on frame 1
-   (857.0, 202.0 of 1920 x 1080) and is 200 frame-pixels square; hero.js moves and scales it
+/* The baked wordmark's O, alive. The box is centred on the ring's true centre on frame 1
+   (851.56, 207.45 of 1920 x 1080; the ring's outer edge is 84.9 px out, the crop solid to 89 px and
+   feathered to 97 px) and is 200 frame-pixels square; hero.js moves and scales it
    per frame (--odx, --ody in scene widths, --os) so it rides the logo's drift exactly. */
 .logo-o {
   position: absolute;
-  left: 44.635%;            /* 857.0 / 1920 */
-  top: 18.704%;             /* 202.0 / 1080 */
+  left: 44.352%;            /* 851.56 / 1920 */
+  top: 19.208%;             /* 207.45 / 1080 */
   width: 10.417%;           /* 200 / 1920 */
   aspect-ratio: 1;
   margin: -5.208% 0 0 -5.208%;   /* half the box, in scene widths */
@@ -191,8 +192,8 @@ body {
   animation: logo-spin 10s linear infinite;
 }
 
-/* The frame-45 crop was cut where the O is 2.4 % smaller, so it is scaled back to match. */
-.logo-o .logo-o-b { opacity: 0; scale: 1.0245; }
+/* The frame-45 crop was cut where the O is 1.2 % smaller, so it is scaled back to match. */
+.logo-o .logo-o-b { opacity: 0; scale: 1.0117; }
 
 @keyframes logo-spin {
   to { transform: rotate(360deg); }
@@ -946,6 +947,14 @@ body {
 .phone.is-in .phone-halo { animation: ring 1.4s ease-in-out infinite; }
 .phone.is-bumped .phone-halo { animation: none; opacity: 0; transition: opacity 0.3s ease; }
 
+/* Locked on the page: the body's halo steps down so the eye goes to the shutter. */
+.phone.shutter-armed .phone-halo { animation: ring-low 1.4s ease-in-out infinite; }
+
+@keyframes ring-low {
+  0%, 100% { opacity: 0.15; transform: scale(0.99); }
+  50%      { opacity: 0.45; transform: scale(1.02); }
+}
+
 .phone-body {
   position: absolute;
   inset: 0;
@@ -1073,21 +1082,23 @@ body {
   box-shadow: 0 0 22px 4px rgba(120, 190, 255, 1);
 }
 
+/* A saturated blue, so the call reads on the white page in the viewfinder as well as on dark. */
 .phone.shutter-armed .phone-shutter::before {
-  inset: -120%;
-  background: radial-gradient(closest-side, rgba(235, 246, 255, 1), rgba(140, 200, 255, 0.75) 40%, rgba(120, 185, 255, 0));
+  inset: -80%;
+  background: radial-gradient(closest-side, rgba(60, 140, 255, 0.95), rgba(40, 120, 255, 0.6) 45%, rgba(40, 120, 255, 0));
   animation: shutter-call 1.4s ease-in-out infinite;
 }
 
 .phone.shutter-armed .phone-shutter::after {
+  box-shadow: 0 0 0 3px #2f7bff, 0 0 12px 4px rgba(47, 123, 255, 0.85), inset 0 0 0 3px rgba(0, 0, 0, 0.6);
   animation: shutter-ring 1.4s ease-in-out infinite;
 }
 
 .phone.shutter-armed .phone-shutter { cursor: pointer; }
 
 @keyframes shutter-call {
-  0%, 100% { opacity: 0.55; transform: scale(0.85); }
-  50%      { opacity: 1; transform: scale(1.15); }
+  0%, 100% { opacity: 0.6; transform: scale(0.9); }
+  50%      { opacity: 1; transform: scale(1.1); }
 }
 
 @keyframes shutter-ring {
