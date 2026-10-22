@@ -78,7 +78,10 @@ const PROVIDERS = [
   { name: 'Copilot', owner: 'Microsoft', hex: '#00A4EF', d: 'M0 0v11.408h11.408V0zm12.594 0v11.408H24V0zM0 12.594V24h11.408V12.594zm12.594 0V24H24V12.594z' },
 ];
 
-const VAULT_COUNT = 28;
+const VAULT_COUNT = 28;      // file cards drawn in the Matter panel (a representative scatter)
+const VAULT_FOUND = 128;     // the files ZOE finds on this client; the counter ticks to this
+const VAULT_TOTAL = 35263;   // the vault ZOE searches
+const TEMPLATE_TOTAL = 2500; // the firm's golden templates
 
 // Spoken lines. *word* pops when it lands; [ORG_n] renders as a token.
 const LINES = {
@@ -90,7 +93,9 @@ const LINES = {
   wifiOff: "Wi-Fi off. Let's go.",
   zoeLook: "Looks like a term sheet. Let's mark the confidential data first.",
   marked:  'Marked. Nothing has left this laptop.',
-  found:   'Found 28 files on this client in your vault.',
+  vault:   'Searching 35,263 vault files…',
+  found:   'Found 128 files on this client in your vault.',
+  golden:  "Searching 2,500 of your firm's golden templates…",
   loaded:  "Loaded your firm's buyout template and the conservative seller playbook.",
   conserv: "Conservative to start. We'll see what they come back with.",
   toDraft: "Bringing in the frontier AI for assistance on this one. I'll clean the data before the Wi-Fi comes back.",
@@ -98,7 +103,7 @@ const LINES = {
   toCloud: 'Masked term sheet, template, playbook. Draft the agreement.',
   ask:     'Drafting. Who is [ORG_5]? Send what you have.',
   search:  'Searching the vault…',
-  redact6: 'Found 6 relevant files. Redacting.',
+  redact6: 'Found 25 paragraphs across 6 files. Redacting.',
   sent:    'Sent.',
   catch:   '[ORG_5] is an empty shell. [ORG_6] is the parent, and it is not in this deal.',
   fix:     'Adding [ORG_6]: parent guaranty, indemnification. Drafting.',
@@ -830,6 +835,7 @@ function track(event, data) {
           <button class="btn btn-scrub" type="button" tabindex="-1">${esc(UI.scrub)}</button>
         </aside>
         <svg class="web-lines"></svg>
+        <div class="scan" aria-hidden="true"><span class="scan-band"></span><span class="scan-count"><b>0</b></span></div>
       </div>`;
   }
 
@@ -1606,7 +1612,38 @@ function track(event, data) {
     el.textContent = PARTIES[el.dataset.k].mask;
   };
 
-  // A web of the 28 vault files links up behind the editor, then settles into Matter.
+  // A quick search: a scan band sweeps the panel being searched while a counter spins up through the
+  // total, then the result line lands. About 1.5 s; an animation, so it keeps its speed.
+  const SEARCH_MS = 1500;
+  async function searchBeat(total, target) {
+    const box = ws('.ws');
+    const scan = ws('.scan');
+    const el = target && target.offsetParent ? target : ws('.editor');
+    const o = offsetIn(el, box);
+    Object.assign(scan.style, { left: `${o.x}px`, top: `${o.y}px`, width: `${o.w}px`, height: `${o.h}px` });
+    const num = $('b', scan);
+    num.textContent = '0';
+    scan.classList.add('is-on');
+    if (!RM && !skipping()) {
+      animate($('.scan-band', scan), [{ transform: 'translateY(-100%)' }, { transform: `translateY(${o.h}px)` }],
+        { duration: SEARCH_MS / 2, iterations: 2, easing: 'ease-in-out' });
+      const t0 = performance.now();
+      await new Promise((resolve) => {
+        const tick = (now) => {
+          const k = skipping() ? 1 : Math.min(1, (now - t0) / SEARCH_MS);
+          num.textContent = Math.round(total * (1 - Math.pow(1 - k, 2))).toLocaleString('en-US');
+          if (k < 1 && !run.cancelled) requestAnimationFrame(tick); else resolve();
+        };
+        requestAnimationFrame(tick);
+      });
+    }
+    num.textContent = total.toLocaleString('en-US');
+    await wait(250);
+    scan.classList.remove('is-on');
+  }
+
+  // A web of the client's files links up behind the editor, then settles into Matter (28 cards stand
+  // for the 128 found; the counter ticks to 128).
   async function vaultWeb() {
     const box = ws('.ws');
     const cards = Array.from(screen.querySelectorAll('.files .file'));
@@ -1629,7 +1666,7 @@ function track(event, data) {
     void box.offsetWidth;
     for (let i = 0; i < cards.length; i += 1) {
       cards[i].classList.add('is-in');
-      counters.forEach((n) => { n.textContent = String(i + 1); });
+      counters.forEach((n) => { n.textContent = String(Math.round(((i + 1) / cards.length) * VAULT_FOUND)); });
       if (i === 6) svg.classList.add('is-on');
       if (!RM && i % 4 === 3) await motion(40);
     }
@@ -1751,7 +1788,7 @@ function track(event, data) {
           <ul class="insp-list">
             <li><b>Also sent:</b> ${esc(UI.template[0])} · ${esc(UI.template[1])}; ${esc(UI.playbook[0])} · ${esc(UI.playbook[1])}</li>
             <li><b>Request:</b> ${esc(plain(LINES.toCloud))}</li>
-            <li><b>When asked, 6 redacted files:</b></li>
+            <li><b>When asked, 25 redacted paragraphs from 6 files:</b></li>
             ${sent}
           </ul>
         </section>
@@ -1762,7 +1799,7 @@ function track(event, data) {
         <li class="off">Data scrubbed</li>
         <li class="on">Wi-Fi ON</li>
         <li class="on">Masked term sheet sent</li>
-        <li class="on">6 redacted files sent</li>
+        <li class="on">25 redacted paragraphs from 6 files sent</li>
         <li class="on">Draft returned · real names restored on the laptop</li>
       </ol>
       <div class="insp-back"></div>`;
@@ -1855,9 +1892,18 @@ function track(event, data) {
     await zoeSay('marked', false);
     await beat(250);
     zoeWorking(true);
+    // Search the vault, then the client's files gather in Matter.
+    const vault = zoeSay('vault', false);
+    await searchBeat(VAULT_TOTAL, ws('.ws-matter'));
+    await vault;
     const found = zoeSay('found', false);
     await vaultWeb();
     await found;
+    await wait(dwell(LINES.found));
+    // Search the firm's golden templates, then the template and playbook load.
+    const golden = zoeSay('golden', false);
+    await searchBeat(TEMPLATE_TOTAL, ws('.side'));
+    await golden;
     zoeWorking(false);
     ws('.card-t').classList.add('is-in');
     await beat(120);
@@ -1908,8 +1954,9 @@ function track(event, data) {
     zoeWorking(true);
     ripple();
     // ZOE finds and redacts; the frontier AI makes the catch and the fix.
-    await zoeSay('search', false);
-    await beat(350);
+    const searching = zoeSay('search', false);
+    await searchBeat(VAULT_FOUND, ws('.ws-matter'));
+    await searching;
     const redacting = zoeSay('redact6', false);
     await sendFiles();
     await redacting;

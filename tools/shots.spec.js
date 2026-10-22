@@ -482,7 +482,7 @@ test('Act IV: ZOE finds and redacts, the cloud speaks the catch and the fix, the
   expect(metrics.six_pages_ms).toBeGreaterThan(4000);
   expect(metrics.six_pages_ms).toBeLessThan(6500);
   expect(await page.locator('.page6 i.is-on').count()).toBe(48);
-  expect(await page.locator('.zoe-say').textContent()).toContain('Found 6 relevant files. Redacting.');
+  expect(await page.locator('.zoe-say').textContent()).toContain('Found 25 paragraphs across 6 files. Redacting.');
   await page.waitForFunction(() => document.querySelector('.cloud-say').textContent.includes('empty shell'), null, { timeout: 20000 });
   await page.waitForTimeout(900);
   await shot(page, info, 'act4-catch');
@@ -498,7 +498,7 @@ test('Act IV: ZOE finds and redacts, the cloud speaks the catch and the fix, the
   await shot(page, info, 'act4-rehydrated');
   await page.waitForFunction(() => window.__journal.some((e) => e.k === 'line' && e.v.includes('Caught it')), null, { timeout: 15000 });
   const lines = (await page.evaluate(() => window.__journal)).filter((e) => e.k === 'line').map((e) => e.v);
-  const order = ['ZOE: Searching the vault…', 'ZOE: Found 6 relevant files. Redacting.', 'ZOE: Sent.',
+  const order = ['ZOE: Searching the vault…', 'ZOE: Found 25 paragraphs across 6 files. Redacting.', 'ZOE: Sent.',
     'Frontier AI: [ORG_5] is an empty shell. [ORG_6] is the parent, and it is not in this deal.',
     'Frontier AI: Adding [ORG_6]: parent guaranty, indemnification. Drafting.', 'Frontier AI: Draft returning.',
     'ZOE: Applying draft edits.',
