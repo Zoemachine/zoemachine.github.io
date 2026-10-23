@@ -943,7 +943,8 @@ test('below the hero: every section, both modals, numbers and image sizes', asyn
     await expect(page.locator('#' + id)).toBeHidden();
   }
   const privacy = await page.locator('#privacy').textContent();
-  ['no servers of its own', 'GitHub Pages', 'formsubmit.co', 'Google Sheets', 'Google Apps Script', 'No visitor analytics'].forEach((t) => expect(privacy).toContain(t));
+  ['no servers of its own', 'GitHub Pages', 'formsubmit.co', 'Booking a tech demo sends your name', 'No visitor analytics'].forEach((t) => expect(privacy).toContain(t));
+  ['Google Sheets', 'Google Apps Script', 'non-disclosure'].forEach((t) => expect(privacy).not.toContain(t));
   expect(privacy).not.toMatch(/private servers/);
 });
 
@@ -1146,25 +1147,44 @@ test('comparison under reduced motion: a still picture', async ({ page }) => {
   await expect(page.locator('#flow-cloud .fl-captions')).toHaveCSS('opacity', '1');
 });
 
-test('the booking and NDA pages, on the new styles (nothing submitted)', async ({ browser }, info) => {
+test('the booking page: no NDA, the booking relayed to email (intercepted, nothing sent)', async ({ browser }, info) => {
   const { viewport, deviceScaleFactor, isMobile, hasTouch } = info.project.use;
   const ctx = await browser.newContext({ viewport, deviceScaleFactor, isMobile, hasTouch });
-  await ctx.route(/script\.google\.com|formsubmit\.co/, (r) => r.abort());
+  // The relay is answered here, so no booking ever leaves the test.
+  const sent = [];
+  await ctx.route(/formsubmit\.co/, (r) => {
+    sent.push({ url: r.request().url(), body: JSON.parse(r.request().postData() || '{}') });
+    r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: 'true', message: 'The form was submitted successfully.' }) });
+  });
+  await ctx.route(/script\.google\.com/, (r) => r.abort());
   const page = await ctx.newPage();
   await page.goto(BASE + 'book-demo.html');
   await expect(page.locator('link[href="pages.css"]')).toHaveCount(1);
+  // Demos start on December 1, 2026: the calendar opens there and nothing earlier can be picked.
+  await expect(page.locator('#cal-month-year')).toHaveText('December 2026');
+  await expect(page.locator('#cal-prev')).toBeDisabled();
   await page.screenshot({ path: path.join(SHOTS, `${info.project.name}-page-book-demo.png`), fullPage: true });
   await page.locator('.calendar-day:not(:disabled):not(.day-other-month):not(.day-weekend)').first().click();
   await expect(page.locator('#step-2')).toHaveClass(/active/);
+  await expect(page.locator('#selected-date-display')).toHaveText('Tuesday, December 1, 2026');
   await page.locator('.time-slot').first().click();
   await expect(page.locator('#step-3')).toHaveClass(/active/);
+  await expect(page.locator('#bk-submit')).toHaveText('Book Demo');
+  expect(await page.locator('body').innerText()).not.toMatch(/\bNDA\b|non-disclosure/i);
+  await page.locator('#bk-name').fill('Test Visitor');
+  await page.locator('#bk-email').fill('test@example.test');
   await page.screenshot({ path: path.join(SHOTS, `${info.project.name}-page-book-demo-step3.png`), fullPage: true });
-  await ctx.addInitScript(() => sessionStorage.setItem('bookingData', JSON.stringify({ name: 'Test Visitor', email: 'test@example.test', date: '2026-10-28', time: '10:00 AM' })));
-  const nda = await ctx.newPage();
-  await nda.goto(BASE + 'nda.html');
-  await nda.waitForTimeout(500);
-  await expect(nda.locator('#nda-date')).toContainText('2026');
-  await nda.screenshot({ path: path.join(SHOTS, `${info.project.name}-page-nda.png`), fullPage: true });
+  await page.locator('#bk-submit').click();
+  await expect(page.locator('#step-done')).toHaveClass(/active/);
+  await expect(page.locator('#conf-date')).toHaveText('Tuesday, December 1, 2026');
+  expect(sent.length).toBe(1);
+  expect(sent[0].url).toBe('https://formsubmit.co/ajax/info@zoemachine.com');
+  expect(sent[0].body).toMatchObject({ name: 'Test Visitor', email: 'test@example.test', preferred_date: 'Tuesday, December 1, 2026' });
+  await page.screenshot({ path: path.join(SHOTS, `${info.project.name}-page-book-demo-done.png`), fullPage: true });
+  // The old NDA address sends visitors back to booking.
+  const old = await ctx.newPage();
+  await old.goto(BASE + 'nda.html');
+  await old.waitForURL(/book-demo\.html$/, { timeout: 5000 });
   await ctx.close();
 });
 

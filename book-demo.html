@@ -88,9 +88,26 @@
                             <p><strong>Date:</strong> <span id="summary-date"></span></p>
                             <p><strong>Time:</strong> <span id="summary-time"></span></p>
                         </div>
-                        <button type="submit" class="cta-button form-submit-btn">Continue to NDA</button>
+                        <button type="submit" class="cta-button form-submit-btn" id="bk-submit">Book Demo</button>
                         <div id="bk-message" class="form-message" aria-live="polite"></div>
                     </form>
+                    <p class="calendar-hint">Your booking is relayed by formsubmit.co to info@zoemachine.com and used solely to arrange your demo. See the <a href="index.html#privacy">Privacy Policy</a>.</p>
+                </div>
+
+                <!-- Confirmation (shown once the booking is sent) -->
+                <div id="step-done" class="booking-step-content">
+                    <div class="confirmation-content">
+                        <div class="confirmation-icon">&#10003;</div>
+                        <h2>Demo Requested</h2>
+                        <div class="booking-summary">
+                            <p><strong>Date:</strong> <span id="conf-date"></span></p>
+                            <p><strong>Time:</strong> <span id="conf-time"></span></p>
+                            <p><strong>Name:</strong> <span id="conf-name"></span></p>
+                            <p><strong>Email:</strong> <span id="conf-email"></span></p>
+                        </div>
+                        <p class="conf-note">We will reach out to confirm your demo time. Thank you for your interest in ZOE AI.</p>
+                        <a href="index.html" class="cta-button" style="margin-top: 16px;">Return to Home</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -303,7 +320,10 @@
         document.getElementById('back-to-step2').addEventListener('click', () => goToStep(2));
 
         // --- Form Submission ---
-        document.getElementById('booking-form').addEventListener('submit', (e) => {
+        // The booking goes to info@zoemachine.com through formsubmit.co, the relay the home page's
+        // contact form uses. No NDA step (William, 2026-10-23).
+        const BOOKING_ENDPOINT = 'https://formsubmit.co/ajax/info@zoemachine.com';
+        document.getElementById('booking-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const nameInput = document.getElementById('bk-name');
             const emailInput = document.getElementById('bk-email');
@@ -328,20 +348,44 @@
                 return;
             }
 
-            // Format date as YYYY-MM-DD for the backend
-            const yyyy = selectedDate.getFullYear();
-            const mm = String(selectedDate.getMonth() + 1).padStart(2, '0');
-            const dd = String(selectedDate.getDate()).padStart(2, '0');
-            const dateStr = `${yyyy}-${mm}-${dd}`;
+            const dateDisplay = selectedDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const submitBtn = document.getElementById('bk-submit');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
 
-            // Store booking data and navigate to NDA page
-            sessionStorage.setItem('bookingData', JSON.stringify({
-                name: name,
-                email: email,
-                date: dateStr,
-                time: selectedTime
-            }));
-            window.location.href = 'nda.html';
+            try {
+                const res = await fetch(BOOKING_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({
+                        _subject: 'New demo booking from ZOE AI Website',
+                        _template: 'table',
+                        name: name,
+                        email: email,
+                        preferred_date: dateDisplay,
+                        preferred_time: selectedTime + ' ET'
+                    })
+                });
+                const result = await res.json().catch(() => ({}));
+                if (!res.ok || String(result.success) !== 'true') {
+                    throw new Error(result.message || 'Something went wrong. Please try again.');
+                }
+                document.getElementById('conf-date').textContent = dateDisplay;
+                document.getElementById('conf-time').textContent = selectedTime + ' ET';
+                document.getElementById('conf-name').textContent = name;
+                document.getElementById('conf-email').textContent = email;
+                document.querySelectorAll('.booking-step-content').forEach(el => el.classList.remove('active'));
+                document.getElementById('step-done').classList.add('active');
+                document.querySelectorAll('.step').forEach(el => { el.classList.remove('active'); el.classList.add('completed'); });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (err) {
+                messageEl.textContent = err.message === 'Failed to fetch'
+                    ? 'Unable to connect. Please check your connection, or write to info@zoemachine.com.'
+                    : err.message;
+                messageEl.className = 'form-message error';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Book Demo';
+            }
         });
 
         // --- Init ---
