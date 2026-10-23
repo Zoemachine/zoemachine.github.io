@@ -2,3 +2,4 @@ shots/
 tools/node_modules
 tools/test-results/
 .DS_Store
+tools/restricted-words.local.json

@@ -6,8 +6,7 @@
 const ANALYTICS_ENDPOINT = '';
 
 // ---------- Story content: every name and line in one place ----------
-// All parties, numbers, addresses and dates are invented. `mask` is what the frontier AI sees:
-// names and addresses become stable tokens, numbers and dates become format-preserving dummies.
+// All parties, numbers, addresses and dates are invented.
 const PARTIES = {
   seller:    { real: 'Kestrel Robotics Inc.',          mask: '[ORG_1]' },
   escrowCo:  { real: 'Harborline Trust Company',       mask: '[ORG_2]' },
