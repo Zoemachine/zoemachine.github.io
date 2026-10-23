@@ -173,6 +173,12 @@ test('restricted words: none in the page, CSS, JS or comments', async ({}, info)
     });
   }
   expect(hits).toEqual([]);
+  // "SPAC" names the wrong kind of deal for the demo (William, 2026-10-23): the agreement is a merger.
+  // The founder's biography, below the hero, describes his own practice and is not part of the demo.
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const demo = [html.slice(0, html.indexOf('<!-- ============ Below the hero ============ -->')),
+    ...['hero.js', 'agreement.js', 'compare.js'].map((f) => fs.readFileSync(path.join(ROOT, f), 'utf8'))].join('\n');
+  expect(demo.match(/\bSPAC\b/g)).toBeNull();
 });
 
 test('product names: the four under the cloud, there and nowhere else', async ({}, info) => {
@@ -260,6 +266,9 @@ test('Act I: a bare stage, the chat dead centre, then the strip moves and the pa
   expect(await opacity(page, '.scene')).toBe(0);
   await shot(page, info, 'act1-phone-in');
   await shot(page, info, 'act1');
+  // The term sheet describes the same deal as the agreement: a merger, not a stock purchase.
+  await expect(page.locator('.sheet')).toContainText('Structure. Merger of a wholly owned subsidiary of Buyer with and into the Company, with the Company surviving; stockholders receive cash at closing.');
+  await page.locator('.sheet').screenshot({ path: path.join(SHOTS, `${info.project.name}-act1-sheet-structure.png`) });
 });
 
 test('Act I: drag the phone onto the term sheet, press the shutter; the phone hands over by itself', async ({ page }, info) => {
@@ -450,6 +459,11 @@ test('Acts III-IV: Wi-Fi OFF before ZOE speaks, marking, scrub, ON after "Data c
   await waitGesture(page, 'scrub');
   await page.waitForTimeout(1300);
   await shot(page, info, 'act3-ready');
+  // The legal names match the agreement: the template card and the term sheet's Structure line.
+  await expect(page.locator('.card-t')).toHaveText('TemplateAgreement and Plan of Merger (Delaware)');
+  await expect(page.locator('.editor > .ed-page')).toContainText('Merger of a wholly owned subsidiary of Buyer with and into the Company, with the Company surviving; stockholders receive cash at closing.');
+  await page.locator('.side').screenshot({ path: path.join(SHOTS, `${info.project.name}-act3-template-card.png`) });
+  await page.locator('.editor').screenshot({ path: path.join(SHOTS, `${info.project.name}-act3-editor-structure.png`) });
   // Every time the editor moves to another screen, nothing on the screen it leaves is still amber, and
   // its last item changed at least 0.4 s before (so no change is lost in the move).
   await page.evaluate(() => {
@@ -535,10 +549,10 @@ test('Act IV: ZOE finds and redacts, the cloud speaks the catch and the fix, the
   // Locked down before anything is applied: the Wi-Fi is OFF when the agreement starts to fill.
   expect(await page.locator('.wifi.is-off').count()).toBe(1);
   await expect(page.locator('.cloud')).toHaveClass(/is-out/);
-  expect(await page.$eval('.draft .ed-bar', (el) => el.textContent)).toContain('Business Combination Agreement · draft');
+  expect(await page.$eval('.draft .ed-bar', (el) => el.textContent)).toContain('Agreement and Plan of Merger · draft');
   const before = await page.$eval('.draft .ag', (el) => el.textContent);
   expect(before.split(/\s+/).filter(Boolean).length).toBeGreaterThan(3500);
-  ['BUSINESS COMBINATION AGREEMENT', 'ARTICLE I — DEFINITIONS', 'ARTICLE X — MISCELLANEOUS', 'SIGNATURE PAGE (FORM OF; UNSIGNED)',
+  ['AGREEMENT AND PLAN OF MERGER', 'ARTICLE I — DEFINITIONS', 'ARTICLE X — MISCELLANEOUS', 'SIGNATURE PAGE (FORM OF; UNSIGNED)',
     '[ORG_6], a Delaware limited liability company (“Parent”)', '$18,200,000', '[PERSON_3]', '[ADDRESS_1]'].forEach((t) => expect(before).toContain(t));
   // The fix is the parent made a party, not a guaranty; the buyer is never described as newly formed.
   expect(before).not.toMatch(/guarant|newly formed|formed for the merger/i);

@@ -36,7 +36,7 @@ const PARTIES = {
 // deliberately left as it is when the sheet is masked, so the viewer sees what is not removed.
 const TERM_SHEET = [
   ['Parties', 'Seller: {seller}, {address} (EIN {ein}). Buyer: {buyer}, a Delaware limited liability company.'],
-  ['Structure', 'Purchase of all outstanding shares of the Seller; cash-free, debt-free, with a normalized level of working capital.'],
+  ['Structure', 'Merger of a wholly owned subsidiary of Buyer with and into the Company, with the Company surviving; stockholders receive cash at closing.'],
   ['Purchase Price', '{price} in cash at closing, subject to customary working capital adjustments.'],
   ['Escrow', '{escrowAmt} held by {escrowCo} for 18 months as security for indemnification, escrow account {escrow}.'],
   ['Earn-out', 'Up to {earnout} payable on revenue milestones through {earnEnd}.'],
@@ -50,7 +50,7 @@ const TERM_SHEET = [
   ['For Buyer', '{signer}'],
 ];
 
-// What comes back from the frontier AI is a full business combination agreement: agreement.js, loaded
+// What comes back from the frontier AI is a full agreement and plan of merger: agreement.js, loaded
 // once the workspace is up (the agreement, the § 9.3 clause Bob picks and the clause library's results).
 
 // The six vault files ZOE redacts and sends when the frontier AI asks.
@@ -92,7 +92,7 @@ const LINES = {
   vault:   'Searching 35,263 vault files…',
   found:   'Found 128 files on this client in your vault.',
   golden:  "Searching 2,500 of your firm's golden templates…",
-  loaded:  "Loaded your firm's buyout template and the conservative seller playbook.",
+  loaded:  "Loaded your firm's merger agreement template and the conservative seller playbook.",
   conserv: "Conservative to start. We'll see what they come back with.",
   toDraft: "Bringing in the frontier AI for assistance on this one. I'll clean the data before the Wi-Fi comes back.",
   cleaned: 'Data cleaned. Wi-Fi on.',
@@ -121,7 +121,7 @@ const LINES = {
 const UI = {
   mark: 'Mark confidential data',
   scrub: 'Scrub data & draft',
-  template: ['Template', 'Buyout Agreement (Delaware)'],
+  template: ['Template', 'Agreement and Plan of Merger (Delaware)'],
   playbook: ['Playbook', 'Seller, conservative'],
   pills: { why: 'Why is ZOE AI different?', replay: 'Replay', back: 'Back', next: 'Next ›' },
   cloudName: 'any frontier model the firm chooses',
@@ -849,7 +849,7 @@ function track(event, data) {
           <div class="ed-page">${doc}</div>
           <div class="sweep"></div>
           <div class="draft">
-            <div class="ed-bar"><span class="docx">.docx</span><span>Business Combination Agreement · draft</span></div>
+            <div class="ed-bar"><span class="docx">.docx</span><span>Agreement and Plan of Merger · draft</span></div>
             <div class="ed-page ag-view"><div class="ag"></div><div class="ag-cover"></div></div>
           </div>
         </article>
