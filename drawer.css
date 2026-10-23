@@ -188,6 +188,23 @@
 .is-risk .flow-tag { color: #ffb3ad; background: rgba(255, 110, 100, 0.14); }
 .is-zoe .flow-tag { color: #cfe4ff; background: rgba(95, 168, 255, 0.18); }
 
+/* The cloud panel's tally of attack surfaces, beside its title. */
+.flow-tally {
+  margin-left: auto;
+  white-space: nowrap;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #ffb3ad;
+  background: #3a1214;
+  box-shadow: inset 0 0 0 1px rgba(255, 107, 98, 0.7);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.flow-tally.is-on { opacity: 1; }
+
 .flow-text p { max-width: 70ch; color: var(--ink-soft); }
 
 .flow-svg { display: block; width: 100%; height: auto; }
@@ -207,6 +224,13 @@
 .fl-tag rect { fill: #3a1214; stroke: #ff6b62; stroke-width: 1.2; }
 .fl-tag text { font-size: 12px; font-weight: 700; fill: #ffb3ad; letter-spacing: 0.03em; }
 .fl-tag { opacity: 0; }
+.fl-box.is-faded { stroke-dasharray: 5 4; fill: #151113; }
+.fl-box.is-faded + .fl-t { fill: var(--ink-soft); }
+.fl-link.is-faded { opacity: 0.7; }
+.fl-trail-hit { opacity: 0; }
+.flow-svg.is-tall .fl-tag text { font-size: 10px; }
+.flow-svg.is-tall .fl-t.is-sm { font-size: 13px; }
+.flow-svg.is-tall .fl-s.is-sm { font-size: 10.5px; }
 .mv-doc rect,
 .mv-copy rect { fill: #f4f6f9; stroke: #ff7a72; stroke-width: 1.6; }
 .mv-doc path,
@@ -552,6 +576,9 @@
   .flow-panel { padding: 10px 8px 8px; }
   .flow-panel figcaption { gap: 8px; margin-bottom: 6px; font-size: 15px; }
   .flow-panel .flow-tag { padding: 2px 8px; font-size: 11px; }
+  /* The tally sits in the panel's top-right corner, beside the laptop, so the title keeps one line. */
+  .flow-panel.is-risk { position: relative; }
+  .flow-tally { position: absolute; top: 72px; right: 10px; padding: 2px 8px; font-size: 11px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

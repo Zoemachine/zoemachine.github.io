@@ -13,49 +13,63 @@
   const LOOP_MS = 8000;
   const FLIP_MS = 5000;   // after the cloud panel's caption has typed, before it flips to ZOE AI
   const TYPE_MS = 24;     // the cloud caption's added sentence, per character (the hero's pace)
-  const POINT = 'A chain of AI vendors is a larger attack surface than traditional cloud software.';
 
   // ---------- Layouts ----------
 
+  // Standard cloud AI: the chain the file travels, then the vendor's orchestration fanning it out to
+  // subprocessors, with more behind the last of them (the trailing boxes, unlabeled). Every node past
+  // the control line is an attack surface: eight labeled, three trailing, eleven in all.
+  // Boxes are [x, y, w, h]; a title may be two lines.
+  const CAP = "Multiple hops. Every system past the router is one you don't control.";
+  const POINT = 'A chain of AI vendors and subprocessors is a larger attack surface than traditional cloud software.';
+  const CLOUD_TITLE = "In a standard cloud AI, your client's file leaves your laptop, crosses your office router and your internet provider (ISP) to the vendor's cloud, which orchestrates it across confidentiality services (PII), a search index (RAG), frontier models (LLM), logging and evaluation, and additional subprocessors behind them: eleven attack surfaces, none of them under your control.";
   const CLOUD = {
     wide: {
-      view: [1160, 500],
-      control: { x: 184, y1: 40, y2: 372, badge: [86, 6, 196, 26] },
+      view: [1200, 580],
+      control: { x: 168, y1: 44, y2: 476, badge: [68, 8, 200, 26] },
       hops: [
-        { id: 'laptop', box: [24, 226, 140, 88], t: 'Your laptop', s: "your client's file", safe: true },
-        { id: 'router', box: [204, 226, 130, 88], t: 'Router', s: 'your office' },
-        { id: 'isp', box: [370, 226, 166, 88], t: 'Internet provider', s: 'public internet' },
-        { id: 'vendor', box: [572, 214, 180, 112], t: 'Vendor cloud', s: 'their servers' },
+        { id: 'laptop', box: [12, 206, 136, 88], t: 'Your laptop', s: "your client's file", safe: true },
+        { id: 'router', box: [190, 214, 128, 72], t: 'Office router' },
+        { id: 'isp', box: [340, 214, 214, 72], t: 'Internet provider (ISP)' },
+        { id: 'vendor', box: [578, 202, 178, 96], t: 'Vendor cloud', s: 'orchestration' },
       ],
       down: [
-        { box: [812, 46, 324, 72], t: 'Name reader', s: 'reads every name in your file' },
-        { box: [812, 172, 324, 72], t: 'Search index', s: 'your clauses, stored on their disk' },
-        { box: [812, 298, 324, 72], t: 'Drafting model', s: 'generates from your text' },
-        { box: [812, 424, 324, 72], t: 'Page renderer', s: 'your pages turned into images' },
+        { box: [812, 15, 304, 70], t: 'Confidentiality services (PII)', s: 'reads every name in your file' },
+        { box: [812, 115, 304, 70], t: 'Search index (RAG)', s: 'your clauses, stored on their disk' },
+        { box: [812, 215, 304, 70], t: 'Frontier models (LLM)', s: 'generate from your text' },
+        { box: [812, 315, 304, 70], t: 'Logging & evaluation', s: 'more copies, more vendors' },
+        { box: [812, 415, 304, 70], t: 'Additional subprocessors', faded: true },
       ],
-      caption: [24, 412, 'start'],
+      trail: { from: [1116, 450], boxes: [[1144, 404, 76, 26], [1158, 437, 76, 26], [1144, 470, 76, 26]] },
+      tag: [110, 22],
+      caption: [12, 532, 'start'],
+      cap: [CAP],
       point: [POINT],
-      explain: ['The file left the building at hop one, and every', 'system downstream reads it in the clear.'],
     },
-    // Compact, so the heading, the choices and the whole panel fit one phone screen (390 x 664).
+    // Compact, so the heading, the choices and the whole panel fit one phone screen (390 x 664): the chain
+    // runs down the left, the fan-out down the right.
     tall: {
-      view: [400, 548],
-      control: { y: 70, badge: [118, 59, 164, 22] },
+      view: [400, 520],
+      control: { y: 62, badge: [118, 51, 164, 22] },
       hops: [
-        { id: 'laptop', box: [110, 8, 180, 48], t: 'Your laptop', s: "your client's file", safe: true },
-        { id: 'router', box: [110, 84, 180, 46], t: 'Router', s: 'your office' },
-        { id: 'isp', box: [110, 146, 180, 46], t: 'Internet provider', s: 'public internet' },
-        { id: 'vendor', box: [100, 208, 200, 52], t: 'Vendor cloud', s: 'their servers' },
+        { id: 'laptop', box: [6, 4, 140, 44], t: 'Your laptop', s: "your client's file", safe: true },
+        { id: 'router', box: [6, 84, 140, 40], t: 'Office router' },
+        { id: 'isp', box: [6, 146, 140, 52], t: ['Internet', 'provider (ISP)'] },
+        { id: 'vendor', box: [6, 222, 140, 54], t: 'Vendor cloud', s: 'orchestration' },
       ],
       down: [
-        { box: [6, 292, 190, 50], t: 'Name reader', s: 'reads every name' },
-        { box: [204, 292, 190, 50], t: 'Search index', s: 'your clauses, their disk' },
-        { box: [6, 354, 190, 50], t: 'Drafting model', s: 'generates from your text' },
-        { box: [204, 354, 190, 50], t: 'Page renderer', s: 'your pages as images' },
+        { box: [160, 80, 234, 46], t: 'Confidentiality services (PII)', s: 'reads every name in your file' },
+        { box: [160, 138, 234, 46], t: 'Search index (RAG)', s: 'your clauses, on their disk' },
+        { box: [160, 196, 234, 46], t: 'Frontier models (LLM)', s: 'generate from your text' },
+        { box: [160, 254, 234, 46], t: 'Logging & evaluation', s: 'more copies, more vendors' },
+        { box: [160, 312, 234, 36], t: 'Additional subprocessors', faded: true },
       ],
-      caption: [200, 436, 'middle'],
-      point: ['A chain of AI vendors is a larger attack', 'surface than traditional cloud software.'],
-      explain: ['The file left the building at hop one, and every', 'system downstream reads it in the clear.'],
+      trail: { from: [277, 348], boxes: [[262, 364, 70, 14], [300, 382, 70, 14], [338, 400, 70, 14]] },
+      tag: [86, 17],
+      small: true,
+      caption: [200, 446, 'middle'],
+      cap: ['Multiple hops. Every system past the router', "is one you don't control."],
+      point: ['A chain of AI vendors and subprocessors is a larger', 'attack surface than traditional cloud software.'],
     },
   };
 
@@ -104,16 +118,22 @@
   const mid = ([x, y, w, h]) => ({ x: x + w / 2, y: y + h / 2 });
   const docGlyph = (cls) => `<g class="${cls}"><rect x="-11" y="-14" width="22" height="28" rx="3"/><path d="M-6 -6h12M-6 -1h12M-6 4h8"/></g>`;
 
+  // A box with its title (one line or two) and an optional line under it.
   function box(b, t, s, cls) {
     const c = mid(b);
-    return `<rect class="fl-box ${cls || ''}" x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${b[3]}" rx="14"/>` +
-      `<text class="fl-t" x="${c.x}" y="${c.y - 4}">${esc(t)}</text><text class="fl-s" x="${c.x}" y="${c.y + 16}">${esc(s)}</text>`;
+    const lines = Array.isArray(t) ? t : [t];
+    const lh = 17;
+    const top = c.y - ((lines.length - 1) * lh) / 2 + (s ? -4 : 5);
+    const sm = /\bis-sm\b/.test(cls || '') ? ' is-sm' : '';
+    const title = lines.map((l, i) => `<text class="fl-t${sm}" x="${c.x}" y="${top + i * lh}">${esc(l)}</text>`).join('');
+    return `<rect class="fl-box ${cls || ''}" x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${b[3]}" rx="${Math.min(14, b[3] / 3)}"/>` +
+      title + (s ? `<text class="fl-s${sm}" x="${c.x}" y="${c.y + (sm ? 14 : 16)}">${esc(s)}</text>` : '');
   }
 
   function drawCloud(L) {
     const [W, H] = L.view;
     const tall = W < H;
-    let out = `<svg class="flow-svg${tall ? ' is-tall' : ''}" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="cloudTitle"><title id="cloudTitle">In a standard cloud AI, the document leaves your laptop, passes your office router and your internet provider to a vendor's cloud, which hands it to four systems you do not control.</title>`;
+    let out = `<svg class="flow-svg${tall ? ' is-tall' : ''}" viewBox="0 0 ${W} ${H}" role="img" aria-labelledby="cloudTitle"><title id="cloudTitle">${esc(CLOUD_TITLE)}</title>`;
     if (tall) {
       out += `<line class="fl-edge" x1="12" y1="${L.control.y}" x2="388" y2="${L.control.y}" stroke-dasharray="5 6"/>`;
     } else {
@@ -121,7 +141,7 @@
     }
     const bd = L.control.badge;
     out += `<rect class="fl-pill" x="${bd[0]}" y="${bd[1]}" width="${bd[2]}" height="${bd[3]}" rx="${bd[3] / 2}"/><text class="fl-badge" x="${bd[0] + bd[2] / 2}" y="${bd[1] + bd[3] / 2 + 4}">Your control ends here</text>`;
-    // links between hops and the fan-out
+    // Links along the chain, the fan-out from the vendor cloud, and the trail behind the last box.
     for (let i = 0; i < L.hops.length - 1; i += 1) {
       const a = mid(L.hops[i].box);
       const b = mid(L.hops[i + 1].box);
@@ -130,25 +150,43 @@
     const v = mid(L.hops[3].box);
     L.down.forEach((d) => {
       const c = mid(d.box);
-      out += `<line class="fl-link is-fan" x1="${v.x}" y1="${v.y}" x2="${c.x}" y2="${c.y}"/>`;
+      out += `<line class="fl-link is-fan${d.faded ? ' is-faded' : ''}" x1="${v.x}" y1="${v.y}" x2="${c.x}" y2="${c.y}"/>`;
     });
-    L.hops.forEach((h) => { out += box(h.box, h.t, h.s, h.safe ? '' : 'is-risk'); });
-    L.down.forEach((d, i) => {
-      out += box(d.box, d.t, d.s, 'is-risk');
-      out += `<rect class="fl-hit" data-i="${i}" x="${d.box[0]}" y="${d.box[1]}" width="${d.box[2]}" height="${d.box[3]}" rx="14"/>`;
-      const tx = d.box[0] + d.box[2] - 118;
-      const ty = d.box[1] - 12;
-      out += `<g class="fl-tag" data-i="${i}"><rect x="${tx}" y="${ty}" width="110" height="22" rx="11"/><text x="${tx + 55}" y="${ty + 15}">attack surface</text></g>`;
+    const [fx, fy] = L.trail.from;
+    out += '<g class="fl-trail">';
+    L.trail.boxes.forEach((b, i) => {
+      const c = mid(b);
+      out += `<line class="fl-link is-fan" x1="${fx}" y1="${fy}" x2="${c.x}" y2="${c.y}" style="opacity:${0.7 - i * 0.2}"/>` +
+        `<rect class="fl-box is-risk is-ghost" x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${b[3]}" rx="${b[3] / 3}" style="opacity:${0.6 - i * 0.18}"/>`;
     });
+    out += '</g>';
+    // The boxes, each risky one with its flash and its attack-surface tag.
+    const [tw, th] = L.tag;
+    const risky = [];
+    L.hops.forEach((h) => {
+      out += box(h.box, h.t, h.s, h.safe ? '' : 'is-risk');
+      if (!h.safe) risky.push(h.box);
+    });
+    L.down.forEach((d) => {
+      out += box(d.box, d.t, d.s, `is-risk${d.faded ? ' is-faded' : ''}${L.small ? ' is-sm' : ''}`);
+      risky.push(d.box);
+    });
+    risky.forEach((b, i) => {
+      out += `<rect class="fl-hit" data-i="${i}" x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${b[3]}" rx="${Math.min(14, b[3] / 3)}"/>`;
+      const tx = b[0] + b[2] - tw - 8;
+      const ty = b[1] - th / 2;
+      out += `<g class="fl-tag" data-i="${i}"><rect x="${tx}" y="${ty}" width="${tw}" height="${th}" rx="${th / 2}"/><text x="${tx + tw / 2}" y="${ty + th / 2 + 4}">attack surface</text></g>`;
+    });
+    out += '<g class="fl-trail-hit">' + L.trail.boxes.map((b) => `<rect class="fl-hit" x="${b[0]}" y="${b[1]}" width="${b[2]}" height="${b[3]}" rx="${b[3] / 3}"/>`).join('') + '</g>';
     L.down.forEach((d, i) => { out += docGlyph(`mv-copy mv-copy-${i}`); });
     out += docGlyph('mv-doc');
+    // The caption, then the point: typed once the picture is complete, then held.
     const [cx, cy, anchor] = L.caption;
-    const step = tall ? 20 : 24;
+    const step = tall ? 19 : 26;
     let y = cy;
-    out += `<g class="fl-captions${anchor === 'start' ? ' is-start' : ''}"><text class="fl-cap is-risk" x="${cx}" y="${y}">Four hops. Three systems you don't control.</text>`;
-    // The point, typed out once the picture is complete.
-    L.point.forEach((t, i) => { y += i === 0 ? step + 2 : step; out += `<text class="fl-point" x="${cx}" y="${y}" data-text="${esc(t)}"></text>`; });
-    L.explain.forEach((t) => { y += step; out += `<text class="fl-cap2" x="${cx}" y="${y}">${esc(t)}</text>`; });
+    out += `<g class="fl-captions${anchor === 'start' ? ' is-start' : ''}">`;
+    L.cap.forEach((t, i) => { y = cy + i * step; out += `<text class="fl-cap is-risk fl-type" x="${cx}" y="${y}" data-text="${esc(t)}"></text>`; });
+    L.point.forEach((t) => { y += step + (tall ? 0 : 2); out += `<text class="fl-point fl-type" x="${cx}" y="${y}" data-text="${esc(t)}"></text>`; });
     out += '</g></svg>';
     return out;
   }
@@ -199,43 +237,63 @@
     return el.animate(kf, Object.assign({ duration: LOOP_MS, iterations: Infinity }, timing));
   }
 
+  // When each attack surface lights, as a share of the 8 s play: the hops as the document reaches them,
+  // the fan-out boxes as their copies land, then the trailing boxes together.
+  const HOP_AT = [0.15, 0.25, 0.36];
+  const FAN_AT = (i) => 0.47 + i * 0.035;
+  const TRAIL_AT = 0.68;
+  function cloudCount(k) {
+    let n = HOP_AT.filter((t) => k >= t).length;
+    for (let i = 0; i < 5; i += 1) if (k >= FAN_AT(i)) n += 1;
+    if (k >= TRAIL_AT) n += 3;
+    return n;
+  }
+
   function animateCloud(svg, L) {
     const anims = [];
     const run = (el, frames, opts) => { if (el) anims.push(play(el, frames, Object.assign({ iterations: 1, fill: 'forwards' }, opts))); };
     const P = L.hops.map((h) => mid(h.box));
     run(svg.querySelector('.mv-doc'), [
       { offset: 0, transform: tr(P[0]), opacity: 0 },
-      { offset: 0.04, transform: tr(P[0]), opacity: 1 },
-      { offset: 0.1, transform: tr(P[0]), opacity: 1 },
+      { offset: 0.03, transform: tr(P[0]), opacity: 1 },
+      { offset: 0.08, transform: tr(P[0]), opacity: 1 },
+      { offset: HOP_AT[0], transform: tr(P[1]), opacity: 1 },
       { offset: 0.18, transform: tr(P[1]), opacity: 1 },
-      { offset: 0.24, transform: tr(P[1]), opacity: 1 },
-      { offset: 0.32, transform: tr(P[2]), opacity: 1 },
-      { offset: 0.38, transform: tr(P[2]), opacity: 1 },
-      { offset: 0.48, transform: tr(P[3]), opacity: 1 },
-      { offset: 0.52, transform: tr(P[3]), opacity: 0 },
+      { offset: HOP_AT[1], transform: tr(P[2]), opacity: 1 },
+      { offset: 0.28, transform: tr(P[2]), opacity: 1 },
+      { offset: HOP_AT[2], transform: tr(P[3]), opacity: 1 },
+      { offset: 0.4, transform: tr(P[3]), opacity: 0 },
       { offset: 1, transform: tr(P[3]), opacity: 0 },
     ], { easing: 'ease-in-out' });
-    L.down.forEach((d, i) => {
-      const end = { x: d.box[0] + (L.view[0] < L.view[1] ? 16 : 20), y: d.box[1] + d.box[3] / 2 };
-      const arrive = 0.6 + i * 0.03;
-      run(svg.querySelector(`.mv-copy-${i}`), [
-        { offset: 0, transform: tr(P[3]), opacity: 0 },
-        { offset: 0.5, transform: tr(P[3]), opacity: 0 },
-        { offset: 0.52, transform: tr(P[3]), opacity: 1 },
-        { offset: arrive, transform: tr(end), opacity: 1 },
-        { offset: 1, transform: tr(end), opacity: 1 },
-      ], { easing: 'ease-out' });
+    const flash = (i, at) => {
       run(svg.querySelector(`.fl-hit[data-i="${i}"]`), [
-        { offset: 0, opacity: 0 }, { offset: arrive, opacity: 0 }, { offset: arrive + 0.02, opacity: 1 },
-        { offset: arrive + 0.08, opacity: 0.45 }, { offset: 1, opacity: 0.45 },
+        { offset: 0, opacity: 0 }, { offset: at, opacity: 0 }, { offset: at + 0.015, opacity: 1 },
+        { offset: at + 0.07, opacity: 0.4 }, { offset: 1, opacity: 0.4 },
       ]);
       run(svg.querySelector(`.fl-tag[data-i="${i}"]`), [
-        { offset: 0, opacity: 0 }, { offset: arrive + 0.02, opacity: 0 }, { offset: arrive + 0.05, opacity: 1 },
-        { offset: 1, opacity: 1 },
+        { offset: 0, opacity: 0 }, { offset: at + 0.01, opacity: 0 }, { offset: at + 0.03, opacity: 1 }, { offset: 1, opacity: 1 },
       ]);
+    };
+    HOP_AT.forEach((at, i) => flash(i, at));
+    L.down.forEach((d, i) => {
+      const end = { x: d.box[0] + (L.view[0] < L.view[1] ? 2 : 20), y: d.box[1] + d.box[3] / 2 };
+      const at = FAN_AT(i);
+      run(svg.querySelector(`.mv-copy-${i}`), [
+        { offset: 0, transform: tr(P[3]), opacity: 0 },
+        { offset: 0.38, transform: tr(P[3]), opacity: 0 },
+        { offset: 0.4, transform: tr(P[3]), opacity: 1 },
+        { offset: at, transform: tr(end), opacity: 1 },
+        { offset: 1, transform: tr(end), opacity: 1 },
+      ], { easing: 'ease-out' });
+      flash(3 + i, at);
     });
+    // The trailing boxes behind the last fan-out box flash as a group.
+    run(svg.querySelector('.fl-trail-hit'), [
+      { offset: 0, opacity: 0 }, { offset: TRAIL_AT, opacity: 0 }, { offset: TRAIL_AT + 0.015, opacity: 1 },
+      { offset: TRAIL_AT + 0.08, opacity: 0.35 }, { offset: 1, opacity: 0.35 },
+    ]);
     run(svg.querySelector('.fl-captions'), [
-      { offset: 0, opacity: 0 }, { offset: 0.74, opacity: 0 }, { offset: 0.78, opacity: 1 },
+      { offset: 0, opacity: 0 }, { offset: 0.8, opacity: 0 }, { offset: 0.82, opacity: 1 },
       { offset: 1, opacity: 1 },
     ]);
     return anims;
@@ -306,9 +364,9 @@
     });
   }
 
-  // The cloud's point, typed out after the picture completes.
+  // The cloud's caption and point, typed out after the picture completes.
   function typePoint(svg) {
-    const lines = Array.from(svg.querySelectorAll('.fl-point'));
+    const lines = Array.from(svg.querySelectorAll('.fl-type'));
     if (RM) {
       lines.forEach((t) => { t.textContent = t.dataset.text; });
       typed = true;
@@ -329,6 +387,21 @@
     });
   }
 
+  // The tally beside the cloud panel's title counts the attack surfaces as they light, on the
+  // animation's own clock (so it also follows a pause or a seek).
+  const tally = section.querySelector('#flow-cloud .flow-tally');
+  let tallyRaf = 0;
+  function showTally() {
+    cancelAnimationFrame(tallyRaf);
+    if (!tally) return;
+    const lead = picked === 'cloud' && anims[0];
+    if (!lead) { tally.textContent = ''; return; }
+    const n = cloudCount((lead.currentTime || 0) / LOOP_MS);
+    tally.textContent = n ? `${n} attack surface${n === 1 ? '' : 's'}` : '';
+    tally.classList.toggle('is-on', n > 0);
+    if (lead.playState !== 'finished') tallyRaf = requestAnimationFrame(showTally);
+  }
+
   function render() {
     anims.forEach((a) => a.cancel());
     anims = [];
@@ -344,10 +417,11 @@
     const svg = holder.querySelector('svg');
     fitBadges(svg);
     anims = picked === 'cloud' ? animateCloud(svg, L) : animateZoe(svg, L);
+    showTally();
     if (RM) {
       // Reduced motion: the finished picture, still, with the point in full; it does not flip by itself.
       anims.forEach((a) => { a.pause(); a.currentTime = (a.effect.getTiming().duration || LOOP_MS) * (picked === 'cloud' ? 1 : 0.9); });
-      if (picked === 'cloud') typePoint(svg);
+      if (picked === 'cloud') { typePoint(svg); showTally(); }
       return;
     }
     if (!onScreen) anims.forEach((a) => a.pause());
@@ -391,6 +465,7 @@
         if (onScreen && a.playState === 'paused') a.play();
         else if (!onScreen && a.playState === 'running') a.pause();
       });
+      showTally();
     }, { threshold: 0.15 }).observe(section);
   } else {
     onScreen = true;
@@ -406,6 +481,6 @@
     get running() { return anims.length > 0 && anims.every((a) => a.playState === 'running'); },
     get finished() { return anims.length > 0 && anims.every((a) => a.playState === 'finished'); },
     get typed() { return typed; },
-    seek(ms) { anims.forEach((a) => { a.pause(); a.currentTime = ms; }); },
+    seek(ms) { anims.forEach((a) => { a.pause(); a.currentTime = ms; }); showTally(); },
   };
 })();

@@ -22,6 +22,11 @@ const RESTRICTED = JSON.parse(Buffer.from('W3sicmUiOiAiXFxiR0xpTkVSXFxiIiwgImNzI
 const PHONE = JSON.parse(Buffer.from('eyJyZSI6ICJcXGJwaG9uZXM/XFxiIiwgImFsbG93ZWRUZXh0IjogWyJ0aGUgcGhvbmUgaGFuZHMgaXQgdG8gdGhlIGxhcHRvcCJdfQ==', 'base64').toString());
 // Product names: the four frontier products under the cloud, in hero.js's PROVIDERS block and nowhere else.
 const PRODUCTS = JSON.parse(Buffer.from('eyJhbGxvd2VkSW4iOiAiaGVyby5qcyIsICJmcm9tIjogIi8vIFRoZSBmcm9udGllciBtb2RlbHMgbmFtZWQgdW5kZXIgdGhlIGNsb3VkIiwgInRvIjogIl07IiwgImFsbG93ZWQiOiBbIkNoYXRHUFQiLCAiQ2xhdWRlIiwgIkdlbWluaSIsICJDb3BpbG90Il0sICJmb3JiaWRkZW4iOiBbIlxcYkdQVC0/XFxkIiwgIlxcYkxsYW1hXFxiIiwgIlxcYk1pc3RyYWxcXGIiLCAiXFxiR3Jva1xcYiIsICJcXGJCYXJkXFxiIiwgIlxcYlNvbm5ldFxcYiIsICJcXGJPcHVzXFxiIiwgIlxcYkhhaWt1XFxiIiwgIlxcYkZhYmxlXFxiIiwgIlxcYkRlZXBTZWVrXFxiIiwgIlxcYlF3ZW5cXGIiXX0=', 'base64').toString());
+// Allowed in the comparison's Standard cloud AI panel and nowhere else (William, 2026-10-22): its layout block
+// in compare.js, from PANEL_FROM to PANEL_TO, is the one place they may appear.
+const PANEL_ONLY = JSON.parse(Buffer.from('W3sicmUiOiAiXFxiUkFHXFxiIiwgImNzIjogdHJ1ZX0sIHsicmUiOiAiXFxiTExNXFxiIiwgImNzIjogdHJ1ZX0sIHsicmUiOiAiXFxiSVNQXFxiIiwgImNzIjogdHJ1ZX0sIHsicmUiOiAic3VicHJvY2Vzc29yIiwgImNzIjogZmFsc2V9XQ==', 'base64').toString());
+const PANEL_FROM = '// Standard cloud AI: the chain';
+const PANEL_TO = 'const ZOE = {';
 const SITE_FILES = ['index.html', 'styles.css', 'hero.js', 'agreement.js', 'compare.js', 'drawer.css', 'pages.css', 'book-demo.html', 'nda.html',
   'tools/playwright.config.js', 'tools/make-site-images.js', 'tools/make-agreement.js', 'tools/record-gif.js'];
 // Below the hero, in order (William, 2026-10-21): the comparison first, ZOE Servers removed.
@@ -155,8 +160,14 @@ test('restricted words: none in the page, CSS, JS or comments', async ({}, info)
   test.skip(!isWide(info), 'checked once');
   const hits = [];
   for (const f of SITE_FILES) {
-    const text = fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/data:image\/webp;base64,[^"]+/, '');
-    RESTRICTED.forEach(({ re, cs }) => {
+    let text = fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/data:image\/webp;base64,[^"]+/, '');
+    if (f === 'compare.js') {
+      const a = text.indexOf(PANEL_FROM);
+      const b = text.indexOf(PANEL_TO, a);
+      expect(a).toBeGreaterThan(-1);
+      text = text.slice(0, a) + text.slice(b);
+    }
+    RESTRICTED.concat(PANEL_ONLY).forEach(({ re, cs }) => {
       const m = text.match(new RegExp(re, cs ? 'g' : 'gi'));
       if (m) hits.push(`${f}: ${m[0]}`);
     });
@@ -893,7 +904,12 @@ test('below the hero: every section, both modals, numbers and image sizes', asyn
   const big = images.filter((i) => !/\/frames\//.test(i.url) && i.kb > 200);
   expect(big).toEqual([]);
   // Numbers that are claims: these and no others below the hero.
-  const text = await page.evaluate((ids) => ids.map((id) => document.getElementById(id).textContent).join(' '), SECTIONS);
+  // (The cloud panel's tally counts the boxes it draws; it is not a claim, so it is left out.)
+  const text = await page.evaluate((ids) => ids.map((id) => {
+    const c = document.getElementById(id).cloneNode(true);
+    c.querySelectorAll('.flow-tally').forEach((el) => el.remove());
+    return c.textContent;
+  }).join(' '), SECTIONS);
   const nums = Array.from(new Set(text.replace(/\[[A-Z]+_\d+\]/g, '').match(/\$?\d[\d,.]*(\s?GB|%\+?)?/g) || []));
   const allowed = ['99%+', '99%', '90%', '16 GB', '$0', '01', '02', '03', '2026'];
   expect(nums.filter((n) => !allowed.includes(n))).toEqual([]);
@@ -982,8 +998,37 @@ test('comparison: Standard cloud AI chosen to begin with, each panel animates, s
     await page.locator('#dataflow').screenshot({ path: path.join(SHOTS, `${info.project.name}-compare-${which}.png`) });
   }
   await page.locator('.flow-pick[data-pick="cloud"]').click();
+  // Part way: the document has reached the vendor cloud, and the tally has counted the three hops.
+  await page.evaluate(() => window.__zoeCompare.seek(3200));
+  expect(await page.locator('#flow-cloud .fl-tag').evaluateAll((els) => els.filter((e) => +getComputedStyle(e).opacity > 0.9).length)).toBe(3);
+  await expect(page.locator('#flow-cloud .flow-tally')).toHaveText('3 attack surfaces');
+  await page.locator('#dataflow').screenshot({ path: path.join(SHOTS, `${info.project.name}-compare-cloud-hops.png`) });
+  // At the end: every node past the control line is tagged; the trailing boxes count too.
   await page.evaluate(() => window.__zoeCompare.seek(6800));
-  expect(await page.locator('#flow-cloud .fl-tag').evaluateAll((els) => els.filter((e) => +getComputedStyle(e).opacity > 0.9).length)).toBe(4);
+  expect(await page.locator('#flow-cloud .fl-tag').evaluateAll((els) => els.filter((e) => +getComputedStyle(e).opacity > 0.9).length)).toBe(8);
+  await expect(page.locator('#flow-cloud .flow-tally')).toHaveText('11 attack surfaces');
+  const labels = await page.locator('#flow-cloud .fl-t').allTextContents();
+  ['Your laptop', 'Office router', 'Vendor cloud', 'Confidentiality services (PII)', 'Search index (RAG)', 'Frontier models (LLM)',
+    'Logging & evaluation', 'Additional subprocessors'].forEach((t) => expect(labels).toContain(t));
+  expect(labels.join(' ').replace(/\s+/g, ' ')).toContain('provider (ISP)');
+  // Every label fits its box.
+  const over = await page.$$eval('#flow-cloud .fl-box', (rs) => rs.flatMap((r) => {
+    const b = r.getBBox();
+    const out = [];
+    for (let t = r.nextElementSibling; t && t.tagName === 'text'; t = t.nextElementSibling) {
+      const tb = t.getBBox();
+      if (tb.x < b.x || tb.x + tb.width > b.x + b.width) out.push(t.textContent);
+    }
+    return out;
+  }));
+  expect(over).toEqual([]);
+  // The panel's own words stay in the panel: nowhere else on the page.
+  const outside = await page.evaluate(() => {
+    const c = document.body.cloneNode(true);
+    c.querySelectorAll('#flow-cloud, script, noscript').forEach((el) => el.remove());
+    return c.textContent;
+  });
+  PANEL_ONLY.forEach(({ re, cs }) => expect(outside.match(new RegExp(re, cs ? 'g' : 'gi'))).toBeNull());
   await page.locator('.flow-pick[data-pick="zoe"]').click();
   await page.evaluate(() => window.__zoeCompare.seek(6000));
   expect(+(await page.locator('#flow-zoe .mv-packet').evaluate((e) => getComputedStyle(e).opacity))).toBeGreaterThan(0.9);
@@ -1013,8 +1058,11 @@ test('comparison: the cloud panel plays once, types its point, holds, then flips
   await page.waitForFunction(() => window.__zoeCompare.finished, null, { timeout: 15000 });
   await page.waitForFunction(() => window.__zoeCompare.typed, null, { timeout: 8000 });
   const typedAt = Date.now();
+  const cap = await page.locator('#flow-cloud .fl-cap').evaluateAll((els) => els.map((e) => e.textContent).join(' '));
+  expect(cap).toBe("Multiple hops. Every system past the router is one you don't control.");
   const point = await page.locator('#flow-cloud .fl-point').evaluateAll((els) => els.map((e) => e.textContent).join(' '));
-  expect(point).toBe('A chain of AI vendors is a larger attack surface than traditional cloud software.');
+  expect(point).toBe('A chain of AI vendors and subprocessors is a larger attack surface than traditional cloud software.');
+  expect(await page.locator('#flow-cloud svg title').textContent()).toContain('eleven attack surfaces');
   // It holds: the caption stays, nothing loops.
   await page.waitForTimeout(2500);
   expect(await page.locator('#flow-cloud .fl-captions').evaluate((e) => getComputedStyle(e).opacity)).toBe('1');
