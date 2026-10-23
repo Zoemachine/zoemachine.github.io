@@ -153,7 +153,7 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     await page.waitForFunction(() => window.__zoeHero.act === 5, null, { timeout: 120000, polling: 200 });
     await page.waitForTimeout(1500);
   } else if (mode === 'library') {
-    // From "Applying draft edits." to Act V: the agreement writing out, the snap, then the clause
+    // From the lockdown ("Received. Wi-Fi no longer needed.") to Act V: the agreement filling and flipping, then the clause
     // library beat and § 9.3 going in. Everything before it is tapped through, unrecorded.
     for (;;) {
       const st = await page.evaluate(() => ({ g: window.__zoeHero.gesture, f: window.__zoeHero.framesReady }));
@@ -162,7 +162,7 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
       await page.waitForTimeout(150);
     }
     await page.evaluate(() => window.__zoeHero.perform('tap'));
-    await page.waitForFunction(() => document.getElementById('live').textContent.includes('Applying draft edits'), null, { timeout: 120000, polling: 100 });
+    await page.waitForFunction(() => document.getElementById('live').textContent.includes('Received. Wi-Fi no longer needed'), null, { timeout: 120000, polling: 100 });
     trimBefore = Date.now() / 1000;
     await page.waitForFunction(() => window.__zoeHero.act === 5, null, { timeout: 120000, polling: 200 });
     await page.waitForTimeout(800);

@@ -498,13 +498,22 @@ test('Act IV: ZOE finds and redacts, the cloud speaks the catch and the fix, the
   await page.waitForTimeout(900);
   await shot(page, info, 'act4-catch');
   // The returned draft is the whole agreement, and it arrives masked: tokens and dummy figures, readable.
-  await page.waitForFunction(() => document.querySelector('.draft').classList.contains('is-in'), null, { timeout: 12000 });
+  await page.waitForFunction(() => document.querySelector('.draft').classList.contains('is-in'), null, { timeout: 20000 });
   const tDraft = Date.now();
+  // Locked down before anything is applied: the Wi-Fi is OFF when the agreement starts to fill.
+  expect(await page.locator('.wifi.is-off').count()).toBe(1);
+  await expect(page.locator('.cloud')).toHaveClass(/is-out/);
   expect(await page.$eval('.draft .ed-bar', (el) => el.textContent)).toContain('Business Combination Agreement · draft');
   const before = await page.$eval('.draft .ag', (el) => el.textContent);
   expect(before.split(/\s+/).filter(Boolean).length).toBeGreaterThan(3500);
   ['BUSINESS COMBINATION AGREEMENT', 'ARTICLE I — DEFINITIONS', 'ARTICLE X — MISCELLANEOUS', 'SIGNATURE PAGE (FORM OF; UNSIGNED)',
-    '[ORG_6] (the “Guarantor”)', '$18,200,000', '[PERSON_3]', '[ADDRESS_1]'].forEach((t) => expect(before).toContain(t));
+    '[ORG_6], a Delaware limited liability company (“Parent”)', '$18,200,000', '[PERSON_3]', '[ADDRESS_1]'].forEach((t) => expect(before).toContain(t));
+  // The fix is the parent made a party, not a guaranty; the buyer is never described as newly formed.
+  expect(before).not.toMatch(/guarant|newly formed|formed for the merger/i);
+  const ins = await page.$$eval('.draft .ag .ins', (els) => els.map((e) => e.textContent));
+  ['Parent and Merger Sub, jointly and severally, represent and warrant to the Company as follows:', 'PARENT AND ',
+    'Parent and Merger Sub, jointly and severally,'].forEach((t) => expect(ins).toContain(t));
+  expect(ins.some((t) => t.startsWith('B. Parent, as the sole member of Merger Sub, has agreed to become a party'))).toBe(true);
   ['Meridian Holdings LLC', '$45,000,000', 'Calder', 'Kestrel Robotics'].forEach((t) => expect(before).not.toContain(t));
   await page.waitForTimeout(1800);
   await shot(page, info, 'act4-agreement-masked');
@@ -517,36 +526,44 @@ test('Act IV: ZOE finds and redacts, the cloud speaks the catch and the fix, the
   // The run down the agreement: each token flips to the real name or figure as it passes the flip line.
   await page.waitForFunction(() => document.querySelector('.ag-view.is-flipping'), null, { timeout: 8000 });
   const stopFps = await startFpsProbe(page);
-  await page.waitForTimeout(3000);
+  // First the flip line comes down over the title block, then the page runs slowly through the parties:
+  // caught mid-flip, a title-block name restored while the preamble's parties are still masked.
+  await page.waitForFunction(() => document.querySelector('.ag .ag-b .pii.is-real') && document.querySelector('.ag [data-id="preamble"] .pii.is-masked'), null, { timeout: 8000 });
+  await shot(page, info, 'act4-agreement-titleflip');
+  const tFlip = Date.now();
+  // The parties paragraph takes its time: still not all restored a second later.
+  await page.waitForTimeout(1000);
+  expect(await page.locator('.ag [data-id="preamble"] .pii.is-masked').count()).toBeGreaterThan(0);
+  await page.waitForTimeout(Math.max(0, 5000 - (Date.now() - tFlip)));
   await shot(page, info, 'act4-agreement-flipping');
   const mid = await page.evaluate(() => ({ real: document.querySelectorAll('.ag .pii.is-real').length, masked: document.querySelectorAll('.ag .pii.is-masked').length }));
   expect(mid.real).toBeGreaterThan(0);
   expect(mid.masked).toBeGreaterThan(0);
-  await page.waitForFunction(() => !document.querySelector('.ag-view.is-flipping'), null, { timeout: 12000 });
+  await page.waitForFunction(() => !document.querySelector('.ag-view.is-flipping'), null, { timeout: 20000 });
   metrics.agreement_scroll = await stopFps();
   await page.waitForFunction(() => !document.querySelector('.ag .pii.is-masked'), null, { timeout: 8000 });
   metrics.agreement_fill_ms = Date.now() - tDraft;
-  expect(metrics.agreement_fill_ms).toBeGreaterThan(9000);
-  expect(metrics.agreement_fill_ms).toBeLessThan(16000);
+  expect(metrics.agreement_fill_ms).toBeGreaterThan(14000);
+  expect(metrics.agreement_fill_ms).toBeLessThan(23000);
   const after = await page.$eval('.draft .ag', (el) => el.textContent);
-  ['Meridian Holdings LLC (the “Guarantor”)', '$45,000,000', 'James “Jimmy” Calder'].forEach((t) => expect(after).toContain(t));
+  ['Meridian Holdings LLC, a Delaware limited liability company (“Parent”)', '$45,000,000', 'James “Jimmy” Calder'].forEach((t) => expect(after).toContain(t));
   expect(after).not.toMatch(/\[(ORG|PERSON|ADDRESS)_\d+\]/);
-  // It settles on Article IX with § 9.4 in view, in green.
-  await page.waitForTimeout(3200);
+  // It settles on Article V, the green lead-in naming Parent and Merger Sub in view.
+  await page.waitForTimeout(3600);
   const inView = (sel) => page.evaluate((q) => {
     const v = document.querySelector('.ag-view').getBoundingClientRect();
     const r = document.querySelector(q).getBoundingClientRect();
-    return r.top >= v.top - 1 && r.top + Math.min(r.height, 24) <= v.bottom + 1;
+    return r.top >= v.top - 1 && r.bottom <= v.bottom + 1;
   }, sel);
-  expect(await inView('.ag [data-id="s94"]')).toBe(true);
-  expect(await page.$eval('.ag [data-id="s94"]', (el) => el.classList.contains('ins'))).toBe(true);
-  await shot(page, info, 'act4-rehydrated');
+  expect(await inView('.ag [data-id="art5"]')).toBe(true);
+  expect(await inView('.ag [data-id="art5lead"]')).toBe(true);
+  await shot(page, info, 'act4-article5');
   await page.waitForFunction(() => window.__journal.some((e) => e.k === 'line' && e.v.includes('Caught it')), null, { timeout: 15000 });
   const lines = (await page.evaluate(() => window.__journal)).filter((e) => e.k === 'line').map((e) => e.v);
   const order = ['ZOE: Searching the vault…', 'ZOE: Found 25 paragraphs across 6 files. Redacting.', 'ZOE: Sent.',
     'Frontier AI: [ORG_5] is an empty shell. [ORG_6] is the parent, and it is not in this deal.',
-    'Frontier AI: Adding [ORG_6]: parent guaranty, indemnification. Drafting.', 'Frontier AI: Draft returning.',
-    'ZOE: Applying draft edits.',
+    'Frontier AI: Adding [ORG_6] as a party. It makes the reps and warranties with [ORG_5]. Drafting.', 'Frontier AI: Draft returning.',
+    "ZOE: Received. Wi-Fi no longer needed. We're locked down.", 'ZOE: Applying draft edits.',
     'Bob (thinking): They left the parent off the hook. Caught it.'];
   const at = order.map((l) => lines.indexOf(l));
   if (!at.every((i, k) => i >= 0 && (k === 0 || i > at[k - 1]))) console.log('[journal]', JSON.stringify(lines));
@@ -561,9 +578,10 @@ test('Act IV, the clause library: Wi-Fi OFF again, ten results, the pick lit, §
   await startJournal(page);
   await runTo(page, 'scrub');
   await page.evaluate(() => window.__zoeHero.perform('click'));
-  await page.waitForFunction(() => window.__journal.some((e) => e.k === 'line' && e.v.includes("We're locked down")), null, { timeout: 90000 });
+  await page.waitForFunction(() => window.__journal.some((e) => e.k === 'line' && e.v.includes('Not bad for a first draft')), null, { timeout: 120000 });
   expect(await hero(page, 'step')).toBe(4.5);
   await expect(page.locator('.cloud')).toHaveClass(/is-out/);
+  await expect(page.locator('.wifi')).toHaveClass(/is-off/);
   // The search: the counter runs to 225,000 over the side panel, then ten results, one line each.
   await page.waitForFunction(() => document.querySelector('.scan.is-on') && document.querySelector('.side.is-library'), null, { timeout: 30000 });
   await page.waitForFunction(() => document.querySelector('.scan-count b').textContent === '225,000', null, { timeout: 5000 });
@@ -586,8 +604,7 @@ test('Act IV, the clause library: Wi-Fi OFF again, ten results, the pick lit, §
   const op = await page.$$eval('.clause', (els) => els.map((e) => parseFloat(getComputedStyle(e).opacity)));
   expect(op.filter((o) => o > 0.9).length).toBe(1);
   expect(op.filter((o) => o < 0.5).length).toBe(9);
-  // "Inserting now.": § 9.3 replaces the [Reserved.] slot, in green, line by line; it settles with 9.3 and
-  // 9.4 both in view (on the phone's narrow column, the end of 9.3 and the start of 9.4).
+  // "Inserting now.": § 9.3 replaces the [Reserved.] slot, in green, line by line, and settles in view.
   await page.waitForFunction(() => document.querySelector('.ag [data-id="s93new"]'), null, { timeout: 20000 });
   const t0 = Date.now();
   await page.waitForTimeout(600);
@@ -601,18 +618,18 @@ test('Act IV, the clause library: Wi-Fi OFF again, ten results, the pick lit, §
   expect(await page.$eval('.ag [data-id="s93new"]', (el) => el.classList.contains('ins') && el.textContent.startsWith('Section 9.3 Knowledge; No Sandbagging.'))).toBe(true);
   const both = await page.evaluate(() => {
     const v = document.querySelector('.ag-view').getBoundingClientRect();
-    return ['s93new', 's94'].map((id) => {
+    return ['s93new'].map((id) => {
       const r = document.querySelector(`.ag [data-id="${id}"]`).getBoundingClientRect();
       return r.bottom >= v.top + 24 && r.top + 24 <= v.bottom;
     });
   });
-  expect(both).toEqual([true, true]);
-  // Order of the lines, and the Wi-Fi: OFF after the round trip, before Bob's request.
+  expect(both).toEqual([true]);
+  // Order of the lines, and the Wi-Fi: OFF once the draft is received, before the edits are applied.
   await page.waitForFunction(() => window.__journal.some((e) => e.k === 'line' && e.v.startsWith('Jimmy: Ten minutes')), null, { timeout: 30000 });
   const j = await page.evaluate(() => window.__journal);
   const lines = j.filter((e) => e.k === 'line').map((e) => e.v);
-  const order = ['Bob (thinking): They left the parent off the hook. Caught it.',
-    "ZOE: Wi-Fi no longer needed. We're locked down.",
+  const order = ["ZOE: Received. Wi-Fi no longer needed. We're locked down.", 'ZOE: Applying draft edits.',
+    'Bob (thinking): They left the parent off the hook. Caught it.',
     'Bob (thinking): Not bad for a first draft. But I need an anti-sandbagging clause.',
     'ZOE: Searching your local secure clause library…', 'ZOE: Top 10 matches.',
     "Bob (thinking): That's the one. Perfect.", 'ZOE: Inserting now.',
@@ -625,8 +642,8 @@ test('Act IV, the clause library: Wi-Fi OFF again, ten results, the pick lit, §
   expect(wifi.slice(-2)).toEqual(['on', 'off']);
   const offAt = j.filter((e) => e.k === 'wifi' && e.v === 'off').pop().t;
   const lineAt = (l) => j.find((e) => e.k === 'line' && e.v === l).t;
-  expect(offAt).toBeGreaterThan(lineAt("ZOE: Wi-Fi no longer needed. We're locked down."));
-  expect(offAt).toBeLessThan(lineAt(order[2]));
+  expect(offAt).toBeGreaterThan(lineAt("ZOE: Received. Wi-Fi no longer needed. We're locked down."));
+  expect(offAt).toBeLessThan(lineAt('ZOE: Applying draft edits.'));
 });
 
 test('Act V: one button and Replay; the button unlocks and lands on the comparison; replay twice; analytics', async ({ page }, info) => {
@@ -729,7 +746,7 @@ test('skip: none before the lid opens, quiet from Act III; each press jumps a st
   for (let i = 0; i < 2; i += 1) await btn.click({ force: true });
   await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 30000 });
   expect(await page.$$eval('.pills .pill', (els) => els.map((e) => e.textContent))).toEqual(['Why is ZOE AI different?', 'Replay']);
-  expect(await page.$eval('.draft', (el) => el.textContent)).toContain('Meridian Holdings LLC (the \u201cGuarantor\u201d)');
+  expect(await page.$eval('.draft', (el) => el.textContent)).toContain('Parent and Merger Sub, jointly and severally, represent and warrant');
   expect(await page.$eval('.draft', (el) => el.textContent)).toContain('Section 9.3 Knowledge; No Sandbagging.');
   expect(await page.locator('.editor > .ed-page .pii.is-masked').count()).toBeGreaterThanOrEqual(19);
   expect(await hero(page, 'locked')).toBe(true);
@@ -881,6 +898,10 @@ test('no JavaScript: open laptop and the five acts as text, matching hero.js', a
   expect(keys.filter((k, i) => keys.indexOf(k) !== i)).toEqual([]);
   expect(lines.length).toBeGreaterThan(20);
   lines.forEach((l) => expect(noscript).toContain(l));
+  // The buyer reads as an ordinary company on paper: the shell is found only through the related files.
+  for (const f of ['hero.js', 'index.html', 'agreement.js']) {
+    expect(fs.readFileSync(path.join(ROOT, f), 'utf8')).not.toMatch(/newly formed|formed for the merger/i);
+  }
   await ctx.close();
 });
 

@@ -42,7 +42,7 @@ for (let para of part('## Part A — Business Combination Agreement', '*End of P
   if (para === '---') { blocks.push(['rule', '']); inTitle = false; continue; }
   if (para.startsWith('### ')) {
     const t = para.slice(4);
-    blocks.push(['h', t, null, /^ARTICLE IX\b/.test(t) ? 'art9' : null]);
+    blocks.push(['h', t, null, /^ARTICLE IX\b/.test(t) ? 'art9' : (/^ARTICLE V\b/.test(t) ? 'art5' : null)]);
     continue;
   }
   if (rows.every(bold)) {
@@ -57,14 +57,42 @@ for (let para of part('## Part A — Business Combination Agreement', '*End of P
   if (inTitle) { blocks.push([/^Form of/.test(para) ? 'note' : 'c', para]); continue; }
   const lead = para.match(/^\*\*(.+?)\*\*\s*([\s\S]*)$/);
   if (lead && rows.length === 1) {
-    const id = /^Section 9\.3\b/.test(lead[1]) ? 's93' : (/^Section 9\.4\b/.test(lead[1]) ? 's94' : null);
+    const id = /^Section 9\.3\b/.test(lead[1]) ? 's93' : null;
     blocks.push(['p', lead[2], lead[1], id]);
     continue;
   }
   if (rows.length > 1) { blocks.push(['lines', rows.join('\n')]); continue; }
   if (/^\([a-z]\)\s/.test(para)) { blocks.push(['sub', para]); continue; }
-  blocks.push(['p', para, null, /^B\. Parent has agreed to guarantee/.test(para) ? 'recB' : null]);
+  const id = /^This BUSINESS COMBINATION AGREEMENT/.test(para) ? 'preamble'
+    : /^B\. Parent, as the sole member/.test(para) ? 'recB'
+      : /^Parent and Merger Sub, jointly and severally, represent/.test(para) ? 'art5lead' : null;
+  blocks.push(['p', para, null, id]);
 }
+
+// ---------- The frontier AI's fix: the parent becomes a party ----------
+// Its additions are tracked insertions, shown in green: [block test, phrase] (no phrase: the whole block).
+// INS_A and INS_B bracket each insertion (characters the agreement never uses); hero.js turns them into spans.
+const INS_A = '\u27e6';
+const INS_B = '\u27e7';
+const INS = [
+  [(x) => x[0] === 'cb' && /^MERIDIAN HOLDINGS LLC/.test(x[1])],
+  [(x) => x[3] === 'preamble', 'Meridian Holdings LLC, a Delaware limited liability company (\u201cParent\u201d); '],
+  [(x) => x[3] === 'recB'],
+  [(x) => x[3] === 'art5', 'PARENT AND '],
+  [(x) => x[3] === 'art5lead'],
+  [(x) => x[0] === 'sub' && /^\(b\) Parent and Merger Sub, jointly and severally/.test(x[1]), 'Parent and Merger Sub, jointly and severally,'],
+  // Parent's signature block: its lines first, while the party name above them is still unmarked.
+  [(x, i) => x[0] === 'lines' && i > 0 && blocks[i - 1][0] === 'sb' && /^MERIDIAN HOLDINGS LLC/.test(blocks[i - 1][1])],
+  [(x) => x[0] === 'sb' && /^MERIDIAN HOLDINGS LLC/.test(x[1])],
+];
+INS.forEach(([test, phrase]) => {
+  const i = blocks.findIndex((x, k) => test(x, k));
+  if (i < 0) throw new Error(`no block for insertion ${phrase || test}`);
+  const x = blocks[i];
+  if (!phrase) { x[1] = INS_A + x[1] + INS_B; return; }
+  if (!x[1].includes(phrase)) throw new Error(`not in its block: ${phrase}`);
+  x[1] = x[1].replace(phrase, INS_A + phrase + INS_B);
+});
 
 // ---------- Part B: the clause Bob picks ----------
 const b = curly(part('## Part B — Anti-sandbagging clause (the one Bob picks)', '---').trim()).match(/^\*\*(.+?)\*\*\s*([\s\S]*)$/);
@@ -105,7 +133,7 @@ const PII = [
   ['December 31, 2024', 'March 31, 2024'], ['September 30, 2026', 'May 31, 2026'],
   ['September 14, 2026', 'April 3, 2026'], ['January 1, 2023', 'July 1, 2022'],
 ];
-const all = blocks.map((x) => `${x[2] || ''} ${x[1]}`).join('\n');
+const all = blocks.map((x) => `${x[2] || ''} ${x[1]}`).join('\n').split(INS_A).join('').split(INS_B).join('');
 PII.forEach(([real]) => { if (!all.includes(real)) throw new Error(`not in the agreement: ${real}`); });
 
 const words = all.split(/\s+/).filter(Boolean).length;

@@ -35,7 +35,7 @@ const PARTIES = {
 // [section, text]; {key} is a party from PARTIES. Everything else is generic deal language and is
 // deliberately left as it is when the sheet is masked, so the viewer sees what is not removed.
 const TERM_SHEET = [
-  ['Parties', 'Seller: {seller}, {address} (EIN {ein}). Buyer: {buyer}, a newly formed Delaware limited liability company.'],
+  ['Parties', 'Seller: {seller}, {address} (EIN {ein}). Buyer: {buyer}, a Delaware limited liability company.'],
   ['Structure', 'Purchase of all outstanding shares of the Seller; cash-free, debt-free, with a normalized level of working capital.'],
   ['Purchase Price', '{price} in cash at closing, subject to customary working capital adjustments.'],
   ['Escrow', '{escrowAmt} held by {escrowCo} for 18 months as security for indemnification, escrow account {escrow}.'],
@@ -102,11 +102,11 @@ const LINES = {
   redact6: 'Found 25 paragraphs across 6 files. Redacting.',
   sent:    'Sent.',
   catch:   '[ORG_5] is an empty shell. [ORG_6] is the parent, and it is not in this deal.',
-  fix:     'Adding [ORG_6]: parent guaranty, indemnification. Drafting.',
+  fix:     'Adding [ORG_6] as a party. It makes the reps and warranties with [ORG_5]. Drafting.',
   back:    'Draft returning.',
   apply:   'Applying draft edits.',
   caught:  'They left the parent off the hook. Caught it.',
-  lockdown: "Wi-Fi no longer needed. We're locked down.",
+  lockdown: "Received. Wi-Fi no longer needed. We're locked down.",
   sandbag: 'Not bad for a first draft. But I need an anti-sandbagging clause.',
   library: 'Searching your local secure clause library…',
   top10:   'Top 10 matches.',
@@ -177,7 +177,9 @@ function track(event, data) {
   const HANDOVER_BEAT_MS = 400; // after the laptop lands, before the phone moves to it
   const FILL_MS = 900;           // the returned agreement's first screen writing in, masked
   const MASKED_HOLD_MS = 1500;   // that screen held, so the tokens and dummy figures can be read
-  const DRAFT_RUN_MS = 8000;     // the run down the whole agreement, slow at both ends
+  const LINE_IN_MS = 1600;       // the flip line coming down over the title block, the page still
+  const PARTIES_MS = 4000;       // the page running slowly on until the preamble's parties have crossed the line
+  const DRAFT_RUN_MS = 8000;     // then the run down the rest of the agreement, easing out at the end
   const FLIP_AT = 0.5;           // the flip line, as a share of the editor's height
   const READ_W = 0.66;           // desktop reading camera: the screen's share of the viewport width
   const INSERT_MS = 1500;        // § 9.3 appearing line by line
@@ -1768,9 +1770,9 @@ function track(event, data) {
   const agreement = () => window.ZOE_AGREEMENT || { blocks: [], insert: { lead: '', text: '' }, clauses: [], pii: [] };
 
   // The agreement as the frontier AI returns it: names and addresses as tokens, figures as dummies.
-  // Recital B and § 9.4 (the parent guaranty the frontier AI added) are tracked insertions.
+  // Its fix, the parent made a party, is marked in the text (agreement.js's brackets) as tracked insertions.
   const AG_CLASS = { title: 'ag-title', c: 'ag-c', cb: 'ag-c ag-b', note: 'ag-c ag-note', h: 'ag-h', p: '', sub: 'ag-sub', lines: '', sb: 'ag-sb' };
-  const AG_INS = new Set(['recB', 's94']);
+  const insHtml = (html) => html.replace(/\u27e6/g, '<span class="ins">').replace(/\u27e7/g, '</span>');
   function agreementHtml() {
     const { blocks, pii } = agreement();
     const order = pii.map(([real], i) => [real, i]).sort((x, y) => y[0].length - x[0].length);
@@ -1790,8 +1792,8 @@ function track(event, data) {
     };
     return blocks.map(([type, text, lead, id]) => {
       if (type === 'rule') return '<hr>';
-      const cls = [AG_CLASS[type], AG_INS.has(id) ? 'ins' : ''].filter(Boolean).join(' ');
-      return `<p${cls ? ` class="${cls}"` : ''}${id ? ` data-id="${id}"` : ''}>${lead ? `<b>${masked(lead)}</b>${text ? ' ' : ''}` : ''}${masked(text)}</p>`;
+      const cls = AG_CLASS[type];
+      return `<p${cls ? ` class="${cls}"` : ''}${id ? ` data-id="${id}"` : ''}>${lead ? `<b>${masked(lead)}</b>${text ? ' ' : ''}` : ''}${insHtml(masked(text))}</p>`;
     }).join('');
   }
 
@@ -1810,11 +1812,14 @@ function track(event, data) {
   }
 
   // "Applying draft edits.": the agreement arrives masked, its first screen writing in, and holds so the
-  // tokens and dummy figures can be read. Then the page runs down the whole agreement, slow at both
-  // ends and fast through the middle, and each token and dummy flips to the real name or figure, in
-  // green, as it crosses the flip line; the restoration is seen all the way through. Then the view
-  // glides back up to Article IX, with § 9.4 (the parent guaranty) in green.
-  const easeInOut = (k) => 0.5 - Math.cos(Math.PI * k) / 2;
+  // tokens and dummy figures can be read. Then each token and dummy flips to the real name or figure,
+  // in green, as it crosses the flip line: first the line comes down over the title block, then the page
+  // runs slowly until the preamble's parties have crossed it (the entity names populate where they
+  // can be read), then it runs down the rest of the agreement, easing out at the end, so the
+  // restoration is seen all the way through. Then the view glides back up to Article V, where the
+  // green lead-in names Parent and Merger Sub: the catch, made real.
+  // A cubic from the slow run's speed v0 (px per ms) to rest, covering d over T.
+  const runOn = (u, d, v0, T) => d * (3 * u * u - 2 * u * u * u) + v0 * T * (u * u * u - 2 * u * u + u);
   function flipPii(el) {
     el.classList.remove('is-masked');
     el.classList.add('is-real', 'is-flip');
@@ -1842,7 +1847,12 @@ function track(event, data) {
     // height is read on every frame.
     const pending = Array.from(doc.querySelectorAll('.pii.is-masked'));
     const flipY = FLIP_AT * h;
-    view.style.setProperty('--flip-y', `${Math.round(flipY)}px`);
+    const pre = $('[data-id="preamble"]', doc);
+    const slowTo = pre ? Math.max(0, offsetIn(pre, doc).y + pre.offsetHeight - flipY + 0.08 * h) : 0;
+    const T0 = LINE_IN_MS * MOTION;
+    const T1 = PARTIES_MS * MOTION;
+    const T2 = DRAFT_RUN_MS * MOTION;
+    view.style.setProperty('--flip-y', '0px');
     view.classList.add('is-flipping');
     doc.classList.add('is-writing');
     const r = run;
@@ -1851,11 +1861,21 @@ function track(event, data) {
       let i = 0;
       const frame = (now) => {
         if (r.cancelled) { resolve(); return; }
-        const k = RM || skipping() ? 1 : Math.min(1, (now - t0) / (DRAFT_RUN_MS * MOTION));
-        agY = easeInOut(k) * Math.max(0, doc.offsetHeight - h);
+        const t = RM || skipping() ? T0 + T1 + T2 : now - t0;
+        let line = flipY;
+        if (t < T0) {
+          line = flipY * Math.sin((Math.PI / 2) * (t / T0));
+          agY = 0;
+        } else if (t < T0 + T1) {
+          agY = slowTo * ((t - T0) / T1);
+        } else {
+          const u = Math.min(1, (t - T0 - T1) / T2);
+          agY = slowTo + runOn(u, Math.max(0, doc.offsetHeight - h - slowTo), slowTo / T1, T2);
+        }
+        view.style.setProperty('--flip-y', `${Math.round(line)}px`);
         doc.style.transform = `translateY(${(-agY).toFixed(1)}px)`;
-        while (i < pending.length && offsetIn(pending[i], doc).y < agY + flipY) flipPii(pending[i++]);
-        if (k < 1) requestAnimationFrame(frame); else resolve();
+        while (i < pending.length && offsetIn(pending[i], doc).y < agY + line) flipPii(pending[i++]);
+        if (t < T0 + T1 + T2) requestAnimationFrame(frame); else resolve();
       };
       requestAnimationFrame(frame);
     });
@@ -1868,14 +1888,9 @@ function track(event, data) {
       run.timers.add(t);
     });
     await motion(rest.length * 60 + 700);
-    // Back up to Article IX: from its heading when § 9.4 still shows in the top half; otherwise § 9.4 a third down.
-    const art9 = $('[data-id="art9"]', doc);
-    const s94 = $('[data-id="s94"]', doc);
-    if (art9 && s94) {
-      let y = agTarget(doc, view, art9, 0.02);
-      if (offsetIn(s94, doc).y - y > 0.5 * h) y = agTarget(doc, view, s94, 0.3);
-      await agScroll(doc, y, 1600 * MOTION);
-    }
+    // Back up to Article V: its heading and the green lead-in naming Parent and Merger Sub.
+    const art5 = $('[data-id="art5"]', doc);
+    if (art5) await agScroll(doc, agTarget(doc, view, art5, 0.04), 2000 * MOTION);
     doc.classList.remove('is-writing');
   }
 
@@ -1903,7 +1918,7 @@ function track(event, data) {
   }
 
   // "Inserting now.": the agreement runs to Article IX and § 9.3 takes the [Reserved.] slot between
-  // 9.2 and 9.4 as a green tracked insertion, line by line; it settles with 9.3 and 9.4 both in view.
+  // 9.2 Indemnification and 9.4 Limitations as a green tracked insertion, line by line, and settles in view.
   async function insertClause() {
     const draft = ws('.draft');
     const view = $('.ag-view', draft);
@@ -1935,11 +1950,7 @@ function track(event, data) {
     await motion(INSERT_MS + 150);
     lines.forEach((ln) => ln.forEach((w) => w.classList.add('is-on')));
     p.classList.remove('is-typing');
-    // § 9.3 from its top when § 9.4 also shows; on a narrow column, the end of 9.3 and the start of 9.4.
-    const s94 = $('[data-id="s94"]', doc);
-    let y = agTarget(doc, view, p, 0.03);
-    if (s94 && offsetIn(s94, doc).y - y > 0.75 * view.clientHeight) y = agTarget(doc, view, s94, 0.62);
-    await agScroll(doc, y, 700 * MOTION);
+    await agScroll(doc, agTarget(doc, view, p, 0.03), 700 * MOTION);
     doc.classList.remove('is-writing');
   }
 
@@ -2181,34 +2192,25 @@ function track(event, data) {
     await back;
     await wait(900 * MOTION);
     stream.classList.remove('is-back');
-    await zoeSay('apply');
-    camera('return');
-    // On phones the draft takes the screen at reading zoom; ZOE's line steps aside so nothing covers the laptop.
-    // On desktop the screen comes in large and the cloud, the stream and its label give it the room.
-    if (geo.portrait) zoe.classList.remove('is-in');
+    // Received, and locked down before anything is applied: the restoration and the edits need no connection.
+    await zoeSay('lockdown', false);
+    wifi(false);                                   // OFF again: nothing more leaves the laptop
     cloud.classList.remove('is-busy');
-    if (!geo.portrait) {
-      cloud.classList.add('is-out');
-      stream.classList.remove('is-on');
-      label.classList.remove('is-on');
-    }
+    cloud.classList.add('is-out');
+    stream.classList.remove('is-on');
+    label.classList.remove('is-on');
+    await wait(dwell(LINES.lockdown));
+    await zoeSay('apply');
+    // The camera comes in on the screen to read the draft: on phones the Act III reading zoom, ZOE below
+    // the laptop; on desktop the screen large on the left, ZOE beside it.
+    camera(geo.portrait ? 'zoom' : 'return');
     await rehydrate();
     await beat(300);
     await think('caught', false);
     await wait(dwell(LINES.caught));
 
-    // The clause library: back offline, one more clause, found and inserted locally.
+    // The clause library: still offline, one more clause, found and inserted locally.
     setStep(4.5);
-    cloud.classList.add('is-out');
-    stream.classList.remove('is-on');
-    label.classList.remove('is-on');
-    if (geo.portrait) camera('zoom');
-    $('.zoe-say', zoe).textContent = '';
-    zoe.classList.add('is-in');
-    await beat(250);
-    await zoeSay('lockdown', false);
-    wifi(false);                                   // OFF again: nothing more leaves the laptop
-    await wait(dwell(LINES.lockdown));
     await think('sandbag');
     zoeWorking(true);
     const library = zoeSay('library', false);

@@ -13,7 +13,7 @@ window.ZOE_AGREEMENT = {
   ],
   [
    "cb",
-   "MERIDIAN HOLDINGS LLC,"
+   "⟦MERIDIAN HOLDINGS LLC,⟧"
   ],
   [
    "cb",
@@ -37,9 +37,9 @@ window.ZOE_AGREEMENT = {
   ],
   [
    "p",
-   "This BUSINESS COMBINATION AGREEMENT (this “Agreement”) is proposed to be made as of November 6, 2026 (the “Signing Date”), by and among Meridian Holdings LLC, a Delaware limited liability company (“Parent”); Meridian Acquisition LLC, a newly formed Delaware limited liability company and wholly owned subsidiary of Parent (“Merger Sub” or “Buyer”); and Kestrel Robotics Inc., a Delaware corporation with its principal office at 1400 Kestrel Lane, Brindlewick, ME (the “Company”).",
+   "This BUSINESS COMBINATION AGREEMENT (this “Agreement”) is proposed to be made as of November 6, 2026 (the “Signing Date”), by and among ⟦Meridian Holdings LLC, a Delaware limited liability company (“Parent”); ⟧Meridian Acquisition LLC, a Delaware limited liability company (“Merger Sub” or “Buyer”); and Kestrel Robotics Inc., a Delaware corporation with its principal office at 1400 Kestrel Lane, Brindlewick, ME (the “Company”).",
    null,
-   null
+   "preamble"
   ],
   [
    "h",
@@ -55,7 +55,7 @@ window.ZOE_AGREEMENT = {
   ],
   [
    "p",
-   "B. Parent has agreed to guarantee the obligations of Merger Sub, as stated in Section 9.4, as a material inducement to the Company to enter into this Agreement.",
+   "⟦B. Parent, as the sole member of Merger Sub, has agreed to become a party to this Agreement and to make the representations, warranties and covenants set out in it.⟧",
    null,
    "recB"
   ],
@@ -377,19 +377,19 @@ window.ZOE_AGREEMENT = {
   ],
   [
    "h",
-   "ARTICLE V — REPRESENTATIONS AND WARRANTIES OF PARENT AND MERGER SUB",
+   "ARTICLE V — REPRESENTATIONS AND WARRANTIES OF ⟦PARENT AND ⟧MERGER SUB",
    null,
-   null
+   "art5"
   ],
   [
    "p",
-   "Parent and Merger Sub represent and warrant to the Company, as of the Signing Date and the Closing Date:",
+   "⟦Parent and Merger Sub, jointly and severally, represent and warrant to the Company as follows:⟧",
    null,
-   null
+   "art5lead"
   ],
   [
    "p",
-   "Each of Parent and Merger Sub is a limited liability company duly formed, validly existing and in good standing under Delaware Law. Merger Sub was formed for the Merger and has conducted no other business.",
+   "Each of Parent and Merger Sub is a limited liability company duly formed, validly existing and in good standing under Delaware Law.",
    "Section 5.1 Organization.",
    null
   ],
@@ -569,7 +569,7 @@ window.ZOE_AGREEMENT = {
   ],
   [
    "sub",
-   "(b) Parent will indemnify the former holders of Company Shares and their Affiliates (the “Seller Indemnified Parties”) against all Losses arising from any breach of a representation or warranty in Article V or any covenant of Parent or Merger Sub."
+   "(b) ⟦Parent and Merger Sub, jointly and severally,⟧ will indemnify the former holders of Company Shares and their Affiliates (the “Seller Indemnified Parties”) against all Losses arising from any breach of a representation or warranty in Article V or any covenant of Parent or Merger Sub."
   ],
   [
    "p",
@@ -584,14 +584,8 @@ window.ZOE_AGREEMENT = {
    "s93"
   ],
   [
-   "p",
-   "Meridian Holdings LLC (the “Guarantor”) absolutely, unconditionally and irrevocably guarantees to the Seller Indemnified Parties and the former holders of Company Shares, as primary obligor and not merely as surety, the full and punctual payment and performance of all obligations of Buyer and, from the Effective Time, of the Surviving Corporation under this Agreement, including payment of the Purchase Price and the Earn-Out Payments and Buyer’s indemnification obligations under Section 9.2(b) and this Article IX (the “Guaranteed Obligations”). This is a guaranty of payment and performance, not of collection. The Guarantor waives presentment, demand and notice, and any right to require that a claim first be pursued against Buyer. The Guarantor’s obligations are not discharged by any amendment, extension of time, or bankruptcy of Buyer, and continue until the Guaranteed Obligations are paid and performed in full.",
-   "Section 9.4 Parent Guaranty.",
-   "s94"
-  ],
-  [
    "cb",
-   "Section 9.5 Limitations."
+   "Section 9.4 Limitations."
   ],
   [
    "sub",
@@ -608,13 +602,13 @@ window.ZOE_AGREEMENT = {
   [
    "p",
    "A party seeking indemnification will give prompt written notice describing the claim. The indemnifying party may assume the defense of a third-party claim with reasonably satisfactory counsel, and no settlement may be made without the indemnified party’s consent (not to be unreasonably withheld).",
-   "Section 9.6 Claims Procedures.",
+   "Section 9.5 Claims Procedures.",
    null
   ],
   [
    "p",
    "Claims under Section 9.2(a) will be satisfied first from the Escrow Amount and then, for Fundamental Representations, Section 4.10 and Fraud, directly from the former holders. After the Closing, this Article IX is the exclusive remedy for breach of this Agreement, except for Fraud, specific performance and disputes under Section 3.3.",
-   "Section 9.7 Source of Recovery; Exclusive Remedy.",
+   "Section 9.6 Source of Recovery; Exclusive Remedy.",
    null
   ],
   [
@@ -699,11 +693,11 @@ window.ZOE_AGREEMENT = {
   ],
   [
    "sb",
-   "MERIDIAN HOLDINGS LLC"
+   "⟦MERIDIAN HOLDINGS LLC⟧"
   ],
   [
    "lines",
-   "By: ______________________________\nName: Jane R. Okonkwo\nTitle: Authorized Signatory"
+   "⟦By: ______________________________\nName: Jane R. Okonkwo\nTitle: Authorized Signatory⟧"
   ]
  ],
  "insert": {
