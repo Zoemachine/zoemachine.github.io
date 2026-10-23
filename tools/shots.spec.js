@@ -278,7 +278,7 @@ test('Act I: a bare stage, the chat dead centre, then the strip moves and the pa
   }
   await page.locator('.phone').screenshot({ path: path.join(SHOTS, `${info.project.name}-act1-cue.png`) }).catch(() => {});
   // The term sheet describes the same deal as the agreement: a merger, not a stock purchase.
-  await expect(page.locator('.sheet')).toContainText('Structure. Merger of a wholly owned subsidiary of Buyer with and into the Company, with the Company surviving; stockholders receive cash at closing.');
+  await expect(page.locator('.sheet')).toContainText('Structure. Merger of a wholly owned subsidiary of Buyer with and into Seller, with Seller surviving; Seller\u2019s stockholders receive cash at closing.');
   await page.locator('.sheet').screenshot({ path: path.join(SHOTS, `${info.project.name}-act1-sheet-structure.png`) });
 });
 
@@ -494,7 +494,7 @@ test('Acts III-IV: Wi-Fi OFF before ZOE speaks, marking, scrub, ON after "Data c
   await shot(page, info, 'act3-ready');
   // The legal names match the agreement: the template card and the term sheet's Structure line.
   await expect(page.locator('.card-t')).toHaveText('TemplateAgreement and Plan of Merger (Delaware)');
-  await expect(page.locator('.editor > .ed-page')).toContainText('Merger of a wholly owned subsidiary of Buyer with and into the Company, with the Company surviving; stockholders receive cash at closing.');
+  await expect(page.locator('.editor > .ed-page')).toContainText('Merger of a wholly owned subsidiary of Buyer with and into Seller, with Seller surviving; Seller\u2019s stockholders receive cash at closing.');
   await page.locator('.side').screenshot({ path: path.join(SHOTS, `${info.project.name}-act3-template-card.png`) });
   await page.locator('.editor').screenshot({ path: path.join(SHOTS, `${info.project.name}-act3-editor-structure.png`) });
   // Every time the editor moves to another screen, nothing on the screen it leaves is still amber, and

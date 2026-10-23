@@ -36,7 +36,7 @@ const PARTIES = {
 // deliberately left as it is when the sheet is masked, so the viewer sees what is not removed.
 const TERM_SHEET = [
   ['Parties', 'Seller: {seller}, {address} (EIN {ein}). Buyer: {buyer}, a Delaware limited liability company.'],
-  ['Structure', 'Merger of a wholly owned subsidiary of Buyer with and into the Company, with the Company surviving; stockholders receive cash at closing.'],
+  ['Structure', 'Merger of a wholly owned subsidiary of Buyer with and into Seller, with Seller surviving; Seller\u2019s stockholders receive cash at closing.'],
   ['Purchase Price', '{price} in cash at closing, subject to customary working capital adjustments.'],
   ['Escrow', '{escrowAmt} held by {escrowCo} for 18 months as security for indemnification, escrow account {escrow}.'],
   ['Earn-out', 'Up to {earnout} payable on revenue milestones through {earnEnd}.'],
