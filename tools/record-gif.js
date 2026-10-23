@@ -1,5 +1,5 @@
 // Records a full run of the hero as an animated GIF (and reports its running time).
-//   node tools/record-gif.js <narrow|wide|wideHi> <untouched|touched|drawer|lid|compare-cloud|compare-zoe|logo|act4|opening|shutter|landing|compare-flip|skip> [out.gif] [--throttle]
+//   node tools/record-gif.js <narrow|wide|wideHi> <untouched|touched|drawer|lid|compare-cloud|compare-zoe|logo|act4|library|opening|shutter|landing|compare-flip|skip> [out.gif] [--throttle]
 // `opening` is untouched from first paint until the lid has opened and the workspace has come up.
 // Needs playwright, gifenc and pngjs on NODE_PATH; serve the site on :8000 first.
 // Frames come from the browser's own screencast, resampled to a steady 8 fps.
@@ -152,6 +152,20 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     await page.locator('.btn-scrub').click();
     await page.waitForFunction(() => window.__zoeHero.act === 5, null, { timeout: 120000, polling: 200 });
     await page.waitForTimeout(1500);
+  } else if (mode === 'library') {
+    // From "Applying draft edits." to Act V: the agreement writing out, the snap, then the clause
+    // library beat and § 9.3 going in. Everything before it is tapped through, unrecorded.
+    for (;;) {
+      const st = await page.evaluate(() => ({ g: window.__zoeHero.gesture, f: window.__zoeHero.framesReady }));
+      if (st.g === 'scrub') break;
+      if (st.g && (st.g !== 'lid' || st.f)) await page.evaluate(() => window.__zoeHero.perform('tap'));
+      await page.waitForTimeout(150);
+    }
+    await page.evaluate(() => window.__zoeHero.perform('tap'));
+    await page.waitForFunction(() => document.getElementById('live').textContent.includes('Applying draft edits'), null, { timeout: 120000, polling: 100 });
+    trimBefore = Date.now() / 1000;
+    await page.waitForFunction(() => window.__zoeHero.act === 5, null, { timeout: 120000, polling: 200 });
+    await page.waitForTimeout(800);
   } else if (mode === 'logo') {
     // Close on the big wordmark: two full turns of its O (20 s), once the laptop has arrived.
     await page.waitForFunction(() => window.__zoeHero.gesture === 'phone', null, { timeout: 30000 });

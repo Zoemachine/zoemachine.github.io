@@ -22,8 +22,8 @@ const RESTRICTED = JSON.parse(Buffer.from('W3sicmUiOiAiXFxiR0xpTkVSXFxiIiwgImNzI
 const PHONE = JSON.parse(Buffer.from('eyJyZSI6ICJcXGJwaG9uZXM/XFxiIiwgImFsbG93ZWRUZXh0IjogWyJ0aGUgcGhvbmUgaGFuZHMgaXQgdG8gdGhlIGxhcHRvcCJdfQ==', 'base64').toString());
 // Product names: the four frontier products under the cloud, in hero.js's PROVIDERS block and nowhere else.
 const PRODUCTS = JSON.parse(Buffer.from('eyJhbGxvd2VkSW4iOiAiaGVyby5qcyIsICJmcm9tIjogIi8vIFRoZSBmcm9udGllciBtb2RlbHMgbmFtZWQgdW5kZXIgdGhlIGNsb3VkIiwgInRvIjogIl07IiwgImFsbG93ZWQiOiBbIkNoYXRHUFQiLCAiQ2xhdWRlIiwgIkdlbWluaSIsICJDb3BpbG90Il0sICJmb3JiaWRkZW4iOiBbIlxcYkdQVC0/XFxkIiwgIlxcYkxsYW1hXFxiIiwgIlxcYk1pc3RyYWxcXGIiLCAiXFxiR3Jva1xcYiIsICJcXGJCYXJkXFxiIiwgIlxcYlNvbm5ldFxcYiIsICJcXGJPcHVzXFxiIiwgIlxcYkhhaWt1XFxiIiwgIlxcYkZhYmxlXFxiIiwgIlxcYkRlZXBTZWVrXFxiIiwgIlxcYlF3ZW5cXGIiXX0=', 'base64').toString());
-const SITE_FILES = ['index.html', 'styles.css', 'hero.js', 'compare.js', 'drawer.css', 'pages.css', 'book-demo.html', 'nda.html',
-  'tools/playwright.config.js', 'tools/make-site-images.js', 'tools/record-gif.js'];
+const SITE_FILES = ['index.html', 'styles.css', 'hero.js', 'agreement.js', 'compare.js', 'drawer.css', 'pages.css', 'book-demo.html', 'nda.html',
+  'tools/playwright.config.js', 'tools/make-site-images.js', 'tools/make-agreement.js', 'tools/record-gif.js'];
 // Below the hero, in order (William, 2026-10-21): the comparison first, ZOE Servers removed.
 const SECTIONS = ['dataflow', 'workflows', 'evidence', 'why', 'how', 'founder', 'advisory', 'contact', 'site-footer'];
 
@@ -486,15 +486,49 @@ test('Act IV: ZOE finds and redacts, the cloud speaks the catch and the fix, the
   await page.waitForFunction(() => document.querySelector('.cloud-say').textContent.includes('empty shell'), null, { timeout: 20000 });
   await page.waitForTimeout(900);
   await shot(page, info, 'act4-catch');
+  // The returned draft is the whole agreement, and it arrives masked: tokens and dummy figures, readable.
   await page.waitForFunction(() => document.querySelector('.draft').classList.contains('is-in'), null, { timeout: 12000 });
-  await page.waitForTimeout(350);
-  const before = await page.$eval('.draft', (el) => el.textContent);
-  expect(before).toContain('[ORG_6] (Parent Guarantor)');
-  expect(before).toContain('$18,200,000');
-  await shot(page, info, 'act4-draft-masked');
-  await page.waitForFunction(() => document.querySelector('.draft').textContent.includes('Meridian Holdings LLC (Parent Guarantor)'), null, { timeout: 3000 });
-  expect(await page.$eval('.draft', (el) => el.textContent)).toContain('$45,000,000');
-  await page.waitForTimeout(400);
+  const tDraft = Date.now();
+  expect(await page.$eval('.draft .ed-bar', (el) => el.textContent)).toContain('Business Combination Agreement · draft');
+  const before = await page.$eval('.draft .ag', (el) => el.textContent);
+  expect(before.split(/\s+/).filter(Boolean).length).toBeGreaterThan(3500);
+  ['BUSINESS COMBINATION AGREEMENT', 'ARTICLE I — DEFINITIONS', 'ARTICLE X — MISCELLANEOUS', 'SIGNATURE PAGE (FORM OF; UNSIGNED)',
+    '[ORG_6] (the “Guarantor”)', '$18,200,000', '[PERSON_3]', '[ADDRESS_1]'].forEach((t) => expect(before).toContain(t));
+  ['Meridian Holdings LLC', '$45,000,000', 'Calder', 'Kestrel Robotics'].forEach((t) => expect(before).not.toContain(t));
+  await page.waitForTimeout(1800);
+  await shot(page, info, 'act4-agreement-masked');
+  // The camera is in close enough that the agreement's type renders at 13 px or more.
+  metrics.agreement_px = await page.evaluate(() => {
+    const s = parseFloat(document.querySelector('.scene').style.getPropertyValue('--cam-s')) || 1;
+    return +(parseFloat(getComputedStyle(document.querySelector('.ag')).fontSize) * s).toFixed(1);
+  });
+  expect(metrics.agreement_px).toBeGreaterThanOrEqual(13);
+  // The run down the agreement: each token flips to the real name or figure as it passes the flip line.
+  await page.waitForFunction(() => document.querySelector('.ag-view.is-flipping'), null, { timeout: 8000 });
+  const stopFps = await startFpsProbe(page);
+  await page.waitForTimeout(3000);
+  await shot(page, info, 'act4-agreement-flipping');
+  const mid = await page.evaluate(() => ({ real: document.querySelectorAll('.ag .pii.is-real').length, masked: document.querySelectorAll('.ag .pii.is-masked').length }));
+  expect(mid.real).toBeGreaterThan(0);
+  expect(mid.masked).toBeGreaterThan(0);
+  await page.waitForFunction(() => !document.querySelector('.ag-view.is-flipping'), null, { timeout: 12000 });
+  metrics.agreement_scroll = await stopFps();
+  await page.waitForFunction(() => !document.querySelector('.ag .pii.is-masked'), null, { timeout: 8000 });
+  metrics.agreement_fill_ms = Date.now() - tDraft;
+  expect(metrics.agreement_fill_ms).toBeGreaterThan(9000);
+  expect(metrics.agreement_fill_ms).toBeLessThan(16000);
+  const after = await page.$eval('.draft .ag', (el) => el.textContent);
+  ['Meridian Holdings LLC (the “Guarantor”)', '$45,000,000', 'James “Jimmy” Calder'].forEach((t) => expect(after).toContain(t));
+  expect(after).not.toMatch(/\[(ORG|PERSON|ADDRESS)_\d+\]/);
+  // It settles on Article IX with § 9.4 in view, in green.
+  await page.waitForTimeout(3200);
+  const inView = (sel) => page.evaluate((q) => {
+    const v = document.querySelector('.ag-view').getBoundingClientRect();
+    const r = document.querySelector(q).getBoundingClientRect();
+    return r.top >= v.top - 1 && r.top + Math.min(r.height, 24) <= v.bottom + 1;
+  }, sel);
+  expect(await inView('.ag [data-id="s94"]')).toBe(true);
+  expect(await page.$eval('.ag [data-id="s94"]', (el) => el.classList.contains('ins'))).toBe(true);
   await shot(page, info, 'act4-rehydrated');
   await page.waitForFunction(() => window.__journal.some((e) => e.k === 'line' && e.v.includes('Caught it')), null, { timeout: 15000 });
   const lines = (await page.evaluate(() => window.__journal)).filter((e) => e.k === 'line').map((e) => e.v);
@@ -510,6 +544,80 @@ test('Act IV: ZOE finds and redacts, the cloud speaks the catch and the fix, the
   expect(lines.some((l) => l.startsWith('ZOE:') && l.includes('empty shell'))).toBe(false);
 });
 
+test('Act IV, the clause library: Wi-Fi OFF again, ten results, the pick lit, § 9.3 inserted', async ({ page }, info) => {
+  test.setTimeout(150000);
+  await open(page);
+  await startJournal(page);
+  await runTo(page, 'scrub');
+  await page.evaluate(() => window.__zoeHero.perform('click'));
+  await page.waitForFunction(() => window.__journal.some((e) => e.k === 'line' && e.v.includes("We're locked down")), null, { timeout: 90000 });
+  expect(await hero(page, 'step')).toBe(4.5);
+  await expect(page.locator('.cloud')).toHaveClass(/is-out/);
+  // The search: the counter runs to 225,000 over the side panel, then ten results, one line each.
+  await page.waitForFunction(() => document.querySelector('.scan.is-on') && document.querySelector('.side.is-library'), null, { timeout: 30000 });
+  await page.waitForFunction(() => document.querySelector('.scan-count b').textContent === '225,000', null, { timeout: 5000 });
+  await page.waitForFunction(() => document.querySelectorAll('.clause.is-in').length === 10, null, { timeout: 10000 });
+  await page.waitForTimeout(500);
+  await shot(page, info, 'act4-library');
+  const cards = await page.$$eval('.clause', (els) => els.map((e) => ({ text: e.textContent, h: e.getBoundingClientRect().height, bottom: e.getBoundingClientRect().bottom })));
+  expect(cards.length).toBe(10);
+  expect(cards.some((c) => /BOB/.test(c.text))).toBe(false);
+  expect(cards[0].text).toContain('Knowledge; No Sandbagging');
+  const lineH = cards[0].h;
+  cards.forEach((c) => expect(c.h).toBeLessThan(lineH + 1));
+  const side = await page.$eval('.screen', (el) => el.getBoundingClientRect().bottom);
+  cards.forEach((c) => expect(c.bottom).toBeLessThanOrEqual(side + 1));
+  // Bob picks one: it lights up, the others dim.
+  await page.waitForFunction(() => document.querySelector('.clause.is-picked'), null, { timeout: 20000 });
+  await page.waitForTimeout(800);
+  await shot(page, info, 'act4-pick');
+  expect(await page.locator('.clause.is-picked').count()).toBe(1);
+  const op = await page.$$eval('.clause', (els) => els.map((e) => parseFloat(getComputedStyle(e).opacity)));
+  expect(op.filter((o) => o > 0.9).length).toBe(1);
+  expect(op.filter((o) => o < 0.5).length).toBe(9);
+  // "Inserting now.": § 9.3 replaces the [Reserved.] slot, in green, line by line; it settles with 9.3 and
+  // 9.4 both in view (on the phone's narrow column, the end of 9.3 and the start of 9.4).
+  await page.waitForFunction(() => document.querySelector('.ag [data-id="s93new"]'), null, { timeout: 20000 });
+  const t0 = Date.now();
+  await page.waitForTimeout(600);
+  await shot(page, info, 'act4-inserting');
+  expect(await page.locator('.ag [data-id="s93new"] .w:not(.is-on)').count()).toBeGreaterThan(0);
+  await page.waitForFunction(() => document.querySelectorAll('.ag [data-id="s93new"] .w:not(.is-on)').length === 0, null, { timeout: 5000 });
+  metrics.insert_ms = Date.now() - t0 + 600;
+  await page.waitForTimeout(1200);
+  await shot(page, info, 'act4-inserted');
+  expect(await page.locator('.ag [data-id="s93"]').count()).toBe(0);
+  expect(await page.$eval('.ag [data-id="s93new"]', (el) => el.classList.contains('ins') && el.textContent.startsWith('Section 9.3 Knowledge; No Sandbagging.'))).toBe(true);
+  const both = await page.evaluate(() => {
+    const v = document.querySelector('.ag-view').getBoundingClientRect();
+    return ['s93new', 's94'].map((id) => {
+      const r = document.querySelector(`.ag [data-id="${id}"]`).getBoundingClientRect();
+      return r.bottom >= v.top + 24 && r.top + 24 <= v.bottom;
+    });
+  });
+  expect(both).toEqual([true, true]);
+  // Order of the lines, and the Wi-Fi: OFF after the round trip, before Bob's request.
+  await page.waitForFunction(() => window.__journal.some((e) => e.k === 'line' && e.v.startsWith('Jimmy: Ten minutes')), null, { timeout: 30000 });
+  const j = await page.evaluate(() => window.__journal);
+  const lines = j.filter((e) => e.k === 'line').map((e) => e.v);
+  const order = ['Bob (thinking): They left the parent off the hook. Caught it.',
+    "ZOE: Wi-Fi no longer needed. We're locked down.",
+    'Bob (thinking): Not bad for a first draft. But I need an anti-sandbagging clause.',
+    'ZOE: Searching your local secure clause library…', 'ZOE: Top 10 matches.',
+    "Bob (thinking): That's the one. Perfect.", 'ZOE: Inserting now.',
+    "Jimmy: Ten minutes. Tell me you've got something."];
+  const at = order.map((l) => lines.indexOf(l));
+  if (!at.every((i) => i >= 0)) console.log('[journal]', JSON.stringify(lines));
+  expect(at.every((i) => i >= 0)).toBe(true);
+  expect(at).toEqual([...at].sort((a, b) => a - b));
+  const wifi = j.filter((e) => e.k === 'wifi').map((e) => e.v);
+  expect(wifi.slice(-2)).toEqual(['on', 'off']);
+  const offAt = j.filter((e) => e.k === 'wifi' && e.v === 'off').pop().t;
+  const lineAt = (l) => j.find((e) => e.k === 'line' && e.v === l).t;
+  expect(offAt).toBeGreaterThan(lineAt("ZOE: Wi-Fi no longer needed. We're locked down."));
+  expect(offAt).toBeLessThan(lineAt(order[2]));
+});
+
 test('Act V: one button and Replay; the button unlocks and lands on the comparison; replay twice; analytics', async ({ page }, info) => {
   test.setTimeout(500000);
   const events = [];
@@ -520,7 +628,12 @@ test('Act V: one button and Replay; the button unlocks and lands on the comparis
   await shot(page, info, 'act5');
   expect(await page.$$eval('.pills .pill', (els) => els.map((e) => e.textContent))).toEqual(['Why is ZOE AI different?', 'Replay']);
   // The inspect view is no longer offered, but its code still works (through the test hook).
-  const stageText = await page.evaluate(() => document.querySelector('.stage').textContent);
+  // The agreement is left out: a legal document as written, with its headings and parties in capitals.
+  const stageText = await page.evaluate(() => {
+    const c = document.querySelector('.stage').cloneNode(true);
+    c.querySelectorAll('.ag').forEach((el) => el.remove());
+    return c.textContent;
+  });
   await page.evaluate(() => window.__zoeHero.inspect());
   await page.waitForTimeout(600);
   await expect(page.locator('.insp-col.is-out')).toContainText('[ORG_1]');
@@ -597,11 +710,16 @@ test('skip: none before the lid opens, quiet from Act III; each press jumps a st
   await btn.click({ force: true });
   await page.waitForFunction(() => window.__zoeHero.act === 4, null, { timeout: 15000 });
   await expect(btn).toHaveClass(/is-in/);
+  // The next stops at the clause-library beat, a step of its own.
+  await btn.click({ force: true });
+  await page.waitForFunction(() => window.__zoeHero.step === 4.5, null, { timeout: 15000 });
+  expect(await hero(page, 'act')).toBe(4);
   // Quick presses take it the rest of the way.
-  for (let i = 0; i < 3; i += 1) await btn.click({ force: true });
+  for (let i = 0; i < 2; i += 1) await btn.click({ force: true });
   await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 30000 });
   expect(await page.$$eval('.pills .pill', (els) => els.map((e) => e.textContent))).toEqual(['Why is ZOE AI different?', 'Replay']);
-  expect(await page.$eval('.draft', (el) => el.textContent)).toContain('Meridian Holdings LLC (Parent Guarantor)');
+  expect(await page.$eval('.draft', (el) => el.textContent)).toContain('Meridian Holdings LLC (the \u201cGuarantor\u201d)');
+  expect(await page.$eval('.draft', (el) => el.textContent)).toContain('Section 9.3 Knowledge; No Sandbagging.');
   expect(await page.locator('.editor > .ed-page .pii.is-masked').count()).toBeGreaterThanOrEqual(19);
   expect(await hero(page, 'locked')).toBe(true);
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
@@ -645,12 +763,12 @@ test('the hero is its own screen: wheel, touch and keys do not scroll it', async
   await shot(page, info, 'hero-locked');
 });
 
-// Text at half speed and every gesture wait at 3x (18 s for the phone, 12 s for each later one); the
-// chat-first opening adds a few seconds of staging to main's measured 127 s.
-const UNTOUCHED_LIMIT_MS = 170000;
+// Text at half speed and every gesture wait at 3x (18 s for the phone, 12 s for each later one). Measured
+// 179.0 s on the phone size with the full agreement and the clause-library beat (2026-10-22, midday).
+const UNTOUCHED_LIMIT_MS = 200000;
 
 test('untouched: the story plays through by itself (recorded), with the opening timed', async ({ browser }, info) => {
-  test.setTimeout(280000);
+  test.setTimeout(360000);
   const { viewport, isMobile, hasTouch } = info.project.use;
   const dir = path.join(SHOTS, `video-${info.project.name}`);
   const ctx = await browser.newContext({ viewport, isMobile, hasTouch, deviceScaleFactor: 1, recordVideo: { dir, size: viewport } });
@@ -667,7 +785,7 @@ test('untouched: the story plays through by itself (recorded), with the opening 
     });
   });
   await page.goto(BASE);
-  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 220000 });
+  await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 300000 });
   metrics.untouched_ms = await hero(page, 'ended');
   const beats = await page.evaluate(() => window.__beats);
   const fcp = await page.evaluate(() => Math.round((performance.getEntriesByName('first-contentful-paint')[0] || {}).startTime || 0));

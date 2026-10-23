@@ -50,13 +50,8 @@ const TERM_SHEET = [
   ['For Buyer', '{signer}'],
 ];
 
-// What comes back from the frontier AI. `ins` lines are tracked insertions.
-const DRAFT = [
-  ['', 'Seller: {seller}'],
-  ['', 'Buyer: {buyer}'],
-  ['', 'Purchase price: {price}'],
-  ['ins', '§ 9.4 Parent guaranty. {parent} (Parent Guarantor) guarantees Buyer’s obligations, including indemnification.'],
-];
+// What comes back from the frontier AI is a full business combination agreement: agreement.js, loaded
+// once the workspace is up (the agreement, the § 9.3 clause Bob picks and the clause library's results).
 
 // The six vault files ZOE redacts and sends when the frontier AI asks.
 const SENT_FILES = [
@@ -82,6 +77,7 @@ const VAULT_COUNT = 28;      // file cards drawn in the Matter panel (a represen
 const VAULT_FOUND = 128;     // the files ZOE finds on this client; the counter ticks to this
 const VAULT_TOTAL = 35263;   // the vault ZOE searches
 const TEMPLATE_TOTAL = 2500; // the firm's golden templates
+const CLAUSE_TOTAL = 225000; // the local clause library
 
 // Spoken lines. *word* pops when it lands; [ORG_n] renders as a token.
 const LINES = {
@@ -110,6 +106,12 @@ const LINES = {
   back:    'Draft returning.',
   apply:   'Applying draft edits.',
   caught:  'They left the parent off the hook. Caught it.',
+  lockdown: "Wi-Fi no longer needed. We're locked down.",
+  sandbag: 'Not bad for a first draft. But I need an anti-sandbagging clause.',
+  library: 'Searching your local secure clause library…',
+  top10:   'Top 10 matches.',
+  thatOne: "That's the one. Perfect.",
+  inserting: 'Inserting now.',
   jimmy3:  "Ten minutes. Tell me you've got something.",
   bob3:    "Draft's done. And their shell left the parent off the hook. It's in now.",
   jimmy4:  '…How?',
@@ -123,6 +125,7 @@ const UI = {
   playbook: ['Playbook', 'Seller, conservative'],
   pills: { why: 'Why is ZOE AI different?', replay: 'Replay', back: 'Back', next: 'Next ›' },
   cloudName: 'any frontier model the firm chooses',
+  library: 'Clause library',
 };
 
 function track(event, data) {
@@ -172,6 +175,12 @@ function track(event, data) {
   const LAPTOP_BASE = 0.86;    // the open laptop's base, as a share of the frame height (lid_45)
   const SHEET_TYPE = 0.025;    // the paper's type size, as a share of its width: a full page of small type
   const HANDOVER_BEAT_MS = 400; // after the laptop lands, before the phone moves to it
+  const FILL_MS = 900;           // the returned agreement's first screen writing in, masked
+  const MASKED_HOLD_MS = 1500;   // that screen held, so the tokens and dummy figures can be read
+  const DRAFT_RUN_MS = 8000;     // the run down the whole agreement, slow at both ends
+  const FLIP_AT = 0.5;           // the flip line, as a share of the editor's height
+  const READ_W = 0.66;           // desktop reading camera: the screen's share of the viewport width
+  const INSERT_MS = 1500;        // § 9.3 appearing line by line
   const CAPTURE_HOLD_MS = 1100; // the captured page shows in the phone before the laptop comes in
   const LAPTOP_IN_MS = 1100;    // the laptop's slide in from the right (the .scene translate in styles.css)
 
@@ -306,8 +315,10 @@ function track(event, data) {
   // While skipping, every wait, typed line, timer and animation completes at once and each gesture
   // performs itself, until the next act begins (from Act V, until the end pills are up). Clicks made
   // while skipping queue one more step each.
-  let skipTo = 0;                                   // the act to stop at; 6 means the end pills
-  const skipping = () => skipTo > act;
+  let skipTo = 0;                                   // the step to stop at; 6 means the end pills
+  let step = 0;                                     // the act, or 4.5 for the clause-library beat
+  const STEPS = [1, 2, 3, 4, 4.5, 5, 6];
+  const skipping = () => skipTo > step;
   // Story timers that a skip runs at once (they are also cancelled with the run on Replay).
   const pendingLater = new Set();
   function later(fn, ms) {
@@ -325,7 +336,7 @@ function track(event, data) {
   function skipStep() {
     if (RM || storyEndedAt) return;
     track('skip', { act });
-    skipTo = Math.min(6, Math.max(skipTo, act) + 1);
+    skipTo = STEPS.find((n) => n > Math.max(skipTo, step)) || 6;
     stage.classList.add('is-skipping');
     // Whatever the story is waiting on now finishes at once.
     flushLater();
@@ -572,9 +583,14 @@ function track(event, data) {
 
   let act = 0;
 
+  function setStep(n) {
+    step = n;
+    if (skipTo && n >= skipTo) stopSkip();
+  }
+
   function setAct(n) {
     act = n;
-    if (skipTo && n >= skipTo) stopSkip();
+    setStep(n);
     // The skip button fades in once the lid is open and the workspace is up (Act III) and stays.
     if (!RM) skipBtn.classList.toggle('is-in', n >= 3 && !storyEndedAt);
     stage.dataset.act = String(n);
@@ -601,9 +617,10 @@ function track(event, data) {
     if (h != null) el.style.height = `${Math.round(h)}px`;
   }
 
-  // 'return' is the round trip's last beat: on phones it zooms back in for the draft; elsewhere it is 'slide'.
+  // 'return' is the round trip's last beat: the camera comes in on the screen so the returned draft can
+  // be read. On phones it is the reading zoom again; on desktop it is 'read', the screen large on the left.
   function camera(mode) {
-    camMode = mode === 'return' && !portraitMQ.matches ? 'slide' : mode;
+    camMode = mode === 'return' && !portraitMQ.matches ? 'read' : mode;
     layout();
   }
 
@@ -699,7 +716,13 @@ function track(event, data) {
       cs = 0.92;
       cx = -0.19 * S.w;
       cy = 0.05 * S.h;
+    } else if (camMode === 'read') {
+      // The screen large, left of centre, ZOE beside it on the right: the agreement's type reads at 13 px or more.
+      cs = Math.min((READ_W * V) / (SCR.w * S.w), (0.78 * VH) / (SCR.h * S.h));
+      cx = 0.04 * V - S.x - cs * SCR.x * S.w;
+      cy = 0.54 * VH - S.y - cs * (SCR.y + SCR.h / 2) * S.h;
     }
+    stage.classList.toggle('is-reading', !portrait && camMode === 'read');
     stage.classList.toggle('is-zoomed', portrait && (camMode === 'zoom' || camMode === 'slide' || camMode === 'return'));
     stage.classList.toggle('is-up', portrait && (camMode === 'slide' || camMode === 'return'));
     // The veil over the cropped wordmark stops just above the screen.
@@ -742,6 +765,7 @@ function track(event, data) {
       const x1 = S.x + 0.79 * S.w;
       const y = at(0, 0.5).y;
       if (camMode === 'slide') g.zoe = { x: scr.br.x + 0.015 * S.w, y: y + 46, w: 0.21 * S.w };
+      else if (camMode === 'read') g.zoe = { x: scr.br.x + 0.025 * V, y: scr.tl.y + 0.3 * (scr.br.y - scr.tl.y), w: Math.min(0.26 * V, V - scr.br.x - 0.05 * V) };
       else g.zoe = { x: S.x + 0.775 * S.w, y: S.y + 0.36 * S.h, w: 0.205 * S.w };
       g.stream = { x: x0, y, len: x1 - x0, rot: 0 };
       g.labelFs = Math.max(16, Math.min(26, (x1 - x0 + 40) / 19));
@@ -810,7 +834,6 @@ function track(event, data) {
 
   function buildWorkspace() {
     const doc = TERM_SHEET.map(([k, v]) => `<p><span class="k">${esc(k)}.</span> ${piiHtml(v)}</p>`).join('');
-    const draft = DRAFT.map(([cls, v]) => `<p${cls ? ` class="${cls}"` : ''}>${piiHtml(v, 'mask')}</p>`).join('');
     screen.innerHTML = `
       <div class="ws">
         <header class="ws-top">
@@ -824,8 +847,8 @@ function track(event, data) {
           <div class="ed-page">${doc}</div>
           <div class="sweep"></div>
           <div class="draft">
-            <div class="ed-bar"><span class="docx">.docx</span><span>Buyout Agreement · draft</span></div>
-            <div class="ed-page">${draft}</div>
+            <div class="ed-bar"><span class="docx">.docx</span><span>Business Combination Agreement · draft</span></div>
+            <div class="ed-page ag-view"><div class="ag"></div><div class="ag-cover"></div></div>
           </div>
         </article>
         <aside class="side">
@@ -834,6 +857,7 @@ function track(event, data) {
           <div class="card card-t"><b>${esc(UI.template[0])}</b>${esc(UI.template[1])}</div>
           <div class="card card-p"><b>${esc(UI.playbook[0])}</b>${esc(UI.playbook[1])}</div>
           <button class="btn btn-scrub" type="button" tabindex="-1">${esc(UI.scrub)}</button>
+          <div class="clauses"><p class="ws-h">${esc(UI.library)}</p><ol></ol></div>
         </aside>
         <svg class="web-lines"></svg>
         <div class="scan" aria-hidden="true"><span class="scan-band"></span><span class="scan-count"><b>0</b></span></div>
@@ -1533,6 +1557,7 @@ function track(event, data) {
   const allPii = () => Array.from(screen.querySelectorAll('.editor > .ed-page .pii'));
 
   function mountScreen() {
+    loadAgreement();
     buildWorkspace();
     screen.hidden = false;
     void screen.offsetWidth;
@@ -1725,15 +1750,197 @@ function track(event, data) {
     await wait(PAGE_FLIGHT_MS);
   }
 
+  // ---------- The returned draft: the full agreement ----------
+
+  let agreementLoad = null;
+  function loadAgreement() {
+    if (!agreementLoad) {
+      agreementLoad = window.ZOE_AGREEMENT ? Promise.resolve() : new Promise((resolve) => {
+        const el = document.createElement('script');
+        el.src = 'agreement.js';
+        el.onload = resolve;
+        el.onerror = resolve;
+        document.head.appendChild(el);
+      });
+    }
+    return agreementLoad;
+  }
+  const agreement = () => window.ZOE_AGREEMENT || { blocks: [], insert: { lead: '', text: '' }, clauses: [], pii: [] };
+
+  // The agreement as the frontier AI returns it: names and addresses as tokens, figures as dummies.
+  // Recital B and § 9.4 (the parent guaranty the frontier AI added) are tracked insertions.
+  const AG_CLASS = { title: 'ag-title', c: 'ag-c', cb: 'ag-c ag-b', note: 'ag-c ag-note', h: 'ag-h', p: '', sub: 'ag-sub', lines: '', sb: 'ag-sb' };
+  const AG_INS = new Set(['recB', 's94']);
+  function agreementHtml() {
+    const { blocks, pii } = agreement();
+    const order = pii.map(([real], i) => [real, i]).sort((x, y) => y[0].length - x[0].length);
+    const re = order.length ? new RegExp(order.map(([real]) => real.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g') : null;
+    const index = new Map(order);
+    const masked = (text) => {
+      if (!re) return esc(text);
+      let out = '';
+      let last = 0;
+      text.replace(re, (m, at) => {
+        const i = index.get(m);
+        out += `${esc(text.slice(last, at))}<span class="pii is-masked" data-i="${i}">${esc(pii[i][1])}</span>`;
+        last = at + m.length;
+        return m;
+      });
+      return (out + esc(text.slice(last))).replace(/\n/g, '<br>');
+    };
+    return blocks.map(([type, text, lead, id]) => {
+      if (type === 'rule') return '<hr>';
+      const cls = [AG_CLASS[type], AG_INS.has(id) ? 'ins' : ''].filter(Boolean).join(' ');
+      return `<p${cls ? ` class="${cls}"` : ''}${id ? ` data-id="${id}"` : ''}>${lead ? `<b>${masked(lead)}</b>${text ? ' ' : ''}` : ''}${masked(text)}</p>`;
+    }).join('');
+  }
+
+  // The agreement view's scroll position (the page moves with transform; the editor never scrolls).
+  let agY = 0;
+  function agScroll(doc, y, ms) {
+    const from = agY;
+    agY = y;
+    doc.style.transform = `translateY(${-y}px)`;
+    return animate(doc, [{ transform: `translateY(${-from}px)` }, { transform: `translateY(${-y}px)` }], { duration: ms, easing: 'cubic-bezier(0.45, 0, 0.2, 1)' });
+  }
+  // Brings an element of the agreement to `frac` of the way down the view.
+  function agTarget(doc, view, el, frac) {
+    const max = Math.max(0, doc.offsetHeight - view.clientHeight);
+    return Math.max(0, Math.min(max, offsetIn(el, doc).y - frac * view.clientHeight));
+  }
+
+  // "Applying draft edits.": the agreement arrives masked, its first screen writing in, and holds so the
+  // tokens and dummy figures can be read. Then the page runs down the whole agreement, slow at both
+  // ends and fast through the middle, and each token and dummy flips to the real name or figure, in
+  // green, as it crosses the flip line; the restoration is seen all the way through. Then the view
+  // glides back up to Article IX, with § 9.4 (the parent guaranty) in green.
+  const easeInOut = (k) => 0.5 - Math.cos(Math.PI * k) / 2;
+  function flipPii(el) {
+    el.classList.remove('is-masked');
+    el.classList.add('is-real', 'is-flip');
+    el.textContent = el.dataset.k ? PARTIES[el.dataset.k].real : agreement().pii[+el.dataset.i][0];
+  }
+
   async function rehydrate() {
+    await loadAgreement();
+    check();
     const draft = ws('.draft');
+    const view = $('.ag-view', draft);
+    const doc = $('.ag', draft);
+    const cover = $('.ag-cover', draft);
+    doc.innerHTML = agreementHtml();
+    agY = 0;
+    doc.style.transform = '';
+    cover.style.transform = '';
     draft.classList.add('is-in');
-    await motion(800);
-    draft.querySelectorAll('.pii').forEach((el) => {
-      el.classList.remove('is-masked');
-      el.classList.add('is-real');
-      el.textContent = PARTIES[el.dataset.k].real;
+    const h = view.clientHeight;
+    // The first screen writes in, masked.
+    cover.style.transform = `translateY(${h}px)`;
+    await animate(cover, [{ transform: 'translateY(0)' }, { transform: `translateY(${h}px)` }], { duration: FILL_MS, easing: 'linear' });
+    await motion(MASKED_HOLD_MS);
+    // The run down, flipping as it goes. The page grows a little as names replace tokens, so its
+    // height is read on every frame.
+    const pending = Array.from(doc.querySelectorAll('.pii.is-masked'));
+    const flipY = FLIP_AT * h;
+    view.style.setProperty('--flip-y', `${Math.round(flipY)}px`);
+    view.classList.add('is-flipping');
+    doc.classList.add('is-writing');
+    const r = run;
+    await new Promise((resolve) => {
+      const t0 = performance.now();
+      let i = 0;
+      const frame = (now) => {
+        if (r.cancelled) { resolve(); return; }
+        const k = RM || skipping() ? 1 : Math.min(1, (now - t0) / (DRAFT_RUN_MS * MOTION));
+        agY = easeInOut(k) * Math.max(0, doc.offsetHeight - h);
+        doc.style.transform = `translateY(${(-agY).toFixed(1)}px)`;
+        while (i < pending.length && offsetIn(pending[i], doc).y < agY + flipY) flipPii(pending[i++]);
+        if (k < 1) requestAnimationFrame(frame); else resolve();
+      };
+      requestAnimationFrame(frame);
     });
+    check();
+    view.classList.remove('is-flipping');
+    // What is left below the line flips top to bottom, quickly.
+    const rest = pending.filter((el) => el.classList.contains('is-masked'));
+    rest.forEach((el, j) => {
+      const t = later(() => flipPii(el), RM ? 0 : j * 60);
+      run.timers.add(t);
+    });
+    await motion(rest.length * 60 + 700);
+    // Back up to Article IX: from its heading when § 9.4 still shows in the top half; otherwise § 9.4 a third down.
+    const art9 = $('[data-id="art9"]', doc);
+    const s94 = $('[data-id="s94"]', doc);
+    if (art9 && s94) {
+      let y = agTarget(doc, view, art9, 0.02);
+      if (offsetIn(s94, doc).y - y > 0.5 * h) y = agTarget(doc, view, s94, 0.3);
+      await agScroll(doc, y, 1600 * MOTION);
+    }
+    doc.classList.remove('is-writing');
+  }
+
+  // The clause library in the side panel: the earlier buttons and cards give way to the list.
+  function showLibrary() {
+    const list = ws('.clauses ol');
+    list.innerHTML = agreement().clauses.map((c) =>
+      `<li class="clause${c.pick ? ' is-pick' : ''}"><b>${esc(c.title)}</b><span> · ${esc(c.source)}</span></li>`).join('');
+    ws('.side').classList.add('is-library');
+  }
+
+  async function dealClauses() {
+    const items = Array.from(screen.querySelectorAll('.clause'));
+    for (const el of items) {
+      el.classList.add('is-in');
+      await motion(70);
+    }
+    await motion(350);
+  }
+
+  function pickClause() {
+    ws('.clauses').classList.add('has-pick');
+    const el = ws('.clause.is-pick');
+    if (el) el.classList.add('is-picked');
+  }
+
+  // "Inserting now.": the agreement runs to Article IX and § 9.3 takes the [Reserved.] slot between
+  // 9.2 and 9.4 as a green tracked insertion, line by line; it settles with 9.3 and 9.4 both in view.
+  async function insertClause() {
+    const draft = ws('.draft');
+    const view = $('.ag-view', draft);
+    const doc = $('.ag', draft);
+    const slot = $('[data-id="s93"]', doc);
+    if (!slot) return;
+    doc.classList.add('is-writing');
+    await agScroll(doc, agTarget(doc, view, slot, 0.3), 900 * MOTION);
+    slot.classList.add('del');
+    await motion(450);
+    const { insert } = agreement();
+    const words = (t) => t.split(' ').map((w) => `<span class="w">${esc(w)}</span>`).join(' ');
+    const p = document.createElement('p');
+    p.className = 'ins is-typing';
+    p.dataset.id = 's93new';
+    p.innerHTML = `<b>${words(insert.lead)}</b> ${words(insert.text)}`;
+    slot.replaceWith(p);
+    // Group the words into their lines, then show one line at a time.
+    const lines = [];
+    let top = null;
+    p.querySelectorAll('.w').forEach((w) => {
+      if (w.offsetTop !== top) { lines.push([]); top = w.offsetTop; }
+      lines[lines.length - 1].push(w);
+    });
+    lines.forEach((ln, i) => {
+      const t = later(() => ln.forEach((w) => w.classList.add('is-on')), RM ? 0 : (i / lines.length) * INSERT_MS);
+      run.timers.add(t);
+    });
+    await motion(INSERT_MS + 150);
+    lines.forEach((ln) => ln.forEach((w) => w.classList.add('is-on')));
+    p.classList.remove('is-typing');
+    // § 9.3 from its top when § 9.4 also shows; on a narrow column, the end of 9.3 and the start of 9.4.
+    const s94 = $('[data-id="s94"]', doc);
+    let y = agTarget(doc, view, p, 0.03);
+    if (s94 && offsetIn(s94, doc).y - y > 0.75 * view.clientHeight) y = agTarget(doc, view, s94, 0.62);
+    await agScroll(doc, y, 700 * MOTION);
+    doc.classList.remove('is-writing');
   }
 
   // ---------- Pills, inspect, replay ----------
@@ -1977,12 +2184,49 @@ function track(event, data) {
     await zoeSay('apply');
     camera('return');
     // On phones the draft takes the screen at reading zoom; ZOE's line steps aside so nothing covers the laptop.
+    // On desktop the screen comes in large and the cloud, the stream and its label give it the room.
     if (geo.portrait) zoe.classList.remove('is-in');
     cloud.classList.remove('is-busy');
+    if (!geo.portrait) {
+      cloud.classList.add('is-out');
+      stream.classList.remove('is-on');
+      label.classList.remove('is-on');
+    }
     await rehydrate();
     await beat(300);
     await think('caught', false);
     await wait(dwell(LINES.caught));
+
+    // The clause library: back offline, one more clause, found and inserted locally.
+    setStep(4.5);
+    cloud.classList.add('is-out');
+    stream.classList.remove('is-on');
+    label.classList.remove('is-on');
+    if (geo.portrait) camera('zoom');
+    $('.zoe-say', zoe).textContent = '';
+    zoe.classList.add('is-in');
+    await beat(250);
+    await zoeSay('lockdown', false);
+    wifi(false);                                   // OFF again: nothing more leaves the laptop
+    await wait(dwell(LINES.lockdown));
+    await think('sandbag');
+    zoeWorking(true);
+    const library = zoeSay('library', false);
+    showLibrary();
+    await searchBeat(CLAUSE_TOTAL, ws('.side'));
+    await library;
+    zoeWorking(false);
+    const top10 = zoeSay('top10', false);
+    await dealClauses();
+    await top10;
+    await wait(dwell(LINES.top10));
+    const thatOne = think('thatOne', false);
+    pickClause();
+    await thatOne;
+    await wait(dwell(LINES.thatOne));
+    await zoeSay('inserting', false);
+    await insertClause();
+    await wait(dwell(LINES.inserting));
     if (RM) await gesture('act5', 0, async () => {});
 
     // Act V — ten minutes are up
@@ -2121,6 +2365,7 @@ function track(event, data) {
   // Exposed for tools/shots.spec.js and for tuning in the console.
   window.__zoeHero = {
     get act() { return act; },
+    get step() { return step; },
     get gesture() { return gestureNow ? gestureNow.name : (RM && pills.querySelector('.pill') ? 'next' : null); },
     get progress() { return progress; },
     get framesReady() { return allReady; },
