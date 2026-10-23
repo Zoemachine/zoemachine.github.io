@@ -60,7 +60,7 @@
                         </div>
                         <div class="calendar-grid" id="cal-grid"></div>
                     </div>
-                    <p class="calendar-hint">Select a weekday (Mon&ndash;Fri) for your demo.</p>
+                    <p class="calendar-hint">Select a weekday (Mon&ndash;Fri) for your demo. Demos are available from December 1, 2026.</p>
                 </div>
 
                 <!-- Step 2: Time Slots -->
@@ -127,7 +127,15 @@
         const MONTHS = ['January','February','March','April','May','June',
                         'July','August','September','October','November','December'];
 
-        let currentMonth = new Date();
+        // No demos before this date (William, 2026-10-23); the calendar opens on its month.
+        const FIRST_DEMO_DAY = new Date(2026, 11, 1);
+        const earliest = () => {
+            const t = new Date();
+            const today = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+            return today > FIRST_DEMO_DAY ? today : FIRST_DEMO_DAY;
+        };
+
+        let currentMonth = new Date(earliest());
         currentMonth.setDate(1);
 
         let selectedDate = null;
@@ -146,9 +154,9 @@
 
             monthYear.textContent = `${MONTHS[month]} ${year}`;
 
-            // Disable prev if current month is this month
-            const now = new Date();
-            prevBtn.disabled = (year === now.getFullYear() && month === now.getMonth());
+            // Disable prev on the first month with bookable days
+            const first = earliest();
+            prevBtn.disabled = (year === first.getFullYear() && month === first.getMonth());
 
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -174,7 +182,7 @@
                 btn.type = 'button';
 
                 const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                const isPast = date < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                const isPast = date < first;
                 const isToday = date.toDateString() === today.toDateString();
                 const isSelected = selectedDate && date.toDateString() === selectedDate.toDateString();
 
