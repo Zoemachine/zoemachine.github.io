@@ -1296,6 +1296,33 @@ body {
 .phone.is-locked .phone-cue,
 .phone.is-bumped .phone-cue { opacity: 0; }
 
+/* Portrait: the arrow turns toward the paper (hero.js aimCue) and pokes along its own line. */
+.phone-cue.is-aimed { animation: none; }
+.cue-arrow {
+  display: inline-block;
+  width: 0.8em;
+  height: 1.05em;
+  margin-left: 0.15em;
+  vertical-align: -0.15em;
+  transform: rotate(var(--cue-a, 0deg));
+}
+.cue-arrow svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px rgba(120, 180, 255, 0.95));
+  animation: cue-poke 1.4s ease-in-out infinite;
+}
+@keyframes cue-poke {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
 @keyframes nudge-left {
   0%, 100% { transform: translateX(0); }
   50% { transform: translateX(-6px); }

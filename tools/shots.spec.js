@@ -266,6 +266,17 @@ test('Act I: a bare stage, the chat dead centre, then the strip moves and the pa
   expect(await opacity(page, '.scene')).toBe(0);
   await shot(page, info, 'act1-phone-in');
   await shot(page, info, 'act1');
+  // The drag cue: on phones its arrow points at the paper, up and to the left; desktop's reads "Drag ←".
+  if (info.project.use.hasTouch) {
+    const a = await page.$eval('.phone-cue', (el) => parseFloat(el.style.getPropertyValue('--cue-a')));
+    expect(a).toBeLessThan(-10);
+    expect(a).toBeGreaterThan(-80);
+    expect(await page.locator('.phone-cue').textContent()).toBe('Drag ');
+    await expect(page.locator('.phone-cue .cue-arrow svg')).toHaveCount(1);
+  } else {
+    await expect(page.locator('.phone-cue')).toHaveText('Drag ←');
+  }
+  await page.locator('.phone').screenshot({ path: path.join(SHOTS, `${info.project.name}-act1-cue.png`) }).catch(() => {});
   // The term sheet describes the same deal as the agreement: a merger, not a stock purchase.
   await expect(page.locator('.sheet')).toContainText('Structure. Merger of a wholly owned subsidiary of Buyer with and into the Company, with the Company surviving; stockholders receive cash at closing.');
   await page.locator('.sheet').screenshot({ path: path.join(SHOTS, `${info.project.name}-act1-sheet-structure.png`) });
@@ -381,20 +392,42 @@ test('Act II: the lid scrubs under the finger, mid-scrub and open', async ({ pag
   const p = await lidPoint(page);
   const d = await startDrag(page, info, p);
   const stop = await startFpsProbe(page);
+  // Touch: 160 px past the slop = 50% of 320. A mouse opens the lid by itself from 50%, so it holds at 45%.
+  const lift = info.project.use.hasTouch ? 160 : 144;
   await dragPath(d, p, { x: p.x, y: p.y - 8 }, 2);
-  await dragPath(d, { x: p.x, y: p.y - 8 }, { x: p.x, y: p.y - 168 }, 40); // 160 px past the slop = 50% of 320
+  await dragPath(d, { x: p.x, y: p.y - 8 }, { x: p.x, y: p.y - 8 - lift }, 40);
   metrics.lid_scrub = await stop();
   const lag = await hero(page, 'progress');
   await page.waitForTimeout(400); // the lid catches up with the finger
   metrics.lid_trail = +lag.toFixed(3);
   const mid = await hero(page, 'progress');
-  expect(mid).toBeGreaterThan(0.45);
-  expect(mid).toBeLessThan(0.55);
+  expect(mid).toBeGreaterThan(lift / 320 - 0.05);
+  expect(mid).toBeLessThan(lift / 320 + 0.05);
   await shot(page, info, 'act2-midscrub');
   await d.end();
   await waitGesture(page, 'mark', 8000);
   await page.waitForTimeout(1000);
   await shot(page, info, 'act2-open');
+});
+
+test('Act II, mouse: held past half the lift, the lid opens without a release; held below, it waits', async ({ page }, info) => {
+  test.skip(!isWide(info), 'touch keeps the release rule');
+  await toLid(page);
+  const p = await lidPoint(page);
+  const d = await startDrag(page, info, p);
+  // Below the commit point, held: the lid stays where the hand left it.
+  await dragPath(d, p, { x: p.x, y: p.y - 8 - 112 }, 20); // 35%
+  await page.waitForTimeout(1500);
+  expect(await hero(page, 'progress')).toBeLessThan(0.45);
+  expect(await hero(page, 'gesture')).toBe('lid');
+  // On to 55% and still held: it finishes opening by itself.
+  await dragPath(d, { x: p.x, y: p.y - 8 - 112 }, { x: p.x, y: p.y - 8 - 176 }, 12);
+  const t0 = Date.now();
+  await page.waitForFunction(() => window.__zoeHero.progress === 1, null, { timeout: 4000 });
+  metrics.lid_mouse_commit_ms = Date.now() - t0;
+  await shot(page, info, 'act2-mouse-commit');
+  await d.end();
+  await waitGesture(page, 'mark', 8000);
 });
 
 test('Act II: release below 40% snaps shut; a quick flick opens', async ({ page }, info) => {

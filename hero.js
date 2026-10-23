@@ -147,6 +147,7 @@ function track(event, data) {
   const DRAG_FULL_PX = 320;    // upward travel for a full open: a real lid's lift, not a switch
   const DRAG_FOLLOW = 0.25;    // per frame, the lid closes this share of the gap to the finger
   const SNAP_AT = 0.4;         // release past this opens, below shuts
+  const MOUSE_COMMIT_AT = 0.5; // mouse or trackpad: past this (about 45 degrees) the lid opens without a release
   const PLAY_MS = 1800;        // tap / click / wheel / key: frames 1 -> 45, ease-in-out
   const RELEASE_MS = 1200;     // after a drag: finish opening, or settle shut, ease-out
   const IDLE_FIRST_MS = 18000; // gesture 1 auto-performs after this long with no input
@@ -780,6 +781,7 @@ function track(event, data) {
     place(sheet, g.sheet.x, g.sheet.y, g.sheet.w, g.sheet.h);
     fitPaper(g.sheet.w);
     place(phone, g.phone.x, g.phone.y, g.phone.w, g.phone.h);
+    if (portrait) aimCue();
     phone.style.setProperty('--enter-x', `${Math.round(g.enter.x)}px`);
     phone.style.setProperty('--enter-y', `${Math.round(g.enter.y)}px`);
     // Viewfinder offset: the paper's position relative to the phone's screen at the dock (see .phone-view).
@@ -1008,12 +1010,27 @@ function track(event, data) {
     return { x: geo.phone.x + geo.phone.w / 2 + phoneOff.x, y: geo.phone.y + geo.phone.h / 2 + phoneOff.y };
   }
 
+  // On portrait the paper sits up and to the left of the phone: the cue's arrow is drawn (glyph arrows
+  // render as emoji on some phones) and turned to point at the paper's middle.
+  const CUE_ARROW = '<span class="cue-arrow" aria-hidden="true"><svg viewBox="0 0 12 16"><path d="M6 15V2.5M1.5 7 6 2.5 10.5 7"/></svg></span>';
+  function aimCue() {
+    const cue = $('.phone-cue', phone);
+    if (!cue || !geo || !geo.portrait) return;
+    const dx = (geo.sheet.x + geo.sheet.w / 2) - (geo.phone.x + geo.phone.w / 2);
+    const dy = (geo.sheet.y + geo.sheet.h / 2) - (geo.phone.y + geo.phone.h / 2);
+    const deg = Math.max(-80, Math.min(0, (Math.atan2(dx, -dy) * 180) / Math.PI));
+    cue.style.setProperty('--cue-a', `${deg.toFixed(1)}deg`);
+  }
+
   function setCue() {
     const cue = $('.phone-cue', phone);
     if (!cue) return;
     const p = geo.portrait;
     // The one cue is the first drag; after the shutter the phone moves on its own.
-    cue.textContent = p ? 'Drag ↑' : 'Drag ←';
+    if (p) cue.innerHTML = `Drag ${CUE_ARROW}`;
+    else cue.textContent = 'Drag ←';
+    cue.classList.toggle('is-aimed', p);
+    aimCue();
     phone.classList.toggle('cue-on', false);
   }
 
@@ -1492,7 +1509,18 @@ function track(event, data) {
     drag.lastY = e.clientY;
     drag.lastT = now;
     if (!followRaf) followRaf = requestAnimationFrame(follow);
+    // A mouse or trackpad held past about 45 degrees: the lid finishes opening by itself, as if released
+    // there (some visitors never let go). Touch keeps the release rule.
+    if (drag.type === 'mouse' && dragTarget >= MOUSE_COMMIT_AT) commitDrag(e);
   });
+
+  function commitDrag(e) {
+    drag = null;
+    if (followRaf) cancelAnimationFrame(followRaf);
+    followRaf = 0;
+    try { lidHit.releasePointerCapture(e.pointerId); } catch (_) { /* capture is best-effort */ }
+    gestureNow && gestureNow.name === 'lid' && gestureNow.perform('drag-mouse');
+  }
 
   function endDrag(e, cancelled) {
     if (!drag || e.pointerId !== drag.id) return;
