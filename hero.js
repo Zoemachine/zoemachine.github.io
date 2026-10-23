@@ -85,9 +85,9 @@ const TEMPLATE_TOTAL = 2500; // the firm's golden templates
 
 // Spoken lines. *word* pops when it lands; [ORG_n] renders as a token.
 const LINES = {
-  jimmy1:  "Bob. They're buying us out, here's the term sheet, can you throw a first draft together?",
+  jimmy1:  "Bob. They're buying us out, here's the term sheet, can you throw a draft together?",
   bob1:    "Right now? We're in *THEIR OFFICE*.",
-  jimmy2:  'Perfect opportunity with everyone in the same room. You have *10 MINUTES*, I know I can count on you.',
+  jimmy2:  'Perfect opportunity with everyone in the same room. You have *10 MINUTES*.',
   snapped: 'Picture taken. Into the laptop.',
   noTrust: "I don't trust their Wi-Fi. Going local.",
   wifiOff: "Wi-Fi off. Let's go.",
@@ -171,7 +171,6 @@ function track(event, data) {
   const PORTRAIT_SCREEN_UP = 282;  // the returning draft: the screen's top edge, back at reading zoom
   const LAPTOP_BASE = 0.86;    // the open laptop's base, as a share of the frame height (lid_45)
   const SHEET_TYPE = 0.025;    // the paper's type size, as a share of its width: a full page of small type
-  const SKIP_SHOW_MS = 10000;   // the skip button fades in this long after load
   const HANDOVER_BEAT_MS = 400; // after the laptop lands, before the phone moves to it
   const CAPTURE_HOLD_MS = 1100; // the captured page shows in the phone before the laptop comes in
   const LAPTOP_IN_MS = 1100;    // the laptop's slide in from the right (the .scene translate in styles.css)
@@ -576,6 +575,8 @@ function track(event, data) {
   function setAct(n) {
     act = n;
     if (skipTo && n >= skipTo) stopSkip();
+    // The skip button fades in once the lid is open and the workspace is up (Act III) and stays.
+    if (!RM) skipBtn.classList.toggle('is-in', n >= 3 && !storyEndedAt);
     stage.dataset.act = String(n);
     dots.forEach((d, i) => {
       d.classList.toggle('is-on', i === n - 1);
@@ -2008,7 +2009,6 @@ function track(event, data) {
   function start() {
     cancelRun();
     stopSkip();
-    if (skipShown) skipBtn.classList.add('is-in');
     run = { id: run.id + 1, cancelled: false, timers: new Set() };
     phoneStage = 0;
     locked = false;
@@ -2104,15 +2104,10 @@ function track(event, data) {
     if (e.key === 'Escape' && /^#(privacy|terms)$/.test(location.hash)) location.hash = 'site-footer';
   });
 
-  // The skip button: quiet, it fades in ten seconds after load (not under reduced motion, where the
-  // Next pill is the step control). It never unlocks the page.
+  // The skip button: quiet, it fades in at the start of Act III, once the lid is open (see setAct; not
+  // under reduced motion, where the Next pill is the step control). It never unlocks the page.
   const skipBtn = $('.skip-step', stage);
-  let skipShown = false;
   if (!RM) {
-    setTimeout(() => {
-      skipShown = true;
-      if (!storyEndedAt) skipBtn.classList.add('is-in');
-    }, SKIP_SHOW_MS);
     skipBtn.addEventListener('click', (e) => {
       e.preventDefault();
       skipStep();

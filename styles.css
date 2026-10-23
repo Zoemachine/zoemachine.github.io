@@ -1578,11 +1578,12 @@ body {
   background: none;
   cursor: pointer;
   opacity: 0;
+  visibility: hidden;   /* out of the tab order until it shows */
   pointer-events: none;
-  transition: opacity 0.8s ease, color 0.2s ease;
+  transition: opacity 0.8s ease, color 0.2s ease, visibility 0s linear 0.8s;
 }
 
-.skip-step.is-in { opacity: 1; pointer-events: auto; }
+.skip-step.is-in { opacity: 1; visibility: visible; pointer-events: auto; transition-delay: 0s; }
 .skip-step:hover { color: rgba(230, 235, 242, 0.82); }
 .skip-step:focus-visible { outline: 1px solid rgba(156, 201, 255, 0.6); outline-offset: 1px; color: rgba(230, 235, 242, 0.85); }
 

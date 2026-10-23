@@ -108,8 +108,8 @@ const out = outArg || path.join(__dirname, '..', 'shots', `${viewName}-run-${mod
     await page.waitForFunction(() => window.__zoeHero.gesture === 'lid', null, { timeout: 15000 });
     await page.waitForTimeout(1500);
   } else if (mode === 'skip') {
-    // A returning visitor: skip appears at 10 s, then a press about every 1.5 s runs the demo to its end.
-    await page.waitForFunction(() => document.querySelector('.skip-step').classList.contains('is-in'), null, { timeout: 15000 });
+    // A returning visitor: skip appears at the start of Act III, then a press about every 1.5 s runs the demo to its end.
+    await page.waitForFunction(() => document.querySelector('.skip-step').classList.contains('is-in'), null, { timeout: 180000 });
     await page.waitForTimeout(1200);
     trimBefore = Date.now() / 1000 - 0.6;
     for (let i = 0; i < 8; i += 1) {

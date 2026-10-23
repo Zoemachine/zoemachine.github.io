@@ -212,7 +212,7 @@ test('Act I: a bare stage, the chat dead centre, then the strip moves and the pa
   expect(await opacity(page, '.brand')).toBe(1);
   await page.waitForFunction(() => {
     const m = document.querySelectorAll('.strip .msg');
-    return m.length === 3 && m[2].textContent.endsWith('I know I can count on you.');
+    return m.length === 3 && m[2].textContent.endsWith('You have 10 MINUTES.');
   }, null, { timeout: 12000 });
   metrics.act1_chat_ms = Math.round((await page.evaluate(() => performance.now())) - t0);
   // The longer Act I lines of 2026-10-22 type in about 8.8 s at the same speed; the limit moved, not the pace.
@@ -569,24 +569,36 @@ test('Act V: one button and Replay; the button unlocks and lands on the comparis
   }
 });
 
-test('skip: quiet, after 10 s; each press jumps a step; spam reaches the end pills; never unlocks', async ({ page }, info) => {
-  test.setTimeout(120000);
+test('skip: none before the lid opens, quiet from Act III; each press jumps a step; spam reaches the end pills; never unlocks', async ({ page }, info) => {
+  test.setTimeout(150000);
   const events = [];
   page.on('console', (m) => { const t = m.text(); if (t.startsWith('[track] skip')) events.push(t); });
+  const hidden = () => page.$eval('.skip-step', (e) => !e.classList.contains('is-in')
+    && getComputedStyle(e).opacity === '0' && getComputedStyle(e).visibility === 'hidden');
   await open(page);
   const btn = page.locator('.skip-step');
   await expect(btn).toHaveAttribute('aria-label', 'Skip to the next step');
-  await page.waitForTimeout(5000);
-  expect(await btn.evaluate((e) => getComputedStyle(e).opacity)).toBe('0');
-  await page.waitForFunction(() => document.querySelector('.skip-step').classList.contains('is-in'), null, { timeout: 8000 });
+  // Acts I and II, past the old 10 s mark: no skip.
+  await page.waitForTimeout(11000);
+  expect(await hero(page, 'act')).toBeLessThan(3);
+  expect(await hidden()).toBe(true);
+  await runTo(page, 'lid');
+  await page.waitForFunction(() => window.__zoeHero.framesReady, null, { timeout: 20000 });
+  expect(await hidden()).toBe(true);
+  await page.evaluate(() => window.__zoeHero.perform('tap'));
+  await page.waitForFunction(() => window.__zoeHero.progress === 1, null, { timeout: 4000 });
+  expect(await hidden()).toBe(true);
+  // Act III: it fades in.
+  await page.waitForFunction(() => window.__zoeHero.act === 3, null, { timeout: 15000 });
+  await expect(btn).toHaveClass(/is-in/);
   await page.waitForTimeout(900);
   await page.locator('.stage').screenshot({ path: path.join(SHOTS, `${info.project.name}-skip-button.png`) });
-  // One press: the rest of Act I happens at once, and Act II waits for the lid.
+  // One press: the rest of Act III happens at once, and it stays for Act IV.
   await btn.click({ force: true });
-  await waitGesture(page, 'lid', 8000);
-  expect(await hero(page, 'act')).toBe(2);
-  // Five quick presses take it the rest of the way.
-  for (let i = 0; i < 5; i += 1) await btn.click({ force: true });
+  await page.waitForFunction(() => window.__zoeHero.act === 4, null, { timeout: 15000 });
+  await expect(btn).toHaveClass(/is-in/);
+  // Quick presses take it the rest of the way.
+  for (let i = 0; i < 3; i += 1) await btn.click({ force: true });
   await page.waitForFunction(() => window.__zoeHero.ended > 0, null, { timeout: 30000 });
   expect(await page.$$eval('.pills .pill', (els) => els.map((e) => e.textContent))).toEqual(['Why is ZOE AI different?', 'Replay']);
   expect(await page.$eval('.draft', (el) => el.textContent)).toContain('Meridian Holdings LLC (Parent Guarantor)');
@@ -594,15 +606,17 @@ test('skip: quiet, after 10 s; each press jumps a step; spam reaches the end pil
   expect(await hero(page, 'locked')).toBe(true);
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   expect(events.length).toBeGreaterThanOrEqual(2);
-  expect(events[0]).toContain('act: 1');
+  expect(events[0]).toContain('act: 3');
   await shot(page, info, 'skip-end');
-  // Keyboard: Tab reaches it after Replay.
+  // Replay: gone again until Act III, then Enter on it works.
   await page.locator('.pill', { hasText: 'Replay' }).click();
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(1200);
+  expect(await hidden()).toBe(true);
+  await runTo(page, 'mark');
   await expect(btn).toHaveClass(/is-in/);
   await btn.focus();
   await page.keyboard.press('Enter');
-  await waitGesture(page, 'lid', 8000);
+  await page.waitForFunction(() => window.__zoeHero.act === 4, null, { timeout: 15000 });
 });
 
 test('the hero is its own screen: wheel, touch and keys do not scroll it', async ({ page }, info) => {
