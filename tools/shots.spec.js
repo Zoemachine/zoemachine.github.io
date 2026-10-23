@@ -450,8 +450,32 @@ test('Acts III-IV: Wi-Fi OFF before ZOE speaks, marking, scrub, ON after "Data c
   await waitGesture(page, 'scrub');
   await page.waitForTimeout(1300);
   await shot(page, info, 'act3-ready');
+  // Every time the editor moves to another screen, nothing on the screen it leaves is still amber, and
+  // its last item changed at least 0.4 s before (so no change is lost in the move).
+  await page.evaluate(() => {
+    window.__moves = [];
+    let lastFlip = 0;
+    const ed = document.querySelector('.editor');
+    const pg = document.querySelector('.editor > .ed-page');
+    new MutationObserver((ms) => {
+      if (ms.some((m) => m.target.classList && m.target.classList.contains('is-masked'))) lastFlip = performance.now();
+    }).observe(pg, { subtree: true, attributes: true, attributeFilter: ['class'] });
+    new MutationObserver(() => {
+      const v = ed.getBoundingClientRect();
+      const amber = Array.from(pg.querySelectorAll('.pii.is-amber')).filter((el) => {
+        const r = el.getBoundingClientRect();
+        return r.bottom > v.top + 4 && r.top < v.bottom - 4;
+      }).map((el) => el.dataset.k);
+      window.__moves.push({ amber, sinceFlip: lastFlip ? Math.round(performance.now() - lastFlip) : null });
+    }).observe(pg, { attributes: true, attributeFilter: ['style'] });
+  });
   await page.locator('.btn-scrub').click();
   await page.waitForFunction(() => Array.from(document.querySelectorAll('.editor > .ed-page .pii')).every((e) => e.classList.contains('is-masked')), null, { timeout: 15000 });
+  await page.waitForFunction(() => !document.querySelector('.editor > .ed-page').style.transform, null, { timeout: 8000 });
+  const moves = await page.evaluate(() => window.__moves);
+  expect(moves.length).toBeGreaterThan(0);
+  moves.forEach((m) => expect(m.amber).toEqual([]));
+  moves.filter((m) => m.sinceFlip !== null).forEach((m) => expect(m.sinceFlip).toBeGreaterThanOrEqual(400));
   await page.waitForTimeout(500);
   await shot(page, info, 'act4-scrub');
   const masked = await page.$$eval('.editor > .ed-page .pii', (els) => els.map((e) => e.textContent));
@@ -481,6 +505,11 @@ test('Act IV: ZOE finds and redacts, the cloud speaks the catch and the fix, the
   await startJournal(page);
   await runTo(page, 'scrub');
   await page.evaluate(() => window.__zoeHero.perform('click'));
+  // ZOE names the real party on the laptop; the token, as a chip, is what the cloud sees.
+  await page.waitForFunction(() => document.querySelector('.zoe-say').textContent.endsWith('The cloud sees [ORG_5].'), null, { timeout: 40000 });
+  expect(await page.locator('.zoe-say').textContent()).toContain('Meridian Acquisition LLC');
+  await expect(page.locator('.zoe-say .pii.is-masked')).toHaveText('[ORG_5]');
+  await shot(page, info, 'act4-search-named');
   // Six pages, each scrubbed line by line, then sent: about 5 s in all.
   await page.waitForFunction(() => document.querySelector('.page6.is-in'), null, { timeout: 15000 });
   const t0 = Date.now();
@@ -494,6 +523,9 @@ test('Act IV: ZOE finds and redacts, the cloud speaks the catch and the fix, the
   expect(metrics.six_pages_ms).toBeLessThan(6500);
   expect(await page.locator('.page6 i.is-on').count()).toBe(48);
   expect(await page.locator('.zoe-say').textContent()).toContain('Found 25 paragraphs across 6 files. Redacting.');
+  // Before that, ZOE named the real party on the laptop while the cloud saw only the token.
+  const asked = await page.evaluate(() => window.__journal.filter((e) => e.k === 'line').map((e) => e.v));
+  expect(asked).toContain('ZOE: Searching the vault for Meridian Acquisition LLC. The cloud sees [ORG_5].');
   await page.waitForFunction(() => document.querySelector('.cloud-say').textContent.includes('empty shell'), null, { timeout: 20000 });
   await page.waitForTimeout(900);
   await shot(page, info, 'act4-catch');
@@ -560,7 +592,7 @@ test('Act IV: ZOE finds and redacts, the cloud speaks the catch and the fix, the
   await shot(page, info, 'act4-article5');
   await page.waitForFunction(() => window.__journal.some((e) => e.k === 'line' && e.v.includes('Caught it')), null, { timeout: 15000 });
   const lines = (await page.evaluate(() => window.__journal)).filter((e) => e.k === 'line').map((e) => e.v);
-  const order = ['ZOE: Searching the vault…', 'ZOE: Found 25 paragraphs across 6 files. Redacting.', 'ZOE: Sent.',
+  const order = ['ZOE: Searching the vault for Meridian Acquisition LLC. The cloud sees [ORG_5].', 'ZOE: Found 25 paragraphs across 6 files. Redacting.', 'ZOE: Sent.',
     'Frontier AI: [ORG_5] is an empty shell. [ORG_6] is the parent, and it is not in this deal.',
     'Frontier AI: Adding the parent [ORG_6] as a party, it should make reps and warranties along with its subsidiary [ORG_5].', 'Frontier AI: Receiving suggestions.',
     "ZOE: Received. Wi-Fi no longer needed. We're locked down.", 'ZOE: Applying draft edits.',

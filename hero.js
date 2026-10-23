@@ -98,7 +98,7 @@ const LINES = {
   cleaned: 'Data cleaned. Wi-Fi on.',
   toCloud: 'Masked term sheet, template, playbook. Draft the agreement.',
   ask:     'Drafting. Who is [ORG_5]? Send what you have.',
-  search:  'Searching the vault…',
+  search:  'Searching the vault for Meridian Acquisition LLC. The cloud sees [ORG_5].',
   redact6: 'Found 25 paragraphs across 6 files. Redacting.',
   sent:    'Sent.',
   catch:   '[ORG_5] is an empty shell. [ORG_6] is the parent, and it is not in this deal.',
@@ -1609,22 +1609,39 @@ function track(event, data) {
       const off = Math.min(i * step, Math.max(0, total - viewH));
       if (i > 0) {
         page.style.transform = `translateY(${-off}px)`;
-        await wait(SCROLL_MS);
+        await wait(SCROLL_MS + 40);
       }
       bar.classList.remove('is-running');
       void bar.offsetWidth;
       bar.classList.add('is-running');
+      // Every item showing on this screen, even in part, changes as the bar reaches where it starts. What
+      // shows is measured on the screen itself: masks are shorter than names, so the sheet reflows as it
+      // goes. A name that wraps is timed from its first line (its full box spans both lines and would put
+      // it past the bar's run), and the last change lands well before the screen moves on.
+      const box = editor.getBoundingClientRect();
+      const top = ws('.editor > .ed-bar').getBoundingClientRect().bottom;
+      const showing = (el) => {
+        const r = el.getBoundingClientRect();
+        return r.bottom > top + 1 && r.top < box.bottom - 1;
+      };
       items.forEach((el) => {
-        if (done.has(el)) return;
-        const o = offsetIn(el, page);
-        const mid = o.y + o.h / 2;
-        if (mid < off || mid > off + viewH) return; // not on this screen
+        if (done.has(el) || !showing(el)) return;
         done.add(el);
-        const t = later(() => apply(el), ((o.x + o.w * 0.5) / ew) * SWEEP_MS);
+        const first = el.getClientRects()[0] || el.getBoundingClientRect();
+        const at = Math.min(0.85, Math.max(0, (first.left + Math.min(first.width, 40) / 2 - box.left) / box.width));
+        const t = later(() => apply(el), at * SWEEP_MS);
         run.timers.add(t);
       });
-      await wait(SWEEP_MS + 150);
+      await wait(SWEEP_MS + 450);
       bar.classList.remove('is-running');
+      // An item that rose into view as the lines above it got shorter changes too, before the screen moves.
+      const risen = items.filter((el) => !done.has(el) && showing(el));
+      risen.forEach((el, j) => {
+        done.add(el);
+        const t = later(() => apply(el), j * 120);
+        run.timers.add(t);
+      });
+      if (risen.length) await wait(risen.length * 120 + 450);
     }
     items.forEach((el) => { if (!done.has(el)) apply(el); });
     if (passes > 1) {
