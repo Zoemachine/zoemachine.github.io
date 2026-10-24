@@ -102,7 +102,7 @@ const LINES = {
   sent:    'Sent.',
   catch:   '[ORG_5] is an empty shell. [ORG_6] is the parent, and it is not in this deal.',
   fix:     'Adding the parent [ORG_6] as a party, it should make reps and warranties along with its subsidiary [ORG_5].',
-  back:    'Receiving suggestions.',
+  back:    'Sending suggestions.',
   apply:   'Applying draft edits.',
   caught:  'They left the parent off the hook. Caught it.',
   lockdown: "Received. Wi-Fi no longer needed. We're locked down.",

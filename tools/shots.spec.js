@@ -643,7 +643,7 @@ test('Act IV: ZOE finds and redacts, the cloud speaks the catch and the fix, the
   const lines = (await page.evaluate(() => window.__journal)).filter((e) => e.k === 'line').map((e) => e.v);
   const order = ['ZOE: Searching the vault for Meridian Acquisition LLC. The cloud sees [ORG_5].', 'ZOE: Found 25 paragraphs across 6 files. Redacting.', 'ZOE: Sent.',
     'Frontier AI: [ORG_5] is an empty shell. [ORG_6] is the parent, and it is not in this deal.',
-    'Frontier AI: Adding the parent [ORG_6] as a party, it should make reps and warranties along with its subsidiary [ORG_5].', 'Frontier AI: Receiving suggestions.',
+    'Frontier AI: Adding the parent [ORG_6] as a party, it should make reps and warranties along with its subsidiary [ORG_5].', 'Frontier AI: Sending suggestions.',
     "ZOE: Received. Wi-Fi no longer needed. We're locked down.", 'ZOE: Applying draft edits.',
     'Bob (thinking): They left the parent off the hook. Caught it.'];
   const at = order.map((l) => lines.indexOf(l));
